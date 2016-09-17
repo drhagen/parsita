@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from parsita.regex_parsers import RegexParsers, Success, Failure, reg, lit, opt, rep, rep1, repsep, rep1sep
+from parsita import *
 
 
 class LiteralTestCase(TestCase):

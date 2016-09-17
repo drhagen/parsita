@@ -1,185 +1,13 @@
-from typing import Generic, Sequence, TypeVar, Union, Callable, Optional
-import inspect
+import re
+from typing import Generic, Sequence, Union, Callable
 from types import MethodType
-import builtins
 
-Input = TypeVar('Input')
-Output = TypeVar('Output')
-Convert = TypeVar('Convert')
-Left = TypeVar('Left')
-Right = TypeVar('Right')
-
-
-class Reader(Generic[Input]):
-    first = NotImplemented
-    rest = NotImplemented
-    position = NotImplemented
-    finished = NotImplemented
-
-    def __repr__(self):
-        if self.finished:
-            return "Reader(finished)"
-        else:
-            return "Reader({}@{})".format(self.first, self.position)
-
-
-class SequenceReader(Reader):
-    def __init__(self, source: Sequence[Input], position: int = 0):
-        self.source = source
-        self.position = position
-
-    @property
-    def first(self):
-        return self.source[self.position]
-
-    @property
-    def rest(self):
-        return SequenceReader(self.source, self.position + 1)
-
-    @property
-    def finished(self):
-        return self.position >= len(self.source)
-
-
-class Result(Generic[Output]):
-    pass
-
-
-class Success(Generic[Output], Result[Output]):
-    def __init__(self, value):
-        self.value = value
-
-    def __eq__(self, other):
-        if isinstance(other, Success):
-            return self.value == other.value
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
-    def __repr__(self):
-        return "Success({})".format(self.value)
-
-
-class Failure(Generic[Output], Result[Output]):
-    def __init__(self, message: str):
-        self.message = message
-
-    def __eq__(self, other):
-        if isinstance(other, Failure):
-            return self.message == other.message
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
-    def __repr__(self):
-        return "Failure({})".format(self.message)
-
-
-class Status(Generic[Input, Output]):
-    farthest = None  # type: Optional[int]
-    message = NotImplemented  # type: Callable[[], str]
-
-    def merge(self, status: 'Status[Input, None]'):
-        raise NotImplementedError()
-
-
-class Continue(Generic[Input, Output], Status[Input, Output]):
-    def __init__(self, value: Output, remainder: Reader[Input]):
-        self.value = value
-        self.remainder = remainder
-
-    def merge(self, status: Status[Input, None]):
-        if status is not None and status.farthest is not None \
-                and (self.farthest is None or status.farthest >= self.farthest) \
-                and status.farthest >= self.remainder.position:
-            self.farthest = status.farthest
-            self.message = status.message
-        return self
-
-    def __eq__(self, other):
-        if isinstance(other, Continue):
-            return self.value == other.value and self.remainder == other.remainder
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
-    def __repr__(self):
-        return "Continue({}, {})".format(self.value, self.remainder)
-
-
-class Backtrack(Generic[Input], Status[Input, None]):
-    def __init__(self, farthest: int, message: Callable[[], str]):
-        self.farthest = farthest
-        self.message = message
-
-    def merge(self, status: Status[Input, None]):
-        if status is not None and status.farthest is not None and \
-                (self.farthest is None or status.farthest >= self.farthest):
-            self.farthest = status.farthest
-            self.message = status.message
-        return self
-
-    def __eq__(self, other):
-        if isinstance(other, Backtrack):
-            return self.farthest == other.farthest and self.message == other.message
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
-    def __repr__(self):
-        return "Backtrack({})".format(self.message())
-
-
-class Stop(Generic[Input], Status[Input, None]):
-    def __init__(self, message: Callable[[], str], remainder: Reader[Input]):
-        self.farthest = remainder.position
-        self.message = message
-        self.remainder = remainder
-
-    def merge(self, status: Status[Input, None]):
-        return self
-
-    def __eq__(self, other):
-        if isinstance(other, Stop):
-            return self.farthest == other.farthest and self.message == other.message
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
-    def __repr__(self):
-        return "Stop({})".format(self.message())
+from . import options
+from .state import *
 
 
 def wrap_literal(literal):
     return LiteralParser(literal)
-
-# Global mutable state controlling the handling of literals during parser construction
-_handle_literal = wrap_literal
 
 
 def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
@@ -197,13 +25,10 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
     else:
         return Failure(result.message())
 
-# Global mutable state controlling the parse function of all constructed parsers
-_parse_method = basic_parse
-
 
 class Parser(Generic[Input, Output]):
     def __init__(self):
-        self.parse = MethodType(_parse_method, self)
+        self.parse = MethodType(options.parse_method, self)
 
     def consume(self, reader: Reader[Input]):
         raise NotImplementedError()
@@ -232,7 +57,7 @@ class Parser(Generic[Input, Output]):
         if isinstance(obj, Parser):
             return obj
         else:
-            return _handle_literal(obj)
+            return options.handle_literal(obj)
 
     def __or__(self, other) -> 'AlternativeParser':
         other = self.handle_other(other)
@@ -304,11 +129,61 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         return self.name_or_nothing() + repr(self.pattern)
 
 
+class LiteralStringParser(Parser[str, str]):
+    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):
+        super().__init__()
+        self.whitespace = whitespace
+        self.pattern = pattern
+
+    def consume(self, reader: StringReader):
+        if self.whitespace is not None:
+            status = self.whitespace.consume(reader)
+            reader = status.remainder
+
+        if reader.source.startswith(self.pattern, reader.position):
+            return Continue(self.pattern, reader.drop(len(self.pattern)))
+        else:
+            return Backtrack(reader.position,
+                lambda: '{} expected but {} found at {}'.format(self.pattern, reader.next_word(), reader.position))
+
+    def __repr__(self):
+        return "'{}'".format(self.pattern)
+
+
 def lit(lit1, *lits):
     if len(lits) > 0:
-        return AlternativeParser(_handle_literal(lit1), *map(_handle_literal, lits))
+        return AlternativeParser(options.handle_literal(lit1), *map(options.handle_literal, lits))
     else:
-        return _handle_literal(lit1)
+        return options.handle_literal(lit1)
+
+
+class RegexParser(Parser[str, str]):
+    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):  # Python lacks type of compiled RegularExpression
+        super().__init__()
+        self.whitespace = whitespace
+        self.pattern = re.compile(pattern)
+
+    def consume(self, reader: StringReader):
+        if self.whitespace is not None:
+            status = self.whitespace.consume(reader)
+            reader = status.remainder
+
+        match = self.pattern.match(reader.source, reader.position)
+
+        if match is None:
+            return Backtrack(reader.position,
+                lambda: '{} expected but {} found at {}'.format(
+                    self.pattern.pattern, reader.next_word(), reader.position))
+        else:
+            value = reader.source[match.start():match.end()]
+            return Continue(value, reader.drop(len(value)))
+
+    def __repr__(self):
+        return "reg(r'{}')".format(self.pattern.pattern)
+
+
+def reg(pattern: str):
+    return RegexParser(pattern, options.whitespace)
 
 
 class OptionalParser(Generic[Input, Output], Parser[Input, Union[Output, None]]):
@@ -337,7 +212,7 @@ def opt(parser):
 
 
 class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
-    def __init__(self, parser: Parser[Input, Output], *parsers: Sequence[Parser[Input, Output]]): # TODO: merge parameters
+    def __init__(self, parser: Parser[Input, Output], *parsers: Sequence[Parser[Input, Output]]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
@@ -363,7 +238,7 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 class SequentialParser(Generic[Input], Parser[Input, None]):  # Type of this class is inexpressible
-    def __init__(self, parser: Parser[Input, None], *parsers: Sequence[Parser[Input, None]]):  # TODO: merge parameters
+    def __init__(self, parser: Parser[Input, None], *parsers: Sequence[Parser[Input, None]]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
@@ -553,67 +428,3 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.parser)
-
-
-class ParsersDict(dict):
-    def __init__(self):
-        super().__init__()
-        self._forward_declarations = dict()
-
-    def __missing__(self, key):
-        class_body_globals = inspect.currentframe().f_back.f_globals
-        if key in class_body_globals:
-            return class_body_globals[key]
-        elif key in dir(builtins):
-            return getattr(builtins, key)
-        elif key in self._forward_declarations:
-            return self._forward_declarations[key]
-        else:
-            new_forward_declaration = ForwardDeclaration()
-            self._forward_declarations[key] = new_forward_declaration
-            return new_forward_declaration
-
-    def __setitem__(self, key, value):
-        if isinstance(value, Parser):
-            value.protected = True  # Protects against accidental concatenation of sequential parsers
-            value.__name__ = key  # Used for better error messages
-
-        super().__setitem__(key, value)
-
-
-class ForwardDeclaration(Parser):
-    def __init__(self):
-        self._definition = None
-
-    def __getattribute__(self, member):
-        if member != '_definition' and self._definition is not None:
-            return getattr(self._definition, member)
-        else:
-            return object.__getattribute__(self, member)
-
-
-class ParsersMeta(type):
-    @classmethod
-    def __prepare__(mcs, name, bases, **_):
-        global _handle_literal
-        _handle_literal = wrap_literal
-
-        return ParsersDict()
-
-    def __init__(cls, name, bases, dct, **_):
-        global _handle_literal
-        super().__init__(name, bases, dct)
-
-        # Resolve forward declarations, will raise
-        for name, forward_declaration in dct._forward_declarations.items():
-            obj = dct[name]
-            if not isinstance(obj, Parser):
-                obj = _handle_literal(obj)
-            forward_declaration._definition = obj
-
-        # Reset global variables
-        _handle_literal = wrap_literal
-
-
-class Parsers(metaclass=ParsersMeta):
-    pass

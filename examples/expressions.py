@@ -1,4 +1,4 @@
-from parsita.regex_parsers import *
+from parsita import *
 
 
 class ExpressionParsers(RegexParsers):

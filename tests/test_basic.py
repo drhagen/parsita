@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from parsita import Parsers, Success, Failure, lit, opt, rep, rep1, repsep, rep1sep
+from parsita import *
 
 
 class LiteralTestCase(TestCase):
@@ -24,7 +24,7 @@ class LiteralTestCase(TestCase):
         self.assertEqual(TestParsers.ab.parse('b'), Success('b'))
 
 
-class ForwardDeclaratonTestCase(TestCase):
+class ForwardDeclarationTestCase(TestCase):
     def test_forward_declaration(self):
         class TestParsers(Parsers):
             a = b
@@ -46,6 +46,25 @@ class ForwardDeclaratonTestCase(TestCase):
         self.assertEqual(TestParsers.da.parse('da'), Success(['d', 'a']))
         self.assertEqual(str(TestParsers.ca), "ca = c | a")
         self.assertEqual(str(TestParsers.da), "da = d & a")
+
+    def test_manual_forward(self):
+        class TestParsers(Parsers):
+            b = fwd()
+            a = 'a' & b
+            b.define('b' & opt(a))
+
+        self.assertEqual(TestParsers.a.parse('ab'), Success(['a', ['b', []]]))
+        self.assertEqual(TestParsers.a.parse('abab'), Success(['a', ['b', [['a', ['b', []]]]]]))
+
+    def test_manual_forward_mutual(self):
+        class TestParsers(Parsers):
+            a = fwd()
+            b = fwd()
+            a.define('a' & b)
+            b.define('b' & opt(a))
+
+        self.assertEqual(TestParsers.a.parse('ab'), Success(['a', ['b', []]]))
+        self.assertEqual(TestParsers.a.parse('abab'), Success(['a', ['b', [['a', ['b', []]]]]]))
 
 
 class OptionalTestCase(TestCase):

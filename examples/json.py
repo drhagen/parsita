@@ -1,5 +1,4 @@
 from ast import literal_eval
-from parsita.regex_parsers import *
 from parsita import *
 
 # JSON definition according to https://tools.ietf.org/html/rfc7159
