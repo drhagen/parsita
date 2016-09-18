@@ -46,11 +46,17 @@ class ForwardDeclaration(Parser):
         self._definition = parser
 
 
-def fwd():
+def fwd() -> ForwardDeclaration:
+    """Manually create a forward declaration
+
+    Normally, forward declarations are created automatically by the contexts.
+    But they can be created manually if not in a context or if the user wants
+    to avoid confusing the IDE.
+    """
     return ForwardDeclaration()
 
 
-class ParsersMeta(type):
+class GeneralParsersMeta(type):
     @classmethod
     def __prepare__(mcs, name, bases, **_):
         options.handle_literal = wrap_literal
@@ -74,11 +80,17 @@ class ParsersMeta(type):
         options.parse_method = options.default_parse()
 
 
-class Parsers(metaclass=ParsersMeta):
+class GeneralParsers(metaclass=GeneralParsersMeta):
+    """Context for parsing general sequences
+
+    This is not a real class. Don't instantiate it. This is used by inheriting
+    from it and defining parsers as class attributes in the body of the child
+    class.
+    """
     pass
 
 
-class RegexParsersMeta(ParsersMeta):
+class TextParsersMeta(GeneralParsersMeta):
     @classmethod
     def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):
         # Store whitespace in global location so regex parsers can see it
@@ -99,5 +111,15 @@ class RegexParsersMeta(ParsersMeta):
         return super().__new__(mcs, name, bases, dct)
 
 
-class RegexParsers(metaclass=RegexParsersMeta):
+class TextParsers(metaclass=TextParsersMeta):
+    """Context for parsing text
+
+    This is not a real class. Don't instantiate it. This is used by inheriting
+    from it and defining parsers as class attributes in the body of the child
+    class.
+
+    There is a keyword argument for the metaclass ``whitespace``. This is a
+    regular expression defining the whitespace to be ignored. The default is
+    r"\s*".
+    """
     pass

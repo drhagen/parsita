@@ -27,13 +27,78 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
 
 
 class Parser(Generic[Input, Output]):
+    """Abstract base class for all parser combinators
+
+    Inheritors of this class must:
+
+    1. Implement the ``consume`` method
+    2. Implement the ``__str__`` method
+    3. Call super().__init__() in their constructor to get the parse method from
+       the context.
+
+    Attributes:
+        protected (bool): The metaclasses set this flag to true whenever a
+            parser is assigned to a name. Operators that flatten the parsers
+            they receive (``__or__`` and ``__and__``) will not flatten parsers
+            with a ``True`` value here. This is most important for ``__and__``
+            because there is no other way to tell that these two should be
+            different:
+
+            ```
+            abc = a & b & c  # returns [a, b, c]
+            ```
+            ```
+            temp = a & b
+            abc = temp & c  # returns [[a, b], c]
+            ```
+
+            The fundamental limitation is that python does not handle linked
+            lists well or have unpacking that would let one unpack abc as
+            [temp, c].
+        __name__ (Optional[str]): A name used by ``__str__`` and ``__repr__``.
+            It is set by the context classes when a parser is assigned to a
+            name.
+    """
+
     def __init__(self):
         self.parse = MethodType(options.parse_method, self)
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, reader: Reader[Input]) -> Status[Input, Output]:
+        """Abstract method for matching this parser at the current location
+
+        This is the critical method of every parser combinator.
+
+        Args:
+            reader: The current state of the parser.
+
+        Returns:
+            If the pattern matches, a ``Continue`` is returned. If the pattern
+            does not match, a ``Failure`` is returned. In either case, if
+            multiple branches are explored, the error from the farthest point is
+            merged with the returned status.
+        """
         raise NotImplementedError()
 
     def parse(self, source: Sequence[Input]) -> Result[Output]:
+        """Abstract method for completely parsing a source
+
+        While ``parse`` is a method on every parser for convenience, it
+        is really a function of the context. It is the duty of the context
+        to set the correct ``Reader`` to use and to handle whitespace
+        not handled by the parsers themselves. This method is pulled from the
+        context when the parser is initialized.
+
+        Args:
+            source: What will be parsed.
+
+        Returns:
+            If the parser succeeded in matching and consumed the entire output,
+            the value from ``Continue`` is copied to make a ``Success``. If the
+            parser failed in matching, the error message is copied to a
+            ``Failure``. If the parser succeeded but the source was not
+            completelt consumed, a ``Failure`` with a message indicating this
+            is returned.
+        """
         raise NotImplementedError()
 
     __name__ = None
@@ -150,11 +215,29 @@ class LiteralStringParser(Parser[str, str]):
         return "'{}'".format(self.pattern)
 
 
-def lit(lit1, *lits):
-    if len(lits) > 0:
-        return AlternativeParser(options.handle_literal(lit1), *map(options.handle_literal, lits))
+def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parser:
+    """Match a literal sequence
+
+    In the `TextParsers`` context, this matches the literal string
+    provided. In the ``GeneralParsers`` context, this matches a sequence of
+    input.
+
+    If multiple literals are provided, they are treated as alternatives. e.g.
+    ``lit('+', '-')`` is the same as ``lit('+') | lit('-')``.
+
+    Args:
+        literal: A literal to match
+        *literals: Alternative literals to match
+
+    Returns:
+        A ``LiteralParser`` in the ``GeneralContext``, a ``LiteralStringParser``
+        in the ``TextParsers`` context, and an ``AlternativeParser`` if multiple
+        arguments are provided.
+    """
+    if len(literals) > 0:
+        return AlternativeParser(options.handle_literal(literal), *map(options.handle_literal, literals))
     else:
-        return options.handle_literal(lit1)
+        return options.handle_literal(literal)
 
 
 class RegexParser(Parser[str, str]):
@@ -182,7 +265,18 @@ class RegexParser(Parser[str, str]):
         return "reg(r'{}')".format(self.pattern.pattern)
 
 
-def reg(pattern: str):
+def reg(pattern: str) -> RegexParser:
+    """Match with a regular expression
+
+    This matches the text with a regular expression. The regular expressions is
+    treated as greedy. Backtracking in the parser combinators does not flow into
+    regular expression backtracking. This is only valid in the ``TextParsers``
+    context and not in the ``GeneralParsers`` context because regular
+    expressions only operate on text.
+
+    Args:
+        pattern: str or python regular expression.
+    """
     return RegexParser(pattern, options.whitespace)
 
 
@@ -205,7 +299,16 @@ class OptionalParser(Generic[Input, Output], Parser[Input, Union[Output, None]])
         return self.name_or_nothing() + "opt({})".format(self.parser.name_or_repr())
 
 
-def opt(parser):
+def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
+    """Optionally match a parser
+
+    An ``OptionalParser`` attempts to match ``parser``. If it succeeds, it
+    returns a list of length one with the value returned by the parser as the
+    only element. If it fails, it returns an empty list.
+
+    Args:
+        parser: Parser or literal
+    """
     if isinstance(parser, str):
         parser = lit(parser)
     return OptionalParser(parser)
@@ -330,7 +433,16 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         return self.name_or_nothing() + "rep1({})".format(self.parser.name_or_repr())
 
 
-def rep1(parser):
+def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
+    """Match a parser one or more times repeatedly
+
+    This matches ``parser`` multiple times in a row. If it matches as least
+    once, it returns a list of values from each time ``parser`` matched. If it
+    does not match ``parser`` at all, it fails.
+
+    Args:
+        parser: Parser or literal
+    """
     if isinstance(parser, str):
         parser = lit(parser)
     return RepeatedOnceParser(parser)
@@ -360,7 +472,16 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         return self.name_or_nothing() + "rep({})".format(self.parser.name_or_repr())
 
 
-def rep(parser):
+def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
+    """Match a parser zero or more times repeatedly
+
+    This matches ``parser`` multiple times in a row. A list is returned
+    containing the value from each match. If there are no matches, an empty list
+    is returned.
+
+    Args:
+        parser: Parser or literal
+    """
     if isinstance(parser, str):
         parser = lit(parser)
     return RepeatedParser(parser)
@@ -381,7 +502,20 @@ class RepeatedOnceSeperatedParser(Generic[Input, Output], Parser[Input, Sequence
                                                                  self.separator.name_or_repr())
 
 
-def rep1sep(parser, separator):
+def rep1sep(parser: Union[Parser, Sequence[Input]],
+            separator: Union[Parser, Sequence[Input]]) \
+        -> RepeatedOnceSeperatedParser:
+    """Match a parser one or more times separated by another parser
+
+    This matches repeated sequences of ``parser`` separated by ``separator``.
+    If there is at least one match, a list containing the values of the
+    ``parser`` matches is returned. The values from ``separator`` are discarded.
+    If it does not match ``parser`` at all, it fails.
+
+    Args:
+        parser: Parser or literal
+        separator: Parser or literal
+    """
     if isinstance(parser, str):
         parser = lit(parser)
     if isinstance(separator, str):
@@ -404,7 +538,20 @@ class RepeatedSeperatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                                                                 self.separator.name_or_repr())
 
 
-def repsep(parser, separator):
+def repsep(parser: Union[Parser, Sequence[Input]],
+           separator: Union[Parser, Sequence[Input]]) \
+        -> RepeatedSeperatedParser:
+    """Match a parser zero or more times separated by another parser
+
+    This matches repeated sequences of ``parser`` separated by ``separator``. A
+    list is returned containing the value from each match of ``parser``. The
+    values from ``separator`` are discarded. If there are no matches, an empty
+    list is returned.
+
+    Args:
+        parser: Parser or literal
+        separator: Parser or literal
+    """
     if isinstance(parser, str):
         parser = lit(parser)
     if isinstance(separator, str):

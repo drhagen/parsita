@@ -39,5 +39,3 @@ def default_parse():
     return regex_parse
 
 parse_method = default_parse()
-
-

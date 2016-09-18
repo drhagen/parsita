@@ -5,7 +5,7 @@ from parsita import *
 
 class LiteralTestCase(TestCase):
     def test_literals(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             bb = lit('bb')
 
@@ -17,7 +17,7 @@ class LiteralTestCase(TestCase):
         self.assertEqual(str(TestParsers.bb), "bb = 'bb'")
 
     def test_multiple_literals(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             ab = lit('a', 'b')
 
         self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
@@ -26,7 +26,7 @@ class LiteralTestCase(TestCase):
 
 class ForwardDeclarationTestCase(TestCase):
     def test_forward_declaration(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = b
             b = lit('b')
 
@@ -34,7 +34,7 @@ class ForwardDeclarationTestCase(TestCase):
         self.assertEqual(TestParsers.a.parse('ab'), Failure('b expected but a found at 0'))
 
     def test_forward_expression(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             ca = c | a
             da = d & a
@@ -48,7 +48,7 @@ class ForwardDeclarationTestCase(TestCase):
         self.assertEqual(str(TestParsers.da), "da = d & a")
 
     def test_manual_forward(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             b = fwd()
             a = 'a' & b
             b.define('b' & opt(a))
@@ -57,7 +57,7 @@ class ForwardDeclarationTestCase(TestCase):
         self.assertEqual(TestParsers.a.parse('abab'), Success(['a', ['b', [['a', ['b', []]]]]]))
 
     def test_manual_forward_mutual(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = fwd()
             b = fwd()
             a.define('a' & b)
@@ -69,7 +69,7 @@ class ForwardDeclarationTestCase(TestCase):
 
 class OptionalTestCase(TestCase):
     def test_optional(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             b = opt(a)
 
@@ -78,7 +78,7 @@ class OptionalTestCase(TestCase):
         self.assertEqual(str(TestParsers.b), "b = opt(a)")
 
     def test_optional_longer(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('ab')
             b = opt(a)
 
@@ -89,7 +89,7 @@ class OptionalTestCase(TestCase):
 
 class AlternativeTestCase(TestCase):
     def test_alternative(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             b = lit('b')
             c = lit('cd')
@@ -104,7 +104,7 @@ class AlternativeTestCase(TestCase):
         self.assertEqual(str(TestParsers.bc), "bc = b | c")
 
     def test_multiple(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('aaaa')
             b = lit('bbb')
             c = lit('cc')
@@ -126,7 +126,7 @@ class AlternativeTestCase(TestCase):
 
 class SequentialTestCase(TestCase):
     def test_sequential(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             b = lit('b')
             c = lit('cd')
@@ -144,7 +144,7 @@ class SequentialTestCase(TestCase):
 
 class DiscardTestCase(TestCase):
     def test_discard_left(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             b = lit('b')
             ab = a >> b
@@ -156,7 +156,7 @@ class DiscardTestCase(TestCase):
         self.assertEqual(str(TestParsers.ac), 'ac = a >> c')
 
     def test_discard_right(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             a = lit('a')
             b = lit('b')
             ab = a << b
@@ -171,7 +171,7 @@ class DiscardTestCase(TestCase):
 
 class RepeatedTestCase(TestCase):
     def test_repeated(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             bs = rep1('b')
             cs = rep('c')
 
@@ -185,7 +185,7 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cs.parse('cccb'), Failure('c expected but b found at 3'))
 
     def test_repeated_longer(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             bf = rep1('bf')
             cf = rep('cf')
 
@@ -199,7 +199,7 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cf.parse('cfcb'), Failure('f expected but b found at 3'))
 
     def test_repeated_separated(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             bs = rep1sep('b', ',')
             cs = repsep('c', ',')
 
@@ -213,7 +213,7 @@ class RepeatedTestCase(TestCase):
 
 class ConversionTestCase(TestCase):
     def test_conversion(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             one = lit('1') > int
             two = lit('2') > int
             twelve = one & two > (lambda x: x[0]*10 + x[1])
@@ -229,7 +229,7 @@ class ConversionTestCase(TestCase):
         self.assertEqual(str(TestParsers.twentyone), 'twentyone = two & one')
 
     def test_recursion(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             one = lit('1') > float
             six = lit('6') > float
             eleven = lit('11') > float
@@ -252,7 +252,7 @@ class ConversionTestCase(TestCase):
 
 class ProtectionTestCase(TestCase):
     def test_protection(self):
-        class TestParsers(Parsers):
+        class TestParsers(GeneralParsers):
             ab = lit('a') & lit('b')
             abc = ab & 'c'
             dab = 'd' & ab

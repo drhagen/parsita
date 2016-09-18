@@ -4,7 +4,7 @@ from parsita import *
 # JSON definition according to https://tools.ietf.org/html/rfc7159
 
 
-class JsonStringParsers(RegexParsers, whitespace=None):
+class JsonStringParsers(TextParsers, whitespace=None):
     quote = lit(r'\"') > (lambda _: '"')
     reverse_solidus = lit(r'\\') > (lambda _: '\\')
     solidus = lit(r'\/') > (lambda _: '/')
@@ -22,7 +22,7 @@ class JsonStringParsers(RegexParsers, whitespace=None):
     string = '"' >> rep(escaped | unescaped) << '"' > ''.join
 
 
-class JsonParsers(RegexParsers, whitespace=r'[ \t\n\r]*'):
+class JsonParsers(TextParsers, whitespace=r'[ \t\n\r]*'):
     number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?')
 
     false = lit('false') > (lambda _: False)

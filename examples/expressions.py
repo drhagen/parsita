@@ -1,7 +1,7 @@
 from parsita import *
 
 
-class ExpressionParsers(RegexParsers):
+class ExpressionParsers(TextParsers):
     number = reg(r'[+-]?(\d)+(\.\d+)?(e[+-]?\d+)?') > float
 
     base = '(' >> expr << ')' | number

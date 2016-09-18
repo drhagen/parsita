@@ -9,6 +9,18 @@ Right = TypeVar('Right')
 
 
 class Reader(Generic[Input]):
+    """Abstract base class for readers
+
+    A ``Reader`` is an immutable object holding the state of parsing.
+
+    Attributes:
+        first (Input): The element at the current position.
+        rest (Sequence[Input]): A ``Reader`` at the next position.
+        position (int): How many characters into the source the parsing has
+            gone.
+        finished (bool): Indicates if the source is at the end. It is an error
+            to access ``first`` or ``rest`` if ``finished`` is ``True``.
+    """
     first = NotImplemented
     rest = NotImplemented
     position = NotImplemented
@@ -22,6 +34,16 @@ class Reader(Generic[Input]):
 
 
 class SequenceReader(Reader):
+    """A reader for sequences that should not be sliced
+
+    Python makes a copy when a sequence is sliced. This reader avoids making
+    that copy by keeping one copy of source, passing it to the new reader when
+    calling rest and using position to determine where in the source the reader
+    should read from.
+
+    Attributes:
+        source (Sequence[Input]): What will be parsed.
+    """
     def __init__(self, source: Sequence[Input], position: int = 0):
         self.source = source
         self.position = position
@@ -39,7 +61,19 @@ class SequenceReader(Reader):
         return self.position >= len(self.source)
 
 
-class StringReader(Reader[str]):  # Python lacks character type
+# Python lacks character type, so "str" will be used for both the sequence and the elements
+class StringReader(Reader[str]):
+    """A reader for strings
+
+    Python's regular expressions and string operations only work on strings,
+    not abstract "readers". This class defines the source as a string so that
+    regular expressions (and string literals) can safely and efficiently work
+    directly on the source using the position to determine where to start.
+
+    Attributes
+    ----------
+    source (str): What will be parsed.
+    """
     def __init__(self, source: str, position: int = 0):
         self.source = source
         self.position = position
@@ -73,11 +107,22 @@ class StringReader(Reader[str]):  # Python lacks character type
 
 
 class Result(Generic[Output]):
+    """Abstract algebraic base class for ``Success`` and ``Failure``
+
+    The class of all values returned from Parser.parse.
+    """
     pass
 
 
 class Success(Generic[Output], Result[Output]):
-    def __init__(self, value):
+    """Parsing succeeded
+
+    Returned from Parser.parse when the parser matched the source entirely.
+
+    Attributes:
+        value (Output): The value returned from the parser.
+    """
+    def __init__(self, value: Output):
         self.value = value
 
     def __eq__(self, other):
@@ -97,6 +142,15 @@ class Success(Generic[Output], Result[Output]):
 
 
 class Failure(Generic[Output], Result[Output]):
+    """Parsing failed
+
+    Returned from Parser.parse when the parser did not match the source or the
+    source was not completely consumed.
+
+    Attributes:
+        message (str): A human-readable error from the farthest point reached
+            during parsing.
+    """
     def __init__(self, message: str):
         self.message = message
 

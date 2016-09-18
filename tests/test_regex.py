@@ -5,7 +5,7 @@ from parsita import *
 
 class LiteralTestCase(TestCase):
     def test_literal(self):
-        class TestParsers(RegexParsers):
+        class TestParsers(TextParsers):
             hundred = lit('100') > float
 
         self.assertEqual(TestParsers.hundred.parse('100'), Success(100))
@@ -17,7 +17,7 @@ class LiteralTestCase(TestCase):
 
 class RegexTestCase(TestCase):
     def test_regex(self):
-        class TestParsers(RegexParsers):
+        class TestParsers(TextParsers):
             digits = reg(r'\d+') > float
 
         self.assertEqual(TestParsers.digits.parse('100'), Success(100))
@@ -27,7 +27,7 @@ class RegexTestCase(TestCase):
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
 
     def test_no_whitespace(self):
-        class TestParsers(RegexParsers, whitespace=None):
+        class TestParsers(TextParsers, whitespace=None):
             digits = reg(r'\d+') > float
 
         self.assertEqual(TestParsers.digits.parse('100'), Success(100))
@@ -36,7 +36,7 @@ class RegexTestCase(TestCase):
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
 
     def test_custom_whitespace(self):
-        class TestParsers(RegexParsers, whitespace='[ ]*'):
+        class TestParsers(TextParsers, whitespace='[ ]*'):
             digits = reg(r'\d+') > float
             pair = digits & digits
 
@@ -52,7 +52,7 @@ class RegexTestCase(TestCase):
 
 class OptionalTestCase(TestCase):
     def test_optional(self):
-        class TestParsers(RegexParsers):
+        class TestParsers(TextParsers):
             a = reg('\d+') > float
             b = opt(a)
 
@@ -63,7 +63,7 @@ class OptionalTestCase(TestCase):
 
 class RepeatedTestCase(TestCase):
     def test_repeated(self):
-        class TestParsers(RegexParsers):
+        class TestParsers(TextParsers):
             number = reg('\d+') > int
             trail = '(' >> rep(number << ',') << ')' > tuple
             trail1 = '(' >> rep1(number << ',') << ')' > tuple
@@ -86,7 +86,7 @@ class RepeatedTestCase(TestCase):
 
 class RecursionTestCase(TestCase):
     def test_literals(self):
-        class TestParsers(RegexParsers):
+        class TestParsers(TextParsers):
             one = lit('1') > float
             six = lit('6') > float
             eleven = lit('11') > float
@@ -108,7 +108,7 @@ class RecursionTestCase(TestCase):
         self.assertEqual(TestParsers.expr.parse('1 +6  + 6'), Success(13))
 
     def test_regex(self):
-        class TestParsers(RegexParsers, whitespace='[ ]*'):
+        class TestParsers(TextParsers, whitespace='[ ]*'):
             digits = reg(r'\d+') > float
 
             def make_expr(x):
