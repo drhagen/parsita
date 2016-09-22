@@ -67,7 +67,7 @@ class GeneralParsersMeta(type):
     def __init__(cls, name, bases, dct, **_):
         super().__init__(name, bases, dct)
 
-        # Resolve forward declarations, will raise
+        # Resolve forward declarations, will raise if name not found
         for name, forward_declaration in dct.forward_declarations.items():
             obj = dct[name]
             if not isinstance(obj, Parser):

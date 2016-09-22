@@ -70,9 +70,8 @@ class StringReader(Reader[str]):
     regular expressions (and string literals) can safely and efficiently work
     directly on the source using the position to determine where to start.
 
-    Attributes
-    ----------
-    source (str): What will be parsed.
+    Attributes:
+        source (str): What will be parsed.
     """
     def __init__(self, source: str, position: int = 0):
         self.source = source
@@ -138,7 +137,7 @@ class Success(Generic[Output], Result[Output]):
         return not result
 
     def __repr__(self):
-        return "Success({})".format(self.value)
+        return "Success({})".format(repr(self.value))
 
 
 class Failure(Generic[Output], Result[Output]):
@@ -167,7 +166,7 @@ class Failure(Generic[Output], Result[Output]):
         return not result
 
     def __repr__(self):
-        return "Failure({})".format(self.message)
+        return "Failure({})".format(repr(self.message))
 
 
 class Status(Generic[Input, Output]):
