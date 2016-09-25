@@ -4,18 +4,18 @@ from .state import StringReader, Success, Failure, Continue
 
 # Global mutable state
 
-default_whitespace = re.compile('\s*')
+default_whitespace = re.compile(r'\s*')
 whitespace = None
 
 
-def wrap_literal_with_whitespace(literal):
+def default_handle_literal(literal):
     from .parsers import LiteralStringParser
     return LiteralStringParser(literal, whitespace)
 
-handle_literal = wrap_literal_with_whitespace
+handle_literal = default_handle_literal
 
 
-def default_parse():
+def default_parse_method():
     freeze_whitespace = whitespace
 
     def regex_parse(self, source: str):
@@ -38,4 +38,7 @@ def default_parse():
 
     return regex_parse
 
-parse_method = default_parse()
+parse_method = default_parse_method()
+
+__all__ = ['default_whitespace', 'whitespace', 'default_handle_literal', 'handle_literal', 'default_parse_method',
+           'parse_method']

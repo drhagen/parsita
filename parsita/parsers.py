@@ -3,7 +3,8 @@ from typing import Generic, Sequence, Union, Callable
 from types import MethodType
 
 from . import options
-from .state import *
+from .state import (Input, Output, Convert, Reader, SequenceReader, StringReader,
+                    Result, Success, Failure, Status, Continue, Backtrack, Stop)
 
 
 def wrap_literal(literal):
@@ -186,7 +187,8 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
                 remainder = remainder.rest
             else:
                 return Backtrack(remainder.position,
-                        lambda: '{} expected but {} found at {}'.format(elem, remainder.first, remainder.position))
+                                 lambda: '{} expected but {} found at {}'.format(
+                                     elem, remainder.first, remainder.position))
 
         return Continue(self.pattern, remainder)
 
@@ -209,7 +211,8 @@ class LiteralStringParser(Parser[str, str]):
             return Continue(self.pattern, reader.drop(len(self.pattern)))
         else:
             return Backtrack(reader.position,
-                lambda: '{} expected but {} found at {}'.format(self.pattern, reader.next_word(), reader.position))
+                             lambda: '{} expected but {} found at {}'.format(
+                                 self.pattern, reader.next_word(), reader.position))
 
     def __repr__(self):
         return "'{}'".format(self.pattern)
@@ -241,7 +244,7 @@ def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parse
 
 
 class RegexParser(Parser[str, str]):
-    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):  # Python lacks type of compiled RegularExpression
+    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):  # Python lacks type of compiled regex
         super().__init__()
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
@@ -255,8 +258,8 @@ class RegexParser(Parser[str, str]):
 
         if match is None:
             return Backtrack(reader.position,
-                lambda: '{} expected but {} found at {}'.format(
-                    self.pattern.pattern, reader.next_word(), reader.position))
+                             lambda: '{} expected but {} found at {}'.format(
+                                 self.pattern.pattern, reader.next_word(), reader.position))
         else:
             value = reader.source[match.start():match.end()]
             return Continue(value, reader.drop(len(value)))
@@ -296,7 +299,7 @@ class OptionalParser(Generic[Input, Output], Parser[Input, Union[Output, None]])
             return Continue([], reader).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "opt({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + 'opt({})'.format(self.parser.name_or_repr())
 
 
 def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
@@ -337,7 +340,7 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + " | ".join(names)
+        return self.name_or_nothing() + ' | '.join(names)
 
 
 class SequentialParser(Generic[Input], Parser[Input, None]):  # Type of this class is inexpressible
@@ -365,7 +368,7 @@ class SequentialParser(Generic[Input], Parser[Input, None]):  # Type of this cla
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + " & ".join(names)
+        return self.name_or_nothing() + ' & '.join(names)
 
 
 class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
@@ -382,7 +385,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + "{} >> {}".format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + '{} >> {}'.format(self.left.name_or_repr(), self.right.name_or_repr())
 
 
 class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
@@ -403,7 +406,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
             return status1
 
     def __repr__(self):
-        return self.name_or_nothing() + "{} << {}".format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + '{} << {}'.format(self.left.name_or_repr(), self.right.name_or_repr())
 
 
 class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -430,7 +433,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                     return Continue(output, remainder).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep1({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + 'rep1({})'.format(self.parser.name_or_repr())
 
 
 def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
@@ -469,7 +472,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 return Continue(output, remainder).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + 'rep({})'.format(self.parser.name_or_repr())
 
 
 def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
@@ -487,7 +490,7 @@ def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
     return RepeatedParser(parser)
 
 
-class RepeatedOnceSeperatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
+class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
         super().__init__()
         parser.protected = True
@@ -498,13 +501,13 @@ class RepeatedOnceSeperatedParser(Generic[Input, Output], Parser[Input, Sequence
         self.consume = definition.consume
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep1sep({}, {})".format(self.parser.name_or_repr(),
+        return self.name_or_nothing() + 'rep1sep({}, {})'.format(self.parser.name_or_repr(),
                                                                  self.separator.name_or_repr())
 
 
 def rep1sep(parser: Union[Parser, Sequence[Input]],
             separator: Union[Parser, Sequence[Input]]) \
-        -> RepeatedOnceSeperatedParser:
+        -> RepeatedOnceSeparatedParser:
     """Match a parser one or more times separated by another parser
 
     This matches repeated sequences of ``parser`` separated by ``separator``.
@@ -520,10 +523,10 @@ def rep1sep(parser: Union[Parser, Sequence[Input]],
         parser = lit(parser)
     if isinstance(separator, str):
         separator = lit(separator)
-    return RepeatedOnceSeperatedParser(parser, separator)
+    return RepeatedOnceSeparatedParser(parser, separator)
 
 
-class RepeatedSeperatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
+class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
         super().__init__()
         parser.protected = True
@@ -534,13 +537,13 @@ class RepeatedSeperatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         self.consume = self.definition.consume
 
     def __repr__(self):
-        return self.name_or_nothing() + "repsep({}, {})".format(self.parser.name_or_repr(),
+        return self.name_or_nothing() + 'repsep({}, {})'.format(self.parser.name_or_repr(),
                                                                 self.separator.name_or_repr())
 
 
 def repsep(parser: Union[Parser, Sequence[Input]],
            separator: Union[Parser, Sequence[Input]]) \
-        -> RepeatedSeperatedParser:
+        -> RepeatedSeparatedParser:
     """Match a parser zero or more times separated by another parser
 
     This matches repeated sequences of ``parser`` separated by ``separator``. A
@@ -556,7 +559,7 @@ def repsep(parser: Union[Parser, Sequence[Input]],
         parser = lit(parser)
     if isinstance(separator, str):
         separator = lit(separator)
-    return RepeatedSeperatedParser(parser, separator)
+    return RepeatedSeparatedParser(parser, separator)
 
 
 class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
@@ -575,3 +578,8 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.parser)
+
+__all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
+           'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
+           'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
+           'repsep', 'ConversionParser']
