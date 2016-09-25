@@ -58,13 +58,13 @@ def fwd() -> ForwardDeclaration:
 
 class GeneralParsersMeta(type):
     @classmethod
-    def __prepare__(mcs, name, bases, **_):
+    def __prepare__(mcs, name, bases, **_):  # noqa: N804
         options.handle_literal = wrap_literal
         options.parse_method = basic_parse
 
         return ParsersDict()
 
-    def __init__(cls, name, bases, dct, **_):
+    def __init__(cls, name, bases, dct, **_):  # noqa: N805
         super().__init__(name, bases, dct)
 
         # Resolve forward declarations, will raise if name not found
@@ -76,8 +76,8 @@ class GeneralParsersMeta(type):
 
         # Reset global variables
         options.whitespace = None
-        options.handle_literal = options.wrap_literal_with_whitespace
-        options.parse_method = options.default_parse()
+        options.handle_literal = options.default_handle_literal
+        options.parse_method = options.default_parse_method()
 
 
 class GeneralParsers(metaclass=GeneralParsersMeta):
@@ -92,7 +92,7 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
 
 class TextParsersMeta(GeneralParsersMeta):
     @classmethod
-    def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):
+    def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):  # noqa: N804
         # Store whitespace in global location so regex parsers can see it
         if isinstance(whitespace, str):
             whitespace = re.compile(whitespace)
@@ -102,12 +102,12 @@ class TextParsersMeta(GeneralParsersMeta):
         else:
             options.whitespace = RegexParser(whitespace)
 
-        options.handle_literal = options.wrap_literal_with_whitespace
-        options.parse_method = options.default_parse()
+        options.handle_literal = options.default_handle_literal
+        options.parse_method = options.default_parse_method()
 
         return ParsersDict()
 
-    def __new__(mcs, name, bases, dct, **_):
+    def __new__(mcs, name, bases, dct, **_):  # noqa: N804
         return super().__new__(mcs, name, bases, dct)
 
 
@@ -123,3 +123,5 @@ class TextParsers(metaclass=TextParsersMeta):
     r"\s*".
     """
     pass
+
+__all__ = ['ForwardDeclaration', 'fwd', 'GeneralParsers', 'TextParsers']

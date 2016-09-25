@@ -1,3 +1,3 @@
-from .state import Reader, SequenceReader, StringReader, Result, Success, Failure
-from .parsers import Parser, lit, reg, opt, rep, rep1, repsep, rep1sep
-from .metaclasses import GeneralParsers, TextParsers, fwd
+from .state import Reader, SequenceReader, StringReader, Result, Success, Failure  # noqa: F401
+from .parsers import Parser, lit, reg, opt, rep, rep1, repsep, rep1sep  # noqa: F401
+from .metaclasses import GeneralParsers, TextParsers, fwd  # noqa: F401

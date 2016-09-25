@@ -1,11 +1,9 @@
 import re
-from typing import Generic, Sequence, TypeVar, Callable, Optional
+from typing import Generic, Sequence, TypeVar, Callable, Optional  # noqa: F401
 
 Input = TypeVar('Input')
 Output = TypeVar('Output')
 Convert = TypeVar('Convert')
-Left = TypeVar('Left')
-Right = TypeVar('Right')
 
 
 class Reader(Generic[Input]):
@@ -28,9 +26,9 @@ class Reader(Generic[Input]):
 
     def __repr__(self):
         if self.finished:
-            return "Reader(finished)"
+            return 'Reader(finished)'
         else:
-            return "Reader({}@{})".format(self.first, self.position)
+            return 'Reader({}@{})'.format(self.first, self.position)
 
 
 class SequenceReader(Reader):
@@ -100,9 +98,9 @@ class StringReader(Reader[str]):
 
     def __repr__(self):
         if self.finished:
-            return "StringReader(finished)"
+            return 'StringReader(finished)'
         else:
-            return "StringReader({}@{})".format(self.next_word(), self.position)
+            return 'StringReader({}@{})'.format(self.next_word(), self.position)
 
 
 class Result(Generic[Output]):
@@ -137,7 +135,7 @@ class Success(Generic[Output], Result[Output]):
         return not result
 
     def __repr__(self):
-        return "Success({})".format(repr(self.value))
+        return 'Success({})'.format(repr(self.value))
 
 
 class Failure(Generic[Output], Result[Output]):
@@ -166,7 +164,7 @@ class Failure(Generic[Output], Result[Output]):
         return not result
 
     def __repr__(self):
-        return "Failure({})".format(repr(self.message))
+        return 'Failure({})'.format(repr(self.message))
 
 
 class Status(Generic[Input, Output]):
@@ -203,7 +201,7 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
         return not result
 
     def __repr__(self):
-        return "Continue({}, {})".format(self.value, self.remainder)
+        return 'Continue({}, {})'.format(self.value, self.remainder)
 
 
 class Backtrack(Generic[Input], Status[Input, None]):
@@ -231,7 +229,7 @@ class Backtrack(Generic[Input], Status[Input, None]):
         return not result
 
     def __repr__(self):
-        return "Backtrack({})".format(self.message())
+        return 'Backtrack({})'.format(self.message())
 
 
 class Stop(Generic[Input], Status[Input, None]):
@@ -256,8 +254,8 @@ class Stop(Generic[Input], Status[Input, None]):
         return not result
 
     def __repr__(self):
-        return "Stop({})".format(self.message())
+        return 'Stop({})'.format(self.message())
 
-__all__ = ['Input', 'Output', 'Convert', 'Left', 'Right',
+__all__ = ['Input', 'Output', 'Convert',
            'Reader', 'SequenceReader', 'StringReader',
            'Result', 'Success', 'Failure', 'Status', 'Continue', 'Backtrack', 'Stop']
