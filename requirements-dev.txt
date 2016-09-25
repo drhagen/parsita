@@ -1,0 +1,5 @@
+flake8>=3.0.3
+pep8-naming
+flake8-quotes
+pytest
+pytest-cov
