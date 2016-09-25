@@ -1,4 +1,11 @@
 # Parsita
+[![Build Status](https://travis-ci.org/drhagen/parsita.svg)](https://travis-ci.org/drhagen/parsita)
+[![Code Coverage](https://codecov.io/github/drhagen/parsita/coverage.svg)](https://codecov.io/github/drhagen/parsita)
+[![PyPI Version](https://img.shields.io/pypi/v/parsita.svg)](https://pypi.python.org/pypi/parsita)
+[![PyPI Status](https://img.shields.io/pypi/status/parsita.svg)](https://pypi.python.org/pypi/parsita)
+[![Python Versions](https://img.shields.io/pypi/pyversions/parsita.svg)](https://pypi.python.org/pypi/parsita)
+[![Downloads per Month](https://img.shields.io/pypi/dm/parsita.svg)](https://pypi.python.org/pypi/parsita)
+
 The executable grammar of parsers combinators made available in the executable pseudocode of Python.
 
 ### Motivation
