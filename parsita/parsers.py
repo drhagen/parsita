@@ -167,7 +167,7 @@ class Parser(Generic[Input, Output]):
 
     def __rlshift__(self, other) -> 'DiscardRightParser':
         other = self.handle_other(other)
-        return other.__rshift__(self)
+        return other.__lshift__(self)
 
     def __gt__(self, other) -> 'ConversionParser':
         return ConversionParser(self, other)
