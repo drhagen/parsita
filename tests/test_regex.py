@@ -14,6 +14,15 @@ class LiteralTestCase(TestCase):
         self.assertEqual(TestParsers.hundred.parse('   100    '), Success(100))
         self.assertEqual(str(TestParsers.hundred), "hundred = '100'")
 
+    def test_no_whitespace(self):
+        class TestParsers(TextParsers, whitespace=None):
+            hundred = lit('100') > float
+
+        self.assertEqual(TestParsers.hundred.parse('100'), Success(100))
+        self.assertEqual(TestParsers.hundred.parse(' 100'), Failure(r'100 expected but   found at 0'))
+        self.assertEqual(TestParsers.hundred.parse('100 '), Failure(r'end of source expected but   found at 3'))
+        self.assertEqual(str(TestParsers.hundred), "hundred = '100'")
+
 
 class RegexTestCase(TestCase):
     def test_regex(self):

@@ -66,6 +66,19 @@ class ForwardDeclarationTestCase(TestCase):
         self.assertEqual(TestParsers.a.parse('ab'), Success(['a', ['b', []]]))
         self.assertEqual(TestParsers.a.parse('abab'), Success(['a', ['b', [['a', ['b', []]]]]]))
 
+    def test_multiple_references(self):
+        class TestParsers(GeneralParsers):
+            a = lit('a')
+            cora = c | a
+            canda = c & a
+            c = 'c'
+
+        self.assertEqual(TestParsers.cora.parse('c'), Success('c'))
+        self.assertEqual(TestParsers.cora.parse('a'), Success('a'))
+        self.assertEqual(TestParsers.canda.parse('ca'), Success(['c', 'a']))
+        self.assertEqual(str(TestParsers.cora), "cora = 'c' | a")
+        self.assertEqual(str(TestParsers.canda), "canda = 'c' & a")
+
 
 class OptionalTestCase(TestCase):
     def test_optional(self):
@@ -85,6 +98,14 @@ class OptionalTestCase(TestCase):
         self.assertEqual(TestParsers.b.parse('ab'), Success(['ab']))
         self.assertEqual(TestParsers.b.parse('ac'), Failure('b expected but c found at 1'))
         self.assertEqual(str(TestParsers.b), "b = opt(a)")
+
+    def test_optional_literal(self):
+        class TestParsers(GeneralParsers):
+            b = opt('ab')
+
+        self.assertEqual(TestParsers.b.parse('ab'), Success(['ab']))
+        self.assertEqual(TestParsers.b.parse('ac'), Failure('b expected but c found at 1'))
+        self.assertEqual(str(TestParsers.b), "b = opt('ab')")
 
 
 class AlternativeTestCase(TestCase):
@@ -122,6 +143,12 @@ class AlternativeTestCase(TestCase):
         str(TestParsers.back), 'back = a | b | c | d'
         str(TestParsers.front), 'front = a | b | c | d'
         str(TestParsers.both), 'both = a | b | c | d'
+
+    def test_right_or(self):
+        class TestParsers(GeneralParsers):
+            ab = 'a' | lit('b')
+
+        self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
 
 
 class SequentialTestCase(TestCase):
@@ -168,6 +195,20 @@ class DiscardTestCase(TestCase):
         self.assertEqual(TestParsers.ac.parse('aa'), Failure('c expected but a found at 1'))
         self.assertEqual(str(TestParsers.ac), 'ac = a << c')
 
+    def test_discard_bare_literals(self):
+        class TestParsers(GeneralParsers):
+            a = lit('a')
+            b = 'b'
+            rshift = a >> b
+            rrshift = b >> a
+            lshift = a << b
+            rlshift = b << a
+
+        self.assertEqual(TestParsers.rshift.parse('ab'), Success('b'))
+        self.assertEqual(TestParsers.rrshift.parse('ba'), Success('a'))
+        self.assertEqual(TestParsers.lshift.parse('ab'), Success('a'))
+        self.assertEqual(TestParsers.rlshift.parse('ba'), Success('b'))
+
 
 class RepeatedTestCase(TestCase):
     def test_repeated(self):
@@ -183,6 +224,8 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
         self.assertEqual(TestParsers.cs.parse('cccb'), Failure('c expected but b found at 3'))
+        self.assertEqual(str(TestParsers.bs), "bs = rep1('b')")
+        self.assertEqual(str(TestParsers.cs), "cs = rep('c')")
 
     def test_repeated_longer(self):
         class TestParsers(GeneralParsers):
@@ -197,6 +240,8 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cf.parse('cf'), Success(['cf']))
         self.assertEqual(TestParsers.cf.parse(''), Success([]))
         self.assertEqual(TestParsers.cf.parse('cfcb'), Failure('f expected but b found at 3'))
+        self.assertEqual(str(TestParsers.bf), "bf = rep1('bf')")
+        self.assertEqual(str(TestParsers.cf), "cf = rep('cf')")
 
     def test_repeated_separated(self):
         class TestParsers(GeneralParsers):
@@ -209,6 +254,22 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cs.parse('c,c,c'), Success(['c', 'c', 'c']))
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
+        self.assertEqual(str(TestParsers.bs), "bs = rep1sep('b', ',')")
+        self.assertEqual(str(TestParsers.cs), "cs = repsep('c', ',')")
+
+    def test_repeated_separated_nonliteral(self):
+        class TestParsers(GeneralParsers):
+            bs = rep1sep('b', opt(','))
+            cs = repsep('c', opt(','))
+
+        self.assertEqual(TestParsers.bs.parse('b,bb'), Success(['b', 'b', 'b']))
+        self.assertEqual(TestParsers.bs.parse('b'), Success(['b']))
+        self.assertEqual(TestParsers.bs.parse(''), Failure('b expected but end of source found'))
+        self.assertEqual(TestParsers.cs.parse('cc,c'), Success(['c', 'c', 'c']))
+        self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
+        self.assertEqual(TestParsers.cs.parse(''), Success([]))
+        self.assertEqual(str(TestParsers.bs), "bs = rep1sep('b', opt(','))")
+        self.assertEqual(str(TestParsers.cs), "cs = repsep('c', opt(','))")
 
 
 class ConversionTestCase(TestCase):
