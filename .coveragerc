@@ -1,5 +1,11 @@
 [run]
 branch = True
-omit =
-    .tox/*
-    setup.py
+include =
+    tests/*
+
+[report]
+include =
+    parsita/*
+    tests/*
+exclude_lines =
+    raise NotImplementedError
