@@ -4,7 +4,7 @@ from types import MethodType
 
 from . import options
 from .state import (Input, Output, Convert, Reader, SequenceReader, StringReader,
-                    Result, Success, Failure, Status, Continue, Backtrack, Stop)
+                    Result, Success, Failure, Status, Continue, Backtrack)
 
 
 def wrap_literal(literal):
@@ -293,8 +293,6 @@ class OptionalParser(Generic[Input, Output], Parser[Input, Union[Output, None]])
 
         if isinstance(status, Continue):
             return Continue([status.value], status.remainder).merge(status)
-        elif isinstance(status, Stop):
-            return status
         else:
             return Continue([], reader).merge(status)
 
@@ -328,8 +326,6 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
             status = parser.consume(reader)
             if isinstance(status, Continue):
                 return status.merge(best_failure)
-            elif isinstance(status, Stop):
-                return status
             else:
                 best_failure = status.merge(best_failure)
 
@@ -427,8 +423,6 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                 if isinstance(status, Continue):
                     remainder = status.remainder
                     output.append(status.value)
-                elif isinstance(status, Stop):
-                    return status
                 else:
                     return Continue(output, remainder).merge(status)
 
@@ -466,8 +460,6 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
             if isinstance(status, Continue):
                 remainder = status.remainder
                 output.append(status.value)
-            elif isinstance(status, Stop):
-                return status
             else:
                 return Continue(output, remainder).merge(status)
 

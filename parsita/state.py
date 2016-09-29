@@ -196,18 +196,6 @@ class Backtrack(Generic[Input], Status[Input, None]):
         return 'Backtrack({}, {})'.format(repr(self.farthest), repr(self.message()))
 
 
-class Stop(Generic[Input], Status[Input, None]):
-    def __init__(self, message: Callable[[], str], remainder: Reader[Input]):
-        self.farthest = remainder.position
-        self.message = message
-        self.remainder = remainder
-
-    def merge(self, status: Status[Input, None]):
-        return self
-
-    def __repr__(self):
-        return 'Stop({})'.format(self.message())
-
 __all__ = ['Input', 'Output', 'Convert',
            'Reader', 'SequenceReader', 'StringReader',
-           'Result', 'Success', 'Failure', 'Status', 'Continue', 'Backtrack', 'Stop']
+           'Result', 'Success', 'Failure', 'Status', 'Continue', 'Backtrack']
