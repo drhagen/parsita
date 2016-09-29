@@ -16,6 +16,9 @@ setuptools.setup(
     url='https://github.com/drhagen/parsita',
     license='GPLv3',
 
+    extra_requires={
+        ':python_version<"3.5"': ['typing'],
+    },
     packages=setuptools.find_packages(),
 
     classifiers=[
@@ -26,6 +29,8 @@ setuptools.setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
 )
