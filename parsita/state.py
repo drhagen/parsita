@@ -128,12 +128,6 @@ class Success(Generic[Output], Result[Output]):
         else:
             return NotImplemented
 
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
     def __repr__(self):
         return 'Success({})'.format(repr(self.value))
 
@@ -156,12 +150,6 @@ class Failure(Generic[Output], Result[Output]):
             return self.message == other.message
         else:
             return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
 
     def __repr__(self):
         return 'Failure({})'.format(repr(self.message))
@@ -188,20 +176,8 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
             self.message = status.message
         return self
 
-    def __eq__(self, other):
-        if isinstance(other, Continue):
-            return self.value == other.value and self.remainder == other.remainder
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
     def __repr__(self):
-        return 'Continue({}, {})'.format(self.value, self.remainder)
+        return 'Continue({}, {})'.format(repr(self.value), repr(self.remainder))
 
 
 class Backtrack(Generic[Input], Status[Input, None]):
@@ -216,20 +192,8 @@ class Backtrack(Generic[Input], Status[Input, None]):
             self.message = status.message
         return self
 
-    def __eq__(self, other):
-        if isinstance(other, Backtrack):
-            return self.farthest == other.farthest and self.message == other.message
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
-
     def __repr__(self):
-        return 'Backtrack({})'.format(self.message())
+        return 'Backtrack({}, {})'.format(repr(self.farthest), repr(self.message()))
 
 
 class Stop(Generic[Input], Status[Input, None]):
@@ -240,18 +204,6 @@ class Stop(Generic[Input], Status[Input, None]):
 
     def merge(self, status: Status[Input, None]):
         return self
-
-    def __eq__(self, other):
-        if isinstance(other, Stop):
-            return self.farthest == other.farthest and self.message == other.message
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
 
     def __repr__(self):
         return 'Stop({})'.format(self.message())
