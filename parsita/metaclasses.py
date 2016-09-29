@@ -27,7 +27,7 @@ class ParsersDict(dict):
     def __setitem__(self, key, value):
         if isinstance(value, Parser):
             value.protected = True  # Protects against accidental concatenation of sequential parsers
-            value.__name__ = key  # Used for better error messages
+            value.name = key  # Used for better error messages
 
         super().__setitem__(key, value)
 

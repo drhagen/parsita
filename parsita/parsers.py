@@ -56,7 +56,7 @@ class Parser(Generic[Input, Output]):
             The fundamental limitation is that python does not handle linked
             lists well or have unpacking that would let one unpack abc as
             [temp, c].
-        __name__ (Optional[str]): A name used by ``__str__`` and ``__repr__``.
+        name (Optional[str]): A name used by ``__str__`` and ``__repr__``.
             It is set by the context classes when a parser is assigned to a
             name.
     """
@@ -102,21 +102,21 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    __name__ = None
+    name = None
 
     protected = False
 
     def name_or_repr(self):
-        if self.__name__ is None:
+        if self.name is None:
             return self.__repr__()
         else:
-            return self.__name__
+            return self.name
 
     def name_or_nothing(self):
-        if self.__name__ is None:
+        if self.name is None:
             return ''
         else:
-            return self.__name__ + ' = '
+            return self.name + ' = '
 
     @classmethod
     def handle_other(cls, obj):
