@@ -55,7 +55,7 @@ Below is a complete parser of `JSON <https://tools.ietf.org/html/rfc7159>`__. It
 
 
     class JsonParsers(TextParsers, whitespace=json_whitespace):
-        number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?')
+        number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > int
 
         false = lit('false') > (lambda _: False)
         true = lit('true') > (lambda _: True)
