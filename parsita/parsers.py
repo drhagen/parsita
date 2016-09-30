@@ -1,5 +1,5 @@
 import re
-from typing import Generic, Sequence, Union, Callable
+from typing import Generic, Sequence, List, Union, Callable, Optional, Any
 from types import MethodType
 
 from . import options
@@ -7,7 +7,7 @@ from .state import (Input, Output, Convert, Reader, SequenceReader, StringReader
                     Result, Success, Failure, Status, Continue, Backtrack)
 
 
-def wrap_literal(literal):
+def wrap_literal(literal: Input) -> 'LiteralParser[Input]':
     return LiteralParser(literal)
 
 
@@ -102,24 +102,24 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    name = None
+    name = None  # type: Optional[str]
 
-    protected = False
+    protected = False  # type: bool
 
-    def name_or_repr(self):
+    def name_or_repr(self) -> str:
         if self.name is None:
             return self.__repr__()
         else:
             return self.name
 
-    def name_or_nothing(self):
+    def name_or_nothing(self) -> Optional[str]:
         if self.name is None:
             return ''
         else:
             return self.name + ' = '
 
-    @classmethod
-    def handle_other(cls, obj):
+    @staticmethod
+    def handle_other(obj: Any) -> 'Parser':
         if isinstance(obj, Parser):
             return obj
         else:
@@ -283,7 +283,7 @@ def reg(pattern: str) -> RegexParser:
     return RegexParser(pattern, options.whitespace)
 
 
-class OptionalParser(Generic[Input, Output], Parser[Input, Union[Output, None]]):
+class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
     def __init__(self, parser: Parser[Input, Output]):
         super().__init__()
         self.parser = parser
@@ -339,8 +339,8 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + ' | '.join(names)
 
 
-class SequentialParser(Generic[Input], Parser[Input, None]):  # Type of this class is inexpressible
-    def __init__(self, parser: Parser[Input, None], *parsers: Sequence[Parser[Input, None]]):
+class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
+    def __init__(self, parser: Parser[Input, Any], *parsers: Sequence[Parser[Input, Any]]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
@@ -368,7 +368,7 @@ class SequentialParser(Generic[Input], Parser[Input, None]):  # Type of this cla
 
 
 class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
-    def __init__(self, left: Parser[Input, None], right: Parser[Input, None]):
+    def __init__(self, left: Parser[Input, Any], right: Parser[Input, Output]):
         super().__init__()
         self.left = left
         self.right = right
@@ -385,7 +385,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
-    def __init__(self, left: Parser[Input, None], right: Parser[Input, None]):
+    def __init__(self, left: Parser[Input, Output], right: Parser[Input, Any]):
         super().__init__()
         self.left = left
         self.right = right
@@ -497,8 +497,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                                                                  self.separator.name_or_repr())
 
 
-def rep1sep(parser: Union[Parser, Sequence[Input]],
-            separator: Union[Parser, Sequence[Input]]) \
+def rep1sep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
         -> RepeatedOnceSeparatedParser:
     """Match a parser one or more times separated by another parser
 
@@ -533,8 +532,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                                                                 self.separator.name_or_repr())
 
 
-def repsep(parser: Union[Parser, Sequence[Input]],
-           separator: Union[Parser, Sequence[Input]]) \
+def repsep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
         -> RepeatedSeparatedParser:
     """Match a parser zero or more times separated by another parser
 

@@ -19,10 +19,10 @@ class Reader(Generic[Input]):
         finished (bool): Indicates if the source is at the end. It is an error
             to access ``first`` or ``rest`` if ``finished`` is ``True``.
     """
-    first = NotImplemented
-    rest = NotImplemented
-    position = NotImplemented
-    finished = NotImplemented
+    first = NotImplemented  # type: Input
+    rest = NotImplemented  # type: Reader[Input]
+    position = NotImplemented  # type: int
+    finished = NotImplemented  # type: bool
 
     def __repr__(self):
         if self.finished:
@@ -47,15 +47,15 @@ class SequenceReader(Reader):
         self.position = position
 
     @property
-    def first(self):
+    def first(self) -> Input:
         return self.source[self.position]
 
     @property
-    def rest(self):
+    def rest(self) -> 'SequenceReader[Input]':
         return SequenceReader(self.source, self.position + 1)
 
     @property
-    def finished(self):
+    def finished(self) -> bool:
         return self.position >= len(self.source)
 
 
@@ -76,23 +76,23 @@ class StringReader(Reader[str]):
         self.position = position
 
     @property
-    def first(self):
+    def first(self) -> str:
         return self.source[self.position]
 
     @property
-    def rest(self):
+    def rest(self) -> 'StringReader[str]':
         return StringReader(self.source, self.position + 1)
 
     @property
-    def finished(self):
+    def finished(self) -> bool:
         return self.position >= len(self.source)
 
-    def drop(self, count):
+    def drop(self, count: int) -> 'StringReader[Input]':
         return StringReader(self.source, self.position + count)
 
     next_word_regex = re.compile(r'[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+')
 
-    def next_word(self):
+    def next_word(self) -> str:
         match = self.next_word_regex.match(self.source, self.position)
         return self.source[match.start():match.end()]
 
@@ -159,7 +159,7 @@ class Status(Generic[Input, Output]):
     farthest = None  # type: Optional[int]
     message = NotImplemented  # type: Callable[[], str]
 
-    def merge(self, status: 'Status[Input, None]'):
+    def merge(self, status: 'Status[Input, Output]'):
         raise NotImplementedError()
 
 
@@ -168,10 +168,10 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
         self.value = value
         self.remainder = remainder
 
-    def merge(self, status: Status[Input, None]):
-        if status is not None and status.farthest is not None \
-                and (self.farthest is None or status.farthest >= self.farthest) \
-                and status.farthest >= self.remainder.position:
+    def merge(self, status: Status[Input, Output]):
+        if (status is not None and status.farthest is not None
+                and (self.farthest is None or status.farthest >= self.farthest)
+                and status.farthest >= self.remainder.position):
             self.farthest = status.farthest
             self.message = status.message
         return self
@@ -186,8 +186,8 @@ class Backtrack(Generic[Input], Status[Input, None]):
         self.message = message
 
     def merge(self, status: Status[Input, None]):
-        if status is not None and status.farthest is not None and \
-                (self.farthest is None or status.farthest >= self.farthest):
+        if (status is not None and status.farthest is not None and
+                (self.farthest is None or status.farthest >= self.farthest)):
             self.farthest = status.farthest
             self.message = status.message
         return self

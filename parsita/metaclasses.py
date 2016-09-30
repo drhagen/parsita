@@ -42,7 +42,7 @@ class ForwardDeclaration(Parser):
         else:
             return object.__getattribute__(self, member)
 
-    def define(self, parser: Parser):
+    def define(self, parser: Parser) -> None:
         self._definition = parser
 
 

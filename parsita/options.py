@@ -1,6 +1,7 @@
 import re
+from typing import Any
 
-from .state import StringReader, Success, Failure, Continue
+from .state import StringReader, Result, Success, Failure, Continue
 
 # Global mutable state
 
@@ -8,7 +9,8 @@ default_whitespace = re.compile(r'\s*')
 whitespace = None
 
 
-def default_handle_literal(literal):
+# PyCharm does not understand type hint on handle_literal, so this signature is more general
+def default_handle_literal(literal: Any):
     from .parsers import LiteralStringParser
     return LiteralStringParser(literal, whitespace)
 
@@ -18,7 +20,7 @@ handle_literal = default_handle_literal
 def default_parse_method():
     freeze_whitespace = whitespace
 
-    def regex_parse(self, source: str):
+    def regex_parse(self, source: str) -> Result:
         reader = StringReader(source)
         if freeze_whitespace is None:
             result = self.consume(reader)
