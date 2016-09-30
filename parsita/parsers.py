@@ -145,7 +145,7 @@ class Parser(Generic[Input, Output]):
     def __and__(self, other) -> 'SequentialParser':
         other = self.handle_other(other)
         if isinstance(self, SequentialParser) and not self.protected:
-            return SequentialParser(*self.parsers, other)
+            return SequentialParser(*(self.parsers + (other,)))
         else:
             return SequentialParser(self, other)
 
