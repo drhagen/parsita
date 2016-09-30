@@ -8,7 +8,7 @@ setuptools.setup(
     version='0.1.0',
 
     description='Parser combinator library for Python.',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     keywords='parser combinator',
 
     author='David Hagen',
