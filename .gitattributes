@@ -1,0 +1,11 @@
+*      text=auto
+
+# General
+*.txt  text
+*.md   text
+*.html text
+*.xml  text
+*.c    text
+
+# Python
+*.py      text

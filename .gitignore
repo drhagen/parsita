@@ -1,0 +1,9 @@
+.idea
+__pycache__
+.cache
+.tox
+parsita.egg-info
+.coverage
+htmlcov
+build
+dist
