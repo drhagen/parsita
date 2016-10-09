@@ -3,32 +3,11 @@ from typing import Generic, Sequence, List, Union, Callable, Optional, Any
 from types import MethodType
 
 from . import options
-from .state import (Input, Output, Convert, Reader, SequenceReader, StringReader,
-                    Result, Success, Failure, Status, Continue, Backtrack)
-
-
-def wrap_literal(literal: Input) -> 'LiteralParser[Input]':
-    return LiteralParser(literal)
-
-
-def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
-    reader = SequenceReader(source)
-    result = self.consume(reader)
-
-    if isinstance(result, Continue):
-        if result.remainder.finished:
-            return Success(result.value)
-        elif result.farthest is None:
-            return Failure('end of source expected but {} found at {}'.format(
-                result.remainder.first, result.remainder.position))
-        else:
-            return Failure(result.message())
-    else:
-        return Failure(result.message())
+from .state import Input, Output, Convert, Reader, StringReader, Result, Status, Continue, Backtrack
 
 
 class Parser(Generic[Input, Output]):
-    """Abstract base class for all parser combinators
+    """Abstract base class for all parser combinators.
 
     Inheritors of this class must:
 
@@ -65,7 +44,7 @@ class Parser(Generic[Input, Output]):
         self.parse = MethodType(options.parse_method, self)
 
     def consume(self, reader: Reader[Input]) -> Status[Input, Output]:
-        """Abstract method for matching this parser at the current location
+        """Abstract method for matching this parser at the current location.
 
         This is the critical method of every parser combinator.
 
@@ -81,7 +60,7 @@ class Parser(Generic[Input, Output]):
         raise NotImplementedError()
 
     def parse(self, source: Sequence[Input]) -> Result[Output]:
-        """Abstract method for completely parsing a source
+        """Abstract method for completely parsing a source.
 
         While ``parse`` is a method on every parser for convenience, it
         is really a function of the context. It is the duty of the context
@@ -188,7 +167,7 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
             else:
                 return Backtrack(remainder.position,
                                  lambda: '{} expected but {} found at {}'.format(
-                                     elem, remainder.first, remainder.position))
+                                     elem, remainder.next_token(), remainder.position))
 
         return Continue(self.pattern, remainder)
 
@@ -212,14 +191,14 @@ class LiteralStringParser(Parser[str, str]):
         else:
             return Backtrack(reader.position,
                              lambda: '{} expected but {} found at {}'.format(
-                                 self.pattern, reader.next_word(), reader.position))
+                                 self.pattern, reader.next_token(), reader.position))
 
     def __repr__(self):
-        return "'{}'".format(self.pattern)
+        return self.name_or_nothing() + repr(self.pattern)
 
 
 def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parser:
-    """Match a literal sequence
+    """Match a literal sequence.
 
     In the `TextParsers`` context, this matches the literal string
     provided. In the ``GeneralParsers`` context, this matches a sequence of
@@ -259,7 +238,7 @@ class RegexParser(Parser[str, str]):
         if match is None:
             return Backtrack(reader.position,
                              lambda: '{} expected but {} found at {}'.format(
-                                 self.pattern.pattern, reader.next_word(), reader.position))
+                                 self.pattern.pattern, reader.next_token(), reader.position))
         else:
             value = reader.source[match.start():match.end()]
             return Continue(value, reader.drop(len(value)))
@@ -269,7 +248,7 @@ class RegexParser(Parser[str, str]):
 
 
 def reg(pattern: str) -> RegexParser:
-    """Match with a regular expression
+    """Match with a regular expression.
 
     This matches the text with a regular expression. The regular expressions is
     treated as greedy. Backtracking in the parser combinators does not flow into
@@ -301,7 +280,7 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
 
 
 def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
-    """Optionally match a parser
+    """Optionally match a parser.
 
     An ``OptionalParser`` attempts to match ``parser``. If it succeeds, it
     returns a list of length one with the value returned by the parser as the
@@ -431,7 +410,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
 
 
 def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
-    """Match a parser one or more times repeatedly
+    """Match a parser one or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. If it matches as least
     once, it returns a list of values from each time ``parser`` matched. If it
@@ -468,7 +447,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
 
 
 def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
-    """Match a parser zero or more times repeatedly
+    """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
     containing the value from each match. If there are no matches, an empty list
@@ -499,7 +478,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
 
 def rep1sep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
         -> RepeatedOnceSeparatedParser:
-    """Match a parser one or more times separated by another parser
+    """Match a parser one or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``.
     If there is at least one match, a list containing the values of the
@@ -534,7 +513,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
 
 def repsep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
         -> RepeatedSeparatedParser:
-    """Match a parser zero or more times separated by another parser
+    """Match a parser zero or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``. A
     list is returned containing the value from each match of ``parser``. The
@@ -569,7 +548,74 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
     def __repr__(self):
         return self.name_or_nothing() + repr(self.parser)
 
+
+class EndOfSourceParser(Generic[Input], Parser[Input, None]):
+    def __init__(self):
+        super().__init__()
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+        if reader.finished:
+            return Continue(None, reader)
+        else:
+            return Backtrack(reader.position,
+                             lambda: 'end of source expected but {} found at {}'.format(
+                                 reader.next_token(), reader.position))
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'eof'
+
+
+eof = EndOfSourceParser()
+
+
+class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
+    def __init__(self, value: Output):
+        self.value = value
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+        return Continue(self.value, reader)
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'success({})'.format(repr(self.value))
+
+
+def success(value: Any):
+    """Always succeed in matching and return a value.
+
+    This parser always succeeds and returns the given ``value``. No input is
+    consumed. This is useful for inserting arbitrary values into complex
+    parsers.
+
+    Args:
+        value: Any value
+    """
+    return SuccessParser(value)
+
+
+class FailureParser(Generic[Input, Output], Parser[Input, Output]):
+    def __init__(self, message: str):
+        self.message = message
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+        return Backtrack(reader.position, lambda: self.message)
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'failure({})'.format(repr(self.message))
+
+
+def failure(message: str = ''):
+    """Always fail in matching with a given message.
+
+    This parser always backtracks with the given ``message``.
+
+    Args:
+        value: Message to be conveyed
+    """
+    return FailureParser(message)
+
+
 __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
            'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
            'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
-           'repsep', 'ConversionParser']
+           'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
+           'failure']

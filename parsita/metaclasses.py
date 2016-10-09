@@ -3,7 +3,7 @@ import builtins
 import re
 
 from . import options
-from .parsers import Parser, RegexParser, wrap_literal, basic_parse
+from .parsers import Parser, RegexParser
 
 
 class ParsersDict(dict):
@@ -47,7 +47,7 @@ class ForwardDeclaration(Parser):
 
 
 def fwd() -> ForwardDeclaration:
-    """Manually create a forward declaration
+    """Manually create a forward declaration.
 
     Normally, forward declarations are created automatically by the contexts.
     But they can be created manually if not in a context or if the user wants
@@ -59,8 +59,8 @@ def fwd() -> ForwardDeclaration:
 class GeneralParsersMeta(type):
     @classmethod
     def __prepare__(mcs, name, bases, **_):  # noqa: N804
-        options.handle_literal = wrap_literal
-        options.parse_method = basic_parse
+        options.handle_literal = options.wrap_literal
+        options.parse_method = options.basic_parse
 
         return ParsersDict()
 
@@ -81,7 +81,7 @@ class GeneralParsersMeta(type):
 
 
 class GeneralParsers(metaclass=GeneralParsersMeta):
-    """Context for parsing general sequences
+    """Context for parsing general sequences.
 
     This is not a real class. Don't instantiate it. This is used by inheriting
     from it and defining parsers as class attributes in the body of the child
@@ -112,7 +112,7 @@ class TextParsersMeta(GeneralParsersMeta):
 
 
 class TextParsers(metaclass=TextParsersMeta):
-    """Context for parsing text
+    """Context for parsing text.
 
     This is not a real class. Don't instantiate it. This is used by inheriting
     from it and defining parsers as class attributes in the body of the child

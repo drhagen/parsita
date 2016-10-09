@@ -7,7 +7,7 @@ Convert = TypeVar('Convert')
 
 
 class Reader(Generic[Input]):
-    """Abstract base class for readers
+    """Abstract base class for readers.
 
     A ``Reader`` is an immutable object holding the state of parsing.
 
@@ -24,6 +24,9 @@ class Reader(Generic[Input]):
     position = NotImplemented  # type: int
     finished = NotImplemented  # type: bool
 
+    def next_token(self):
+        return self.first
+
     def __repr__(self):
         if self.finished:
             return 'Reader(finished)'
@@ -32,7 +35,7 @@ class Reader(Generic[Input]):
 
 
 class SequenceReader(Reader):
-    """A reader for sequences that should not be sliced
+    """A reader for sequences that should not be sliced.
 
     Python makes a copy when a sequence is sliced. This reader avoids making
     that copy by keeping one copy of source, passing it to the new reader when
@@ -61,7 +64,7 @@ class SequenceReader(Reader):
 
 # Python lacks character type, so "str" will be used for both the sequence and the elements
 class StringReader(Reader[str]):
-    """A reader for strings
+    """A reader for strings.
 
     Python's regular expressions and string operations only work on strings,
     not abstract "readers". This class defines the source as a string so that
@@ -90,21 +93,21 @@ class StringReader(Reader[str]):
     def drop(self, count: int) -> 'StringReader[Input]':
         return StringReader(self.source, self.position + count)
 
-    next_word_regex = re.compile(r'[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+')
+    next_token_regex = re.compile(r'[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+')
 
-    def next_word(self) -> str:
-        match = self.next_word_regex.match(self.source, self.position)
+    def next_token(self) -> str:
+        match = self.next_token_regex.match(self.source, self.position)
         return self.source[match.start():match.end()]
 
     def __repr__(self):
         if self.finished:
             return 'StringReader(finished)'
         else:
-            return 'StringReader({}@{})'.format(self.next_word(), self.position)
+            return 'StringReader({}@{})'.format(self.next_token(), self.position)
 
 
 class Result(Generic[Output]):
-    """Abstract algebraic base class for ``Success`` and ``Failure``
+    """Abstract algebraic base class for ``Success`` and ``Failure``.
 
     The class of all values returned from Parser.parse.
     """
@@ -112,7 +115,7 @@ class Result(Generic[Output]):
 
 
 class Success(Generic[Output], Result[Output]):
-    """Parsing succeeded
+    """Parsing succeeded.
 
     Returned from Parser.parse when the parser matched the source entirely.
 
@@ -133,7 +136,7 @@ class Success(Generic[Output], Result[Output]):
 
 
 class Failure(Generic[Output], Result[Output]):
-    """Parsing failed
+    """Parsing failed.
 
     Returned from Parser.parse when the parser did not match the source or the
     source was not completely consumed.

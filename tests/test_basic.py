@@ -320,3 +320,29 @@ class ProtectionTestCase(TestCase):
 
         self.assertEqual(TestParsers.abc.parse('abc'), Success([['a', 'b'], 'c']))
         self.assertEqual(TestParsers.dab.parse('dab'), Success(['d', ['a', 'b']]))
+
+
+class EndOfSourceTestCase(TestCase):
+    def test_protection(self):
+        class TestParsers(GeneralParsers):
+            end_a = 'a' << eof
+            b = lit('b')
+            bba = rep(b | end_a)
+
+        self.assertEqual(TestParsers.bba.parse('bba'), Success(['b', 'b', 'a']))
+        self.assertEqual(TestParsers.bba.parse('a'), Success(['a']))
+        self.assertEqual(TestParsers.bba.parse('ab'), Failure('end of source expected but b found at 1'))
+        self.assertEqual(str(TestParsers.end_a), "end_a = 'a' << eof")
+
+
+class SuccessFailureTestCase(TestCase):
+    def test_protection(self):
+        class TestParsers(GeneralParsers):
+            aaa = rep('a') & success(1) & rep('b')
+            bbb = 'aa' & failure('unmitigated failure') & 'bb'
+
+        self.assertEqual(TestParsers.aaa.parse('aabb'), Success([['a', 'a'], 1, ['b', 'b']]))
+        self.assertEqual(TestParsers.aaa.parse(''), Success([[], 1, []]))
+        self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('unmitigated failure'))
+        self.assertEqual(str(TestParsers.aaa), "aaa = rep('a') & success(1) & rep('b')")
+        self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('unmitigated failure') & 'bb'")

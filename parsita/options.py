@@ -1,7 +1,7 @@
 import re
-from typing import Any
+from typing import Any, Sequence
 
-from .state import StringReader, Result, Success, Failure, Continue
+from .state import Input, Output, SequenceReader, StringReader, Result, Success, Failure, Continue
 
 # Global mutable state
 
@@ -13,6 +13,12 @@ whitespace = None
 def default_handle_literal(literal: Any):
     from .parsers import LiteralStringParser
     return LiteralStringParser(literal, whitespace)
+
+
+def wrap_literal(literal: Input):
+    from .parsers import LiteralParser
+    return LiteralParser(literal)
+
 
 handle_literal = default_handle_literal
 
@@ -32,7 +38,7 @@ def default_parse_method():
                 return Success(result.value)
             elif result.farthest is None:
                 return Failure('end of source expected but {} found at {}'.format(
-                    result.remainder.next_word(), result.remainder.position))
+                    result.remainder.next_token(), result.remainder.position))
             else:
                 return Failure(result.message())
         else:
@@ -40,7 +46,25 @@ def default_parse_method():
 
     return regex_parse
 
+
+def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
+    reader = SequenceReader(source)
+    result = self.consume(reader)
+
+    if isinstance(result, Continue):
+        if result.remainder.finished:
+            return Success(result.value)
+        elif result.farthest is None:
+            return Failure('end of source expected but {} found at {}'.format(
+                result.remainder.first, result.remainder.position))
+        else:
+            return Failure(result.message())
+    else:
+        return Failure(result.message())
+
+
 parse_method = default_parse_method()
 
-__all__ = ['default_whitespace', 'whitespace', 'default_handle_literal', 'handle_literal', 'default_parse_method',
-           'parse_method']
+
+__all__ = ['default_whitespace', 'whitespace', 'default_handle_literal', 'wrap_literal', 'handle_literal',
+           'default_parse_method', 'basic_parse', 'parse_method']
