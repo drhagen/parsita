@@ -23,6 +23,14 @@ class LiteralTestCase(TestCase):
         self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
         self.assertEqual(TestParsers.ab.parse('b'), Success('b'))
 
+    def test_or_die(self):
+        class TestParsers(GeneralParsers):
+            a = lit('a')
+            bb = lit('bb')
+
+        self.assertEqual(TestParsers.a.parse('a').or_die(), 'a')
+        self.assertRaisesRegexp(ValueError, 'b expected but a found at 0', TestParsers.bb.parse('aa').or_die)
+
 
 class ForwardDeclarationTestCase(TestCase):
     def test_forward_declaration(self):

@@ -111,7 +111,8 @@ class Result(Generic[Output]):
 
     The class of all values returned from Parser.parse.
     """
-    pass
+    def or_die(self):
+        raise NotImplementedError()
 
 
 class Success(Generic[Output], Result[Output]):
@@ -124,6 +125,9 @@ class Success(Generic[Output], Result[Output]):
     """
     def __init__(self, value: Output):
         self.value = value
+
+    def or_die(self):
+        return self.value
 
     def __eq__(self, other):
         if isinstance(other, Success):
@@ -147,6 +151,9 @@ class Failure(Generic[Output], Result[Output]):
     """
     def __init__(self, message: str):
         self.message = message
+
+    def or_die(self):
+        raise ValueError(self.message)
 
     def __eq__(self, other):
         if isinstance(other, Failure):
