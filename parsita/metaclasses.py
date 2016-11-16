@@ -124,4 +124,5 @@ class TextParsers(metaclass=TextParsersMeta):
     """
     pass
 
+
 __all__ = ['ForwardDeclaration', 'fwd', 'GeneralParsers', 'TextParsers']
