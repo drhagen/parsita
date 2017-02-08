@@ -1,4 +1,4 @@
-flake8>=3.2.0
+flake8>=3.3.0
 pep8-naming
 flake8-quotes
 pytest
