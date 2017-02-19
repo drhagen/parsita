@@ -89,7 +89,7 @@ The recommended means of installation is with ``pip`` from PyPI.
 
 .. code:: bash
 
-    pip install parsita
+    pip3 install parsita
 
 There is a lot of generic parsing machinery under the hood. Parser combinators have a rich science behind them. If you know all about that and want to do advanced parsing, by all means pop open the source hood and install some nitro. However, most users will want the basic interface, which is described below.
 
