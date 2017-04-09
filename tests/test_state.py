@@ -34,7 +34,7 @@ class StateTestCase(TestCase):
 
         cont = Continue(40, read)
         self.assertEqual(cont.value, 40)
-        self.assertEqual(str(cont), "Continue(40, StringReader(a@0))")
+        self.assertEqual(str(cont), 'Continue(40, StringReader(a@0))')
 
         back = Backtrack(2, lambda: 'no further')
         self.assertEqual(back.message(), 'no further')

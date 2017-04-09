@@ -52,8 +52,8 @@ class ForwardDeclarationTestCase(TestCase):
         self.assertEqual(TestParsers.ca.parse('c'), Success('c'))
         self.assertEqual(TestParsers.ca.parse('a'), Success('a'))
         self.assertEqual(TestParsers.da.parse('da'), Success(['d', 'a']))
-        self.assertEqual(str(TestParsers.ca), "ca = c | a")
-        self.assertEqual(str(TestParsers.da), "da = d & a")
+        self.assertEqual(str(TestParsers.ca), 'ca = c | a')
+        self.assertEqual(str(TestParsers.da), 'da = d & a')
 
     def test_manual_forward(self):
         class TestParsers(GeneralParsers):
@@ -96,7 +96,7 @@ class OptionalTestCase(TestCase):
 
         self.assertEqual(TestParsers.b.parse('a'), Success(['a']))
         self.assertEqual(TestParsers.b.parse('c'), Failure('a expected but c found at 0'))
-        self.assertEqual(str(TestParsers.b), "b = opt(a)")
+        self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
     def test_optional_longer(self):
         class TestParsers(GeneralParsers):
@@ -105,7 +105,7 @@ class OptionalTestCase(TestCase):
 
         self.assertEqual(TestParsers.b.parse('ab'), Success(['ab']))
         self.assertEqual(TestParsers.b.parse('ac'), Failure('b expected but c found at 1'))
-        self.assertEqual(str(TestParsers.b), "b = opt(a)")
+        self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
     def test_optional_literal(self):
         class TestParsers(GeneralParsers):
@@ -130,7 +130,7 @@ class AlternativeTestCase(TestCase):
         self.assertEqual(TestParsers.ab.parse('c'), Failure('a expected but c found at 0'))
         self.assertEqual(TestParsers.bc.parse('cd'), Success('cd'))
         self.assertEqual(TestParsers.bc.parse('ce'), Failure('d expected but e found at 1'))
-        self.assertEqual(str(TestParsers.bc), "bc = b | c")
+        self.assertEqual(str(TestParsers.bc), 'bc = b | c')
 
     def test_multiple(self):
         class TestParsers(GeneralParsers):

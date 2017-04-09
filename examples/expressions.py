@@ -32,6 +32,7 @@ class ExpressionParsers(TextParsers):
             return term1
     expr = term & opt(lit('+', '-') & term) > make_expr
 
+
 if __name__ == '__main__':
     expressions = ['123', '2 ^ 3', '1 + 1', '14 / (3.1 + 3.9)']
 
