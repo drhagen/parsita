@@ -16,8 +16,8 @@ class JsonStringParsers(TextParsers, whitespace=None):
     tab = lit(r'\t') > (lambda _: '\t')
     uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
 
-    escaped = (quote | reverse_solidus | solidus | backspace | form_feed
-               | line_feed | carriage_return | tab | uni)
+    escaped = (quote | reverse_solidus | solidus | backspace | form_feed |
+               line_feed | carriage_return | tab | uni)
     unescaped = reg(r'[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+')
 
     string = '"' >> rep(escaped | unescaped) << '"' > ''.join

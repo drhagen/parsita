@@ -285,10 +285,10 @@ class ConversionTestCase(TestCase):
         class TestParsers(GeneralParsers):
             one = lit('1') > int
             two = lit('2') > int
-            twelve = one & two > (lambda x: x[0]*10 + x[1])
+            twelve = one & two > (lambda x: x[0] * 10 + x[1])
 
             def make_twentyone(x):
-                return x[0]*10 + x[1]
+                return x[0] * 10 + x[1]
             twentyone = two & one > make_twentyone
 
         self.assertEqual(TestParsers.one.parse('1'), Success(1))
