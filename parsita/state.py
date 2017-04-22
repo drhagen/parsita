@@ -179,9 +179,9 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
         self.remainder = remainder
 
     def merge(self, status: Status[Input, Output]):
-        if (status is not None and status.farthest is not None
-                and (self.farthest is None or status.farthest >= self.farthest)
-                and status.farthest >= self.remainder.position):
+        if (status is not None and status.farthest is not None and
+                (self.farthest is None or status.farthest >= self.farthest) and
+                status.farthest >= self.remainder.position):
             self.farthest = status.farthest
             self.message = status.message
         return self

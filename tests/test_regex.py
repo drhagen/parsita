@@ -56,7 +56,7 @@ class RegexTestCase(TestCase):
         self.assertEqual(TestParsers.pair.parse('100 100'), Success([100, 100]))
         self.assertEqual(TestParsers.pair.parse('100\n100'), Failure('\d+ expected but \n found at 3'))
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
-        self.assertEqual(str(TestParsers.pair), "pair = digits & digits")
+        self.assertEqual(str(TestParsers.pair), 'pair = digits & digits')
 
 
 class OptionalTestCase(TestCase):
@@ -67,7 +67,7 @@ class OptionalTestCase(TestCase):
 
         self.assertEqual(TestParsers.b.parse(' 100 '), Success([100]))
         self.assertEqual(TestParsers.b.parse(' c '), Failure('\d+ expected but c found at 1'))
-        self.assertEqual(str(TestParsers.b), "b = opt(a)")
+        self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
 
 class RepeatedTestCase(TestCase):
