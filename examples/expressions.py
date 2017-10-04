@@ -8,8 +8,8 @@ class ExpressionParsers(TextParsers):
 
     factor = base & opt('^' >> base) > (lambda x: x[0] ** x[1][0] if x[1] else x[0])
 
-    def make_term(x):
-        factor1, maybe_factor = x
+    def make_term(args):
+        factor1, maybe_factor = args
         if maybe_factor:
             op, factor2 = maybe_factor[0]
             if op == '*':
@@ -20,8 +20,8 @@ class ExpressionParsers(TextParsers):
             return factor1
     term = factor & opt(lit('*', '/') & factor) > make_term
 
-    def make_expr(x):
-        term1, maybe_term = x
+    def make_expr(args):
+        term1, maybe_term = args
         if maybe_term:
             op, term2 = maybe_term[0]
             if op == '+':

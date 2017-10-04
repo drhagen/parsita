@@ -36,39 +36,39 @@ Below is a complete parser of `JSON <https://tools.ietf.org/html/rfc7159>`__. It
 
     json_whitespace = r'[ \t\n\r]*'
 
-    class JsonStringParsers(TextParsers, whitespace=None):
-        quote = lit(r'\"') > (lambda _: '"')
-        reverse_solidus = lit(r'\\') > (lambda _: '\\')
-        solidus = lit(r'\/') > (lambda _: '/')
-        backspace = lit(r'\b') > (lambda _: '\b')
-        form_feed = lit(r'\f') > (lambda _: '\f')
-        line_feed = lit(r'\n') > (lambda _: '\n')
-        carriage_return = lit(r'\r') > (lambda _: '\r')
-        tab = lit(r'\t') > (lambda _: '\t')
-        uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
+   class JsonStringParsers(TextParsers, whitespace=None):
+       quote = lit(r'\"') > constant('"')
+       reverse_solidus = lit(r'\\') > constant('\\')
+       solidus = lit(r'\/') > constant('/')
+       backspace = lit(r'\b') > constant('\b')
+       form_feed = lit(r'\f') > constant('\f')
+       line_feed = lit(r'\n') > constant('\n')
+       carriage_return = lit(r'\r') > constant('\r')
+       tab = lit(r'\t') > constant('\t')
+       uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
 
-        escaped = (quote | reverse_solidus | solidus | backspace | form_feed
-                   | line_feed | carriage_return | tab | uni)
-        unescaped = reg(r'[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+')
+       escaped = (quote | reverse_solidus | solidus | backspace | form_feed |
+                  line_feed | carriage_return | tab | uni)
+       unescaped = reg(r'[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+')
 
-        string = '"' >> rep(escaped | unescaped) << '"' > ''.join
+       string = '"' >> rep(escaped | unescaped) << '"' > ''.join
 
 
-    class JsonParsers(TextParsers, whitespace=json_whitespace):
-        number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
+   class JsonParsers(TextParsers, whitespace=json_whitespace):
+       number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
 
-        false = lit('false') > (lambda _: False)
-        true = lit('true') > (lambda _: True)
-        null = lit('null') > (lambda _: None)
+       false = lit('false') > constant(False)
+       true = lit('true') > constant(True)
+       null = lit('null') > constant(None)
 
-        string = reg(json_whitespace) >> JsonStringParsers.string
+       string = reg(json_whitespace) >> JsonStringParsers.string
 
-        array = '[' >> repsep(value, ',') << ']'
+       array = '[' >> repsep(value, ',') << ']'
 
-        entry = string << ':' & value
-        obj = '{' >> repsep(entry, ',') << '}' > dict
+       entry = string << ':' & value
+       obj = '{' >> repsep(entry, ',') << '}' > dict
 
-        value = number | false | true | null | string | array | obj
+       value = number | false | true | null | string | array | obj
 
     if __name__ == '__main__':
         strings = [
@@ -150,7 +150,7 @@ Conversion parsers don't change how the text is parsed�they change the value r
 
     class IntegerParsers(TextParsers):
         integer = reg(r'[-+]?[0-9]+') > int
-    assert IntegerParsers.integer.parse(-128) == Success(-128)
+    assert IntegerParsers.integer.parse('-128') == Success(-128)
 
 ``parser1 | parser2``: alternative parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -196,12 +196,12 @@ In accordance with Python's operator precedence, these bind more tightly than an
 -  Also correct: ``entry = key & ':' >> value``
 -  Incorrect: ``hostname = lit('http', 'ftp') & '://' >> reg(r'[^/]+') << reg(r'.*')``
 -  Correct: ``hostname = lit('http', 'ftp') >> '://' >> reg(r'[^/]+') << reg(r'.*')``
--  Better: ``hostname = (lit('http', 'ftp') & '://') >> reg(r'[^/]+') << reg(r'.*')``
+-  Also correct: ``hostname = (lit('http', 'ftp') & '://') >> reg(r'[^/]+') << reg(r'.*')``
 
 ``opt(parser)``: optional parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-An optional parser tries to match its argument. If the argument succeeds, it returns a list of length one with the successful value as its only element. If the argument fails, then ``opt`` succeeds anyway, but returns an empty list and consuming no input.
+An optional parser tries to match its argument. If the argument succeeds, it returns a list of length one with the successful value as its only element. If the argument fails, then ``opt`` succeeds anyway, but returns an empty list and consumes no input.
 
 .. code:: python
 

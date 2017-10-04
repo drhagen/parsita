@@ -1,4 +1,5 @@
 from parsita import *
+from parsita.util import constant
 
 # JSON definition according to https://tools.ietf.org/html/rfc7159
 
@@ -6,14 +7,14 @@ json_whitespace = r'[ \t\n\r]*'
 
 
 class JsonStringParsers(TextParsers, whitespace=None):
-    quote = lit(r'\"') > (lambda _: '"')
-    reverse_solidus = lit(r'\\') > (lambda _: '\\')
-    solidus = lit(r'\/') > (lambda _: '/')
-    backspace = lit(r'\b') > (lambda _: '\b')
-    form_feed = lit(r'\f') > (lambda _: '\f')
-    line_feed = lit(r'\n') > (lambda _: '\n')
-    carriage_return = lit(r'\r') > (lambda _: '\r')
-    tab = lit(r'\t') > (lambda _: '\t')
+    quote = lit(r'\"') > constant('"')
+    reverse_solidus = lit(r'\\') > constant('\\')
+    solidus = lit(r'\/') > constant('/')
+    backspace = lit(r'\b') > constant('\b')
+    form_feed = lit(r'\f') > constant('\f')
+    line_feed = lit(r'\n') > constant('\n')
+    carriage_return = lit(r'\r') > constant('\r')
+    tab = lit(r'\t') > constant('\t')
     uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
 
     escaped = (quote | reverse_solidus | solidus | backspace | form_feed |
@@ -26,9 +27,9 @@ class JsonStringParsers(TextParsers, whitespace=None):
 class JsonParsers(TextParsers, whitespace=json_whitespace):
     number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
 
-    false = lit('false') > (lambda _: False)
-    true = lit('true') > (lambda _: True)
-    null = lit('null') > (lambda _: None)
+    false = lit('false') > constant(False)
+    true = lit('true') > constant(True)
+    null = lit('null') > constant(None)
 
     string = reg(json_whitespace) >> JsonStringParsers.string
 
