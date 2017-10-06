@@ -8,6 +8,7 @@ class LiteralTestCase(TestCase):
         class TestParsers(TextParsers):
             hundred = lit('100') > float
 
+        self.assertEqual(TestParsers.hundred.parse(''), Failure("Expected '100' but found end of source"))
         self.assertEqual(TestParsers.hundred.parse('100'), Success(100))
         self.assertEqual(TestParsers.hundred.parse('   100'), Success(100))
         self.assertEqual(TestParsers.hundred.parse('100    '), Success(100))
@@ -19,8 +20,10 @@ class LiteralTestCase(TestCase):
             hundred = lit('100') > float
 
         self.assertEqual(TestParsers.hundred.parse('100'), Success(100))
-        self.assertEqual(TestParsers.hundred.parse(' 100'), Failure(r'100 expected but   found at 0'))
-        self.assertEqual(TestParsers.hundred.parse('100 '), Failure(r'end of source expected but   found at 3'))
+        self.assertEqual(TestParsers.hundred.parse(' 100'),
+                         Failure("Expected '100' but found ' '\nLine 1, character 1\n\n 100\n^   "))
+        self.assertEqual(TestParsers.hundred.parse('100 '),
+                         Failure("Expected end of source but found ' '\nLine 1, character 4\n\n100 \n   ^"))
         self.assertEqual(str(TestParsers.hundred), "hundred = '100'")
 
 
@@ -40,8 +43,10 @@ class RegexTestCase(TestCase):
             digits = reg(r'\d+') > float
 
         self.assertEqual(TestParsers.digits.parse('100'), Success(100))
-        self.assertEqual(TestParsers.digits.parse(' 100'), Failure(r'\d+ expected but   found at 0'))
-        self.assertEqual(TestParsers.digits.parse('100 '), Failure(r'end of source expected but   found at 3'))
+        self.assertEqual(TestParsers.digits.parse(' 100'),
+                         Failure("Expected r'\\d+' but found ' '\nLine 1, character 1\n\n 100\n^   "))
+        self.assertEqual(TestParsers.digits.parse('100 '),
+                         Failure("Expected end of source but found ' '\nLine 1, character 4\n\n100 \n   ^"))
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
 
     def test_custom_whitespace(self):
@@ -51,10 +56,13 @@ class RegexTestCase(TestCase):
 
         self.assertEqual(TestParsers.digits.parse('100'), Success(100))
         self.assertEqual(TestParsers.digits.parse('   100    '), Success(100))
-        self.assertEqual(TestParsers.digits.parse('100\n'), Failure('end of source expected but \n found at 3'))
-        self.assertEqual(TestParsers.digits.parse('100 \n'), Failure('end of source expected but \n found at 4'))
+        self.assertEqual(TestParsers.digits.parse('100\n'),
+                         Failure("Expected end of source but found '\\n'\nLine 1, character 4\n\n100\n   ^"))
+        self.assertEqual(TestParsers.digits.parse('100 \n'),
+                         Failure("Expected end of source but found '\\n'\nLine 1, character 5\n\n100 \n    ^"))
         self.assertEqual(TestParsers.pair.parse('100 100'), Success([100, 100]))
-        self.assertEqual(TestParsers.pair.parse('100\n100'), Failure('\d+ expected but \n found at 3'))
+        self.assertEqual(TestParsers.pair.parse('100\n100'),
+                         Failure("Expected r'\\d+' but found '\\n'\nLine 1, character 4\n\n100\n   ^"))
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
         self.assertEqual(str(TestParsers.pair), 'pair = digits & digits')
 
@@ -62,35 +70,65 @@ class RegexTestCase(TestCase):
 class OptionalTestCase(TestCase):
     def test_optional(self):
         class TestParsers(TextParsers):
-            a = reg('\d+') > float
+            a = reg(r'\d+') > float
             b = opt(a)
 
         self.assertEqual(TestParsers.b.parse(' 100 '), Success([100]))
-        self.assertEqual(TestParsers.b.parse(' c '), Failure('\d+ expected but c found at 1'))
+        self.assertEqual(TestParsers.b.parse(' c '),
+                         Failure("Expected r'\\d+' but found 'c'\nLine 1, character 2\n\n c \n ^ "))
         self.assertEqual(str(TestParsers.b), 'b = opt(a)')
+
+
+class SequentialTestCase(TestCase):
+    def test_sequential(self):
+        class TestParsers(TextParsers):
+            hello = lit('Hello')
+            world = lit('world')
+            hello_world = hello & world
+
+        self.assertEqual(TestParsers.hello_world.parse('Hello world'), Success(['Hello', 'world']))
+        self.assertEqual(TestParsers.hello_world.parse('Hello David'),
+                         Failure("Expected 'world' but found 'David'\nLine 1, character 7\n\nHello David\n      ^    "))
+        self.assertEqual(TestParsers.hello_world.parse('Hello'), Failure("Expected 'world' but found end of source"))
+
+    def test_multiline(self):
+        class TestParsers(TextParsers):
+            hello = lit('Hello')
+            world = lit('world')
+            hello_world = hello & world
+
+        self.assertEqual(TestParsers.hello_world.parse('Hello\nworld'), Success(['Hello', 'world']))
+        self.assertEqual(TestParsers.hello_world.parse('Hello\nDavid'),
+                         Failure("Expected 'world' but found 'David'\nLine 2, character 1\n\nDavid\n^    "))
 
 
 class RepeatedTestCase(TestCase):
     def test_repeated(self):
         class TestParsers(TextParsers):
-            number = reg('\d+') > int
+            number = reg(r'\d+') > int
             trail = '(' >> rep(number << ',') << ')' > tuple
             trail1 = '(' >> rep1(number << ',') << ')' > tuple
             notrail = '(' >> repsep(number, ',') << ')' > tuple
             notrail1 = '(' >> rep1sep(number, ',') << ')' > tuple
 
-        self.assertEqual(TestParsers.trail.parse('(1,2,3)'), Failure(', expected but ) found at 6'))
+        self.assertEqual(TestParsers.trail.parse('(1,2,3)'),
+                         Failure("Expected ',' but found ')'\nLine 1, character 7\n\n(1,2,3)\n      ^"))
         self.assertEqual(TestParsers.trail.parse('(1,2,3,)'), Success((1, 2, 3)))
         self.assertEqual(TestParsers.trail.parse('()'), Success(()))
-        self.assertEqual(TestParsers.trail1.parse('(1,2,3)'), Failure(', expected but ) found at 6'))
+        self.assertEqual(TestParsers.trail1.parse('(1,2,3)'),
+                         Failure("Expected ',' but found ')'\nLine 1, character 7\n\n(1,2,3)\n      ^"))
         self.assertEqual(TestParsers.trail1.parse('(1,2,3,)'), Success((1, 2, 3)))
-        self.assertEqual(TestParsers.trail1.parse('()'), Failure('\d+ expected but ) found at 1'))
+        self.assertEqual(TestParsers.trail1.parse('()'),
+                         Failure("Expected r'\\d+' but found ')'\nLine 1, character 2\n\n()\n ^"))
         self.assertEqual(TestParsers.notrail.parse('(1,2,3)'), Success((1, 2, 3)))
-        self.assertEqual(TestParsers.notrail.parse('(1,2,3,)'), Failure('\d+ expected but ) found at 7'))
+        self.assertEqual(TestParsers.notrail.parse('(1,2,3,)'),
+                         Failure("Expected r'\\d+' but found ')'\nLine 1, character 8\n\n(1,2,3,)\n       ^"))
         self.assertEqual(TestParsers.notrail.parse('()'), Success(()))
         self.assertEqual(TestParsers.notrail1.parse('(1,2,3)'), Success((1, 2, 3)))
-        self.assertEqual(TestParsers.notrail1.parse('(1,2,3,)'), Failure('\d+ expected but ) found at 7'))
-        self.assertEqual(TestParsers.notrail1.parse('()'), Failure('\d+ expected but ) found at 1'))
+        self.assertEqual(TestParsers.notrail1.parse('(1,2,3,)'),
+                         Failure("Expected r'\\d+' but found ')'\nLine 1, character 8\n\n(1,2,3,)\n       ^"))
+        self.assertEqual(TestParsers.notrail1.parse('()'),
+                         Failure("Expected r'\\d+' but found ')'\nLine 1, character 2\n\n()\n ^"))
 
 
 class RecursionTestCase(TestCase):

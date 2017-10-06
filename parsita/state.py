@@ -1,4 +1,5 @@
 import re
+from io import StringIO
 from typing import Generic, Sequence, TypeVar, Callable, Optional  # noqa: F401
 
 Input = TypeVar('Input')
@@ -27,6 +28,25 @@ class Reader(Generic[Input]):
     def next_token(self):
         return self.first
 
+    def expected_error(self, expected: str) -> str:
+        """Generate a basic error to include the current state.
+
+        A parser can supply only a representation of what it is expecting to
+        this method and the reader will provide the context, including the index
+        to the error.
+
+        Args:
+            expected: A representation of what the parser is currently expecting
+
+        Returns:
+            A full error message
+        """
+
+        if self.finished:
+            return 'Expected {} but found end of source'.format(expected)
+        else:
+            return 'Expected {} but found {} at index {}'.format(expected, self.next_token(), self.position)
+
     def __repr__(self):
         if self.finished:
             return 'Reader(finished)'
@@ -45,6 +65,7 @@ class SequenceReader(Reader):
     Attributes:
         source (Sequence[Input]): What will be parsed.
     """
+
     def __init__(self, source: Sequence[Input], position: int = 0):
         self.source = source
         self.position = position
@@ -74,6 +95,7 @@ class StringReader(Reader[str]):
     Attributes:
         source (str): What will be parsed.
     """
+
     def __init__(self, source: str, position: int = 0):
         self.source = source
         self.position = position
@@ -99,6 +121,42 @@ class StringReader(Reader[str]):
         match = self.next_token_regex.match(self.source, self.position)
         return self.source[match.start():match.end()]
 
+    def expected_error(self, expected: str) -> str:
+        """Generate a basic error to include the current state.
+
+        A parser can supply only a representation of what it is expecting to
+        this method and the reader will provide the context, including the line
+        and character positions.
+
+        Args:
+            expected: A representation of what the parser is currently expecting
+
+        Returns:
+            A full error message
+        """
+
+        if self.finished:
+            return 'Expected {} but found end of source'.format(expected)
+        else:
+            characters_consumed = 0
+            for line_index, line in enumerate(StringIO(self.source)):  # pragma: no cover
+                if characters_consumed + len(line) > self.position:
+                    # The line with the error has been found
+                    character_index = self.position - characters_consumed
+
+                    # This creates a line like this '        ^                  '
+                    pointer = (' ' * character_index) + '^' + (' ' * (len(line) - character_index - 1))
+
+                    # This adds a newline to line in case it is the end of the file
+                    if line[-1] != '\n':
+                        line = line + '\n'
+
+                    # Add one to indexes to account for 0-indexes
+                    return 'Expected {} but found {}\nLine {}, character {}\n\n{}{}'.format(
+                        expected, repr(self.next_token()), line_index + 1, character_index + 1, line, pointer)
+                else:
+                    characters_consumed += len(line)
+
     def __repr__(self):
         if self.finished:
             return 'StringReader(finished)'
@@ -111,6 +169,7 @@ class Result(Generic[Output]):
 
     The class of all values returned from Parser.parse.
     """
+
     def or_die(self):
         raise NotImplementedError()
 
@@ -123,6 +182,7 @@ class Success(Generic[Output], Result[Output]):
     Attributes:
         value (Output): The value returned from the parser.
     """
+
     def __init__(self, value: Output):
         self.value = value
 
@@ -149,11 +209,12 @@ class Failure(Generic[Output], Result[Output]):
         message (str): A human-readable error from the farthest point reached
             during parsing.
     """
+
     def __init__(self, message: str):
         self.message = message
 
     def or_die(self):
-        raise ValueError(self.message)
+        raise ParseError(self.message)
 
     def __eq__(self, other):
         if isinstance(other, Failure):
@@ -163,6 +224,24 @@ class Failure(Generic[Output], Result[Output]):
 
     def __repr__(self):
         return 'Failure({})'.format(repr(self.message))
+
+
+class ParseError(Exception):
+    """Parsing failure converted to an exception.
+
+    Raised when ``or_die`` method on ``Failure`` is called.
+
+    Attributes:
+        message (str): A human-readable error message
+    """
+    def __init__(self, message: str):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+    def __repr__(self):
+        return 'ParseError({})'.format(repr(self.message))
 
 
 class Status(Generic[Input, Output]):
@@ -208,4 +287,4 @@ class Backtrack(Generic[Input], Status[Input, None]):
 
 __all__ = ['Input', 'Output', 'Convert',
            'Reader', 'SequenceReader', 'StringReader',
-           'Result', 'Success', 'Failure', 'Status', 'Continue', 'Backtrack']
+           'Result', 'Success', 'Failure', 'ParseError', 'Status', 'Continue', 'Backtrack']

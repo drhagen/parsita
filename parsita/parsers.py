@@ -161,13 +161,11 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
-                return Backtrack(remainder.position, lambda: '{} expected but end of source found'.format(elem))
+                return Backtrack(remainder.position, lambda: remainder.expected_error(elem))
             elif elem == remainder.first:
                 remainder = remainder.rest
             else:
-                return Backtrack(remainder.position,
-                                 lambda: '{} expected but {} found at {}'.format(
-                                     elem, remainder.next_token(), remainder.position))
+                return Backtrack(remainder.position, lambda: remainder.expected_error(elem))
 
         return Continue(self.pattern, remainder)
 
@@ -189,9 +187,7 @@ class LiteralStringParser(Parser[str, str]):
         if reader.source.startswith(self.pattern, reader.position):
             return Continue(self.pattern, reader.drop(len(self.pattern)))
         else:
-            return Backtrack(reader.position,
-                             lambda: '{} expected but {} found at {}'.format(
-                                 self.pattern, reader.next_token(), reader.position))
+            return Backtrack(reader.position, lambda: reader.expected_error(repr(self.pattern)))
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.pattern)
@@ -236,9 +232,7 @@ class RegexParser(Parser[str, str]):
         match = self.pattern.match(reader.source, reader.position)
 
         if match is None:
-            return Backtrack(reader.position,
-                             lambda: '{} expected but {} found at {}'.format(
-                                 self.pattern.pattern, reader.next_token(), reader.position))
+            return Backtrack(reader.position, lambda: reader.expected_error("r'" + self.pattern.pattern + "'"))
         else:
             value = reader.source[match.start():match.end()]
             return Continue(value, reader.drop(len(value)))
@@ -557,9 +551,7 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
         if reader.finished:
             return Continue(None, reader)
         else:
-            return Backtrack(reader.position,
-                             lambda: 'end of source expected but {} found at {}'.format(
-                                 reader.next_token(), reader.position))
+            return Backtrack(reader.position, lambda: reader.expected_error('end of source'))
 
     def __repr__(self):
         return self.name_or_nothing() + 'eof'
@@ -609,7 +601,7 @@ def failure(message: str = ''):
     This parser always backtracks with the given ``message``.
 
     Args:
-        value: Message to be conveyed
+        message: Message to be conveyed
     """
     return FailureParser(message)
 

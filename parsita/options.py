@@ -37,8 +37,7 @@ def default_parse_method():
             if result.remainder.finished:
                 return Success(result.value)
             elif result.farthest is None:
-                return Failure('end of source expected but {} found at {}'.format(
-                    result.remainder.next_token(), result.remainder.position))
+                return Failure(result.remainder.expected_error('end of source'))
             else:
                 return Failure(result.message())
         else:
@@ -55,8 +54,7 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
         if result.remainder.finished:
             return Success(result.value)
         elif result.farthest is None:
-            return Failure('end of source expected but {} found at {}'.format(
-                result.remainder.first, result.remainder.position))
+            return Failure(result.remainder.expected_error('end of source'))
         else:
             return Failure(result.message())
     else:

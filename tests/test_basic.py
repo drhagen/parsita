@@ -11,8 +11,8 @@ class LiteralTestCase(TestCase):
 
         self.assertEqual(TestParsers.a.parse('a'), Success('a'))
         self.assertEqual(TestParsers.bb.parse('bb'), Success('bb'))
-        self.assertEqual(TestParsers.bb.parse('bbb'), Failure('end of source expected but b found at 2'))
-        self.assertEqual(TestParsers.bb.parse('aa'), Failure('b expected but a found at 0'))
+        self.assertEqual(TestParsers.bb.parse('bbb'), Failure('Expected end of source but found b at index 2'))
+        self.assertEqual(TestParsers.bb.parse('aa'), Failure('Expected b but found a at index 0'))
         self.assertEqual(str(TestParsers.a), "a = 'a'")
         self.assertEqual(str(TestParsers.bb), "bb = 'bb'")
 
@@ -29,7 +29,7 @@ class LiteralTestCase(TestCase):
             bb = lit('bb')
 
         self.assertEqual(TestParsers.a.parse('a').or_die(), 'a')
-        self.assertRaisesRegexp(ValueError, 'b expected but a found at 0', TestParsers.bb.parse('aa').or_die)
+        self.assertRaisesRegexp(ParseError, 'Expected b but found a at index 0', TestParsers.bb.parse('aa').or_die)
 
 
 class ForwardDeclarationTestCase(TestCase):
@@ -39,7 +39,7 @@ class ForwardDeclarationTestCase(TestCase):
             b = lit('b')
 
         self.assertEqual(TestParsers.a.parse('b'), Success('b'))
-        self.assertEqual(TestParsers.a.parse('ab'), Failure('b expected but a found at 0'))
+        self.assertEqual(TestParsers.a.parse('ab'), Failure('Expected b but found a at index 0'))
 
     def test_forward_expression(self):
         class TestParsers(GeneralParsers):
@@ -95,7 +95,7 @@ class OptionalTestCase(TestCase):
             b = opt(a)
 
         self.assertEqual(TestParsers.b.parse('a'), Success(['a']))
-        self.assertEqual(TestParsers.b.parse('c'), Failure('a expected but c found at 0'))
+        self.assertEqual(TestParsers.b.parse('c'), Failure('Expected a but found c at index 0'))
         self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
     def test_optional_longer(self):
@@ -104,7 +104,7 @@ class OptionalTestCase(TestCase):
             b = opt(a)
 
         self.assertEqual(TestParsers.b.parse('ab'), Success(['ab']))
-        self.assertEqual(TestParsers.b.parse('ac'), Failure('b expected but c found at 1'))
+        self.assertEqual(TestParsers.b.parse('ac'), Failure('Expected b but found c at index 1'))
         self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
     def test_optional_literal(self):
@@ -112,7 +112,7 @@ class OptionalTestCase(TestCase):
             b = opt('ab')
 
         self.assertEqual(TestParsers.b.parse('ab'), Success(['ab']))
-        self.assertEqual(TestParsers.b.parse('ac'), Failure('b expected but c found at 1'))
+        self.assertEqual(TestParsers.b.parse('ac'), Failure('Expected b but found c at index 1'))
         self.assertEqual(str(TestParsers.b), "b = opt('ab')")
 
 
@@ -127,9 +127,9 @@ class AlternativeTestCase(TestCase):
 
         self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
         self.assertEqual(TestParsers.ab.parse('b'), Success('b'))
-        self.assertEqual(TestParsers.ab.parse('c'), Failure('a expected but c found at 0'))
+        self.assertEqual(TestParsers.ab.parse('c'), Failure('Expected a but found c at index 0'))
         self.assertEqual(TestParsers.bc.parse('cd'), Success('cd'))
-        self.assertEqual(TestParsers.bc.parse('ce'), Failure('d expected but e found at 1'))
+        self.assertEqual(TestParsers.bc.parse('ce'), Failure('Expected d but found e at index 1'))
         self.assertEqual(str(TestParsers.bc), 'bc = b | c')
 
     def test_multiple(self):
@@ -145,8 +145,8 @@ class AlternativeTestCase(TestCase):
         for parser in [TestParsers.back, TestParsers.front, TestParsers.both]:
             self.assertEqual(parser.parse('aaaa'), Success('aaaa'))
             self.assertEqual(parser.parse('cc'), Success('cc'))
-            self.assertEqual(parser.parse('bbc'), Failure('b expected but c found at 2'))
-            self.assertEqual(parser.parse('bbba'), Failure('end of source expected but a found at 3'))
+            self.assertEqual(parser.parse('bbc'), Failure('Expected b but found c at index 2'))
+            self.assertEqual(parser.parse('bbba'), Failure('Expected end of source but found a at index 3'))
 
         str(TestParsers.back), 'back = a | b | c | d'
         str(TestParsers.front), 'front = a | b | c | d'
@@ -172,8 +172,8 @@ class SequentialTestCase(TestCase):
         self.assertEqual(TestParsers.ab.parse('ab'), Success(['a', 'b']))
         self.assertEqual(TestParsers.bc.parse('bcd'), Success(['b', 'cd']))
         self.assertEqual(TestParsers.abc.parse('abcd'), Success(['a', 'b', 'cd']))
-        self.assertEqual(TestParsers.abc.parse('abc'), Failure('d expected but end of source found'))
-        self.assertEqual(TestParsers.abc.parse('abf'), Failure('c expected but f found at 2'))
+        self.assertEqual(TestParsers.abc.parse('abc'), Failure('Expected d but found end of source'))
+        self.assertEqual(TestParsers.abc.parse('abf'), Failure('Expected c but found f at index 2'))
         self.assertEqual(str(TestParsers.abc), 'abc = a & b & c')
 
 
@@ -200,7 +200,7 @@ class DiscardTestCase(TestCase):
 
         self.assertEqual(TestParsers.ab.parse('ab'), Success('a'))
         self.assertEqual(TestParsers.ac.parse('ac'), Success('a'))
-        self.assertEqual(TestParsers.ac.parse('aa'), Failure('c expected but a found at 1'))
+        self.assertEqual(TestParsers.ac.parse('aa'), Failure('Expected c but found a at index 1'))
         self.assertEqual(str(TestParsers.ac), 'ac = a << c')
 
     def test_discard_bare_literals(self):
@@ -226,12 +226,12 @@ class RepeatedTestCase(TestCase):
 
         self.assertEqual(TestParsers.bs.parse('bbbb'), Success(['b', 'b', 'b', 'b']))
         self.assertEqual(TestParsers.bs.parse('b'), Success(['b']))
-        self.assertEqual(TestParsers.bs.parse(''), Failure('b expected but end of source found'))
-        self.assertEqual(TestParsers.bs.parse('bbbc'), Failure('b expected but c found at 3'))
+        self.assertEqual(TestParsers.bs.parse(''), Failure('Expected b but found end of source'))
+        self.assertEqual(TestParsers.bs.parse('bbbc'), Failure('Expected b but found c at index 3'))
         self.assertEqual(TestParsers.cs.parse('ccc'), Success(['c', 'c', 'c']))
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
-        self.assertEqual(TestParsers.cs.parse('cccb'), Failure('c expected but b found at 3'))
+        self.assertEqual(TestParsers.cs.parse('cccb'), Failure('Expected c but found b at index 3'))
         self.assertEqual(str(TestParsers.bs), "bs = rep1('b')")
         self.assertEqual(str(TestParsers.cs), "cs = rep('c')")
 
@@ -242,12 +242,12 @@ class RepeatedTestCase(TestCase):
 
         self.assertEqual(TestParsers.bf.parse('bfbf'), Success(['bf', 'bf']))
         self.assertEqual(TestParsers.bf.parse('bf'), Success(['bf']))
-        self.assertEqual(TestParsers.bf.parse(''), Failure('b expected but end of source found'))
-        self.assertEqual(TestParsers.bf.parse('bfbc'), Failure('f expected but c found at 3'))
+        self.assertEqual(TestParsers.bf.parse(''), Failure('Expected b but found end of source'))
+        self.assertEqual(TestParsers.bf.parse('bfbc'), Failure('Expected f but found c at index 3'))
         self.assertEqual(TestParsers.cf.parse('cfcfcf'), Success(['cf', 'cf', 'cf']))
         self.assertEqual(TestParsers.cf.parse('cf'), Success(['cf']))
         self.assertEqual(TestParsers.cf.parse(''), Success([]))
-        self.assertEqual(TestParsers.cf.parse('cfcb'), Failure('f expected but b found at 3'))
+        self.assertEqual(TestParsers.cf.parse('cfcb'), Failure('Expected f but found b at index 3'))
         self.assertEqual(str(TestParsers.bf), "bf = rep1('bf')")
         self.assertEqual(str(TestParsers.cf), "cf = rep('cf')")
 
@@ -258,7 +258,7 @@ class RepeatedTestCase(TestCase):
 
         self.assertEqual(TestParsers.bs.parse('b,b,b'), Success(['b', 'b', 'b']))
         self.assertEqual(TestParsers.bs.parse('b'), Success(['b']))
-        self.assertEqual(TestParsers.bs.parse(''), Failure('b expected but end of source found'))
+        self.assertEqual(TestParsers.bs.parse(''), Failure('Expected b but found end of source'))
         self.assertEqual(TestParsers.cs.parse('c,c,c'), Success(['c', 'c', 'c']))
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
@@ -272,7 +272,7 @@ class RepeatedTestCase(TestCase):
 
         self.assertEqual(TestParsers.bs.parse('b,bb'), Success(['b', 'b', 'b']))
         self.assertEqual(TestParsers.bs.parse('b'), Success(['b']))
-        self.assertEqual(TestParsers.bs.parse(''), Failure('b expected but end of source found'))
+        self.assertEqual(TestParsers.bs.parse(''), Failure('Expected b but found end of source'))
         self.assertEqual(TestParsers.cs.parse('cc,c'), Success(['c', 'c', 'c']))
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
@@ -339,7 +339,7 @@ class EndOfSourceTestCase(TestCase):
 
         self.assertEqual(TestParsers.bba.parse('bba'), Success(['b', 'b', 'a']))
         self.assertEqual(TestParsers.bba.parse('a'), Success(['a']))
-        self.assertEqual(TestParsers.bba.parse('ab'), Failure('end of source expected but b found at 1'))
+        self.assertEqual(TestParsers.bba.parse('ab'), Failure('Expected end of source but found b at index 1'))
         self.assertEqual(str(TestParsers.end_a), "end_a = 'a' << eof")
 
 

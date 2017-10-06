@@ -39,3 +39,7 @@ class StateTestCase(TestCase):
         back = Backtrack(2, lambda: 'no further')
         self.assertEqual(back.message(), 'no further')
         self.assertEqual(str(back), "Backtrack(2, 'no further')")
+
+        error = ParseError('Expected a but found b at index 0')
+        self.assertEqual(str(error), 'Expected a but found b at index 0')
+        self.assertEqual(repr(error), "ParseError('Expected a but found b at index 0')")
