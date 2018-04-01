@@ -170,3 +170,45 @@ class RecursionTestCase(TestCase):
         self.assertEqual(TestParsers.expr.parse('34'), Success(34))
         self.assertEqual(TestParsers.expr.parse('34 + 8'), Success(42))
         self.assertEqual(TestParsers.expr.parse('1 + 2 + 3'), Success(6))
+
+
+class OptionsResetTest(TestCase):
+    def test_nested_class(self):
+        class TestOuter(TextParsers, whitespace='[ ]*'):
+            start = '%%'
+
+            class TestInner(TextParsers, whitespace=None):
+                inner = '"' >> reg('[A-Za-z0-9]*') << '"'
+
+            wrapped = ('(' & reg('[ ]*')) >> TestInner.inner << ')'
+
+            outer = start >> wrapped
+
+        self.assertEqual(TestOuter.outer.parse('%%("abc")'), Success('abc'))
+        self.assertEqual(TestOuter.outer.parse('%%  ("abc")'), Success('abc'))
+        self.assertEqual(TestOuter.outer.parse('%%(  "abc")'), Success('abc'))
+        self.assertEqual(TestOuter.outer.parse('%%("abc"  )'), Success('abc'))
+        self.assertIsInstance(TestOuter.outer.parse('%%(" abc")'), Failure)
+        self.assertIsInstance(TestOuter.outer.parse('%%("abc ")'), Failure)
+        self.assertEqual(TestOuter.outer.parse('   %%("abc")'), Success('abc'))
+        self.assertEqual(TestOuter.outer.parse('%%("abc")   '), Success('abc'))
+
+    def test_general_in_regex(self):
+        class TestOuter(TextParsers, whitespace='[ ]*'):
+            start = '%%'
+
+            class TestInner(GeneralParsers):
+                inner = '"' >> rep(lit('a', 'b', 'c')) << '"'
+
+            wrapped = ('(' & reg('[ ]*')) >> TestInner.inner << ')'
+
+            outer = start >> wrapped
+
+        self.assertEqual(TestOuter.outer.parse('%%("abc")'), Success(['a', 'b', 'c']))
+        self.assertEqual(TestOuter.outer.parse('%%  ("abc")'), Success(['a', 'b', 'c']))
+        self.assertEqual(TestOuter.outer.parse('%%(  "abc")'), Success(['a', 'b', 'c']))
+        self.assertEqual(TestOuter.outer.parse('%%("abc"  )'), Success(['a', 'b', 'c']))
+        self.assertIsInstance(TestOuter.outer.parse('%%(" abc")'), Failure)
+        self.assertIsInstance(TestOuter.outer.parse('%%("abc ")'), Failure)
+        self.assertEqual(TestOuter.outer.parse('   %%("abc")'), Success(['a', 'b', 'c']))
+        self.assertEqual(TestOuter.outer.parse('%%("abc")   '), Success(['a', 'b', 'c']))

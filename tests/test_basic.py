@@ -354,3 +354,21 @@ class SuccessFailureTestCase(TestCase):
         self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('unmitigated failure'))
         self.assertEqual(str(TestParsers.aaa), "aaa = rep('a') & success(1) & rep('b')")
         self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('unmitigated failure') & 'bb'")
+
+
+class OptionsResetTest(TestCase):
+    def test_nested_class(self):
+        class TestOuter(GeneralParsers):
+            start = '%'
+
+            class TestInner(GeneralParsers):
+                inner = '"' >> rep(lit('a', 'b', 'c')) << '"'
+
+            wrapped = '(' >> TestInner.inner << ')'
+
+            outer = start >> wrapped
+
+        self.assertEqual(TestOuter.outer.parse('%("abc")'), Success(['a', 'b', 'c']))
+        self.assertIsInstance(TestOuter.outer.parse('%("abc ")'), Failure)
+        self.assertIsInstance(TestOuter.outer.parse(' %("abc")'), Failure)
+        self.assertIsInstance(TestOuter.outer.parse('%("abc") '), Failure)

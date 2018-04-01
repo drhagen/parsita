@@ -7,9 +7,10 @@ from .parsers import Parser, RegexParser
 
 
 class ParsersDict(dict):
-    def __init__(self):
+    def __init__(self, old_options: dict):
         super().__init__()
-        self.forward_declarations = dict()
+        self.old_options = old_options  # Holds state of options at start of definition
+        self.forward_declarations = dict()  # Stores forward declarations as they are discovered
 
     def __missing__(self, key):
         class_body_globals = inspect.currentframe().f_back.f_globals
@@ -59,12 +60,19 @@ def fwd() -> ForwardDeclaration:
 class GeneralParsersMeta(type):
     @classmethod
     def __prepare__(mcs, name, bases, **_):  # noqa: N804
+        old_options = {
+            'handle_literal': options.handle_literal,
+            'parse_method': options.parse_method,
+        }
+
         options.handle_literal = options.wrap_literal
         options.parse_method = options.basic_parse
 
-        return ParsersDict()
+        return ParsersDict(old_options)
 
     def __init__(cls, name, bases, dct, **_):  # noqa: N805
+        old_options = dct.old_options
+
         super().__init__(name, bases, dct)
 
         # Resolve forward declarations, will raise if name not found
@@ -75,9 +83,8 @@ class GeneralParsersMeta(type):
             forward_declaration._definition = obj
 
         # Reset global variables
-        options.whitespace = None
-        options.handle_literal = options.default_handle_literal
-        options.parse_method = options.default_parse_method()
+        for key, value in old_options.items():
+            setattr(options, key, value)
 
 
 class GeneralParsers(metaclass=GeneralParsersMeta):
@@ -93,6 +100,12 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
 class TextParsersMeta(GeneralParsersMeta):
     @classmethod
     def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):  # noqa: N804
+        old_options = {
+            'whitespace': options.whitespace,
+            'handle_literal': options.handle_literal,
+            'parse_method': options.parse_method,
+        }
+
         # Store whitespace in global location so regex parsers can see it
         if isinstance(whitespace, str):
             whitespace = re.compile(whitespace)
@@ -105,7 +118,7 @@ class TextParsersMeta(GeneralParsersMeta):
         options.handle_literal = options.default_handle_literal
         options.parse_method = options.default_parse_method()
 
-        return ParsersDict()
+        return ParsersDict(old_options)
 
     def __new__(mcs, name, bases, dct, **_):  # noqa: N804
         return super().__new__(mcs, name, bases, dct)
