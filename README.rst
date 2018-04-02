@@ -230,4 +230,37 @@ A repeated separated parser matches ``parser`` separated by ``separator``, retur
     class ListParsers(TextParsers):
         integer = reg(r'[-+]?[0-9]+') > int
         my_list = '[' >> repsep(integer, ',') << ']'
-    assert ListParsers.my_list.parse('[1,2,3]') == [1, 2, 3]
+    assert ListParsers.my_list.parse('[1,2,3]') == Success([1, 2, 3])
+
+``eof``: end of file
+^^^^^^^^^^^^^^^^^^^^^^
+
+A parser than matches the end of the input stream. It is not necessary to include this on every parser. The ``parse`` method on every parser is successful if it matches the entire input. The ``eof`` parser is only needed to indicate that the preceding parser is only valid at the end of the input. Most commonly, it is used an alternative to an end token when the end token may be omitted at the end of the input. Note that ``eof`` is not a function—it is a complete parser itself.
+
+.. code:: python
+
+    class OptionsParsers(TextParsers):
+        option = reg(r'[A-Za-z]+') << '=' & reg(r'[A-Za-z]+') << (';' | eof)
+        options = rep(option)
+    assert OptionsParsers.options.parse('log=warn;detail=minimal;') == \
+        Success([['log', 'warn'], ['detail', 'minimal']])
+    assert OptionsParsers.options.parse('log=warn;detail=minimal') == \
+        Success([['log', 'warn'], ['detail', 'minimal']])
+
+``fwd()``: forward declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This creates a forward declaration for a parser to be defined later. This function is not typically needed because forward declarations are created automatically within the class bodies of subclasses of ``TextParsers`` and ``GeneralParsers``, which is the recommended way to use Parsita. This function exists so you can create a forward declaration manually because you are either working outside of the magic classes or wish to define them manually to make your IDE happier.
+
+To use ``fwd``, first assign ``fwd()`` to a variable, then use that variable in other combinators like any other parser, then call the ``define(parser: Parser)`` method on the object to provide the forward declaration with its definition. The forward declaration will now look and act like the definition provided.
+
+.. code:: python
+
+    class ArithmeticParsers(TextParsers):
+        number = reg(r'[+-]?\d+(\.\d+)?(e[+-]?\d+)?') > float
+        expr = fwd()
+        base = '(' >> expr << ')' | number
+        add = base & '+' >> expr > (lambda x: x[0] + x[1])
+        subtract = base & '-' >> expr > (lambda x: x[0] - x[1])
+        expr.define(add | subtract | base)
+    assert ArithmeticParsers.expr.parse('2-(1+2)') == Success(-1.0)
