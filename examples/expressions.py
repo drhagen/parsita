@@ -9,32 +9,30 @@ class ExpressionParsers(TextParsers):
     factor = base & opt('^' >> base) > (lambda x: x[0] ** x[1][0] if x[1] else x[0])
 
     def make_term(args):
-        factor1, maybe_factor = args
-        if maybe_factor:
-            op, factor2 = maybe_factor[0]
+        factor1, factors = args
+        result = factor1
+        for op, factor in factors:
             if op == '*':
-                return factor1 * factor2
+                result = result * factor
             else:
-                return factor1 / factor2
-        else:
-            return factor1
-    term = factor & opt(lit('*', '/') & factor) > make_term
+                result = result / factor
+        return result
+    term = factor & rep(lit('*', '/') & factor) > make_term
 
     def make_expr(args):
-        term1, maybe_term = args
-        if maybe_term:
-            op, term2 = maybe_term[0]
+        term1, terms = args
+        result = term1
+        for op, term2 in terms:
             if op == '+':
-                return term1 + term2
+                result = result + term2
             else:
-                return term1 - term2
-        else:
-            return term1
-    expr = term & opt(lit('+', '-') & term) > make_expr
+                result = result - term2
+        return result
+    expr = term & rep(lit('+', '-') & term) > make_expr
 
 
 if __name__ == '__main__':
-    expressions = ['123', '2 ^ 3', '1 + 1', '14 / (3.1 + 3.9)']
+    expressions = ['123', '2 ^ 3', '1 + 1', '1 - 2 + 3 - 4', '3 - 4 * 2 + 10', '14 / (3.1 + 3.9)']
 
     for expression in expressions:
         print('{} = {}'.format(expression, ExpressionParsers.expr.parse(expression).value))
