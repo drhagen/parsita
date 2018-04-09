@@ -185,7 +185,13 @@ class LiteralStringParser(Parser[str, str]):
             reader = status.remainder
 
         if reader.source.startswith(self.pattern, reader.position):
-            return Continue(self.pattern, reader.drop(len(self.pattern)))
+            reader = reader.drop(len(self.pattern))
+
+            if self.whitespace is not None:
+                status = self.whitespace.consume(reader)
+                reader = status.remainder
+
+            return Continue(self.pattern, reader)
         else:
             return Backtrack(reader.position, lambda: reader.expected_error(repr(self.pattern)))
 
@@ -235,7 +241,13 @@ class RegexParser(Parser[str, str]):
             return Backtrack(reader.position, lambda: reader.expected_error("r'" + self.pattern.pattern + "'"))
         else:
             value = reader.source[match.start():match.end()]
-            return Continue(value, reader.drop(len(value)))
+            reader = reader.drop(len(value))
+
+            if self.whitespace is not None:
+                status = self.whitespace.consume(reader)
+                reader = status.remainder
+
+            return Continue(value, reader)
 
     def __repr__(self):
         return "reg(r'{}')".format(self.pattern.pattern)

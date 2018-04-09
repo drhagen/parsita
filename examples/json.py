@@ -31,7 +31,7 @@ class JsonParsers(TextParsers, whitespace=json_whitespace):
     true = lit('true') > constant(True)
     null = lit('null') > constant(None)
 
-    string = reg(json_whitespace) >> JsonStringParsers.string
+    string = JsonStringParsers.string
 
     array = '[' >> repsep(value, ',') << ']'
 

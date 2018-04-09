@@ -172,6 +172,21 @@ class RecursionTestCase(TestCase):
         self.assertEqual(TestParsers.expr.parse('1 + 2 + 3'), Success(6))
 
 
+class EndOfSourceTestCase(TestCase):
+    def test_protection(self):
+        class TestParsers(TextParsers):
+            end_aa = 'aa' << eof
+            b = lit('b')
+            bba = rep(b | end_aa)
+
+        self.assertEqual(TestParsers.bba.parse('b b aa'), Success(['b', 'b', 'aa']))
+        self.assertEqual(TestParsers.bba.parse('b b aa  '), Success(['b', 'b', 'aa']))
+        self.assertEqual(TestParsers.bba.parse('  b b aa'), Success(['b', 'b', 'aa']))
+        self.assertEqual(TestParsers.bba.parse('aa b'),
+                         Failure("Expected end of source but found 'b'\nLine 1, character 4\n\naa b\n   ^"))
+        self.assertEqual(str(TestParsers.end_aa), "end_aa = 'aa' << eof")
+
+
 class OptionsResetTest(TestCase):
     def test_nested_class(self):
         class TestOuter(TextParsers, whitespace='[ ]*'):
@@ -180,7 +195,7 @@ class OptionsResetTest(TestCase):
             class TestInner(TextParsers, whitespace=None):
                 inner = '"' >> reg('[A-Za-z0-9]*') << '"'
 
-            wrapped = ('(' & reg('[ ]*')) >> TestInner.inner << ')'
+            wrapped = '(' >> TestInner.inner << ')'
 
             outer = start >> wrapped
 
@@ -200,7 +215,7 @@ class OptionsResetTest(TestCase):
             class TestInner(GeneralParsers):
                 inner = '"' >> rep(lit('a', 'b', 'c')) << '"'
 
-            wrapped = ('(' & reg('[ ]*')) >> TestInner.inner << ')'
+            wrapped = '(' >> TestInner.inner << ')'
 
             outer = start >> wrapped
 

@@ -23,27 +23,19 @@ def wrap_literal(literal: Input):
 handle_literal = default_handle_literal
 
 
-def default_parse_method():
-    freeze_whitespace = whitespace
+def default_parse_method(self, source: str) -> Result:
+    reader = StringReader(source)
+    result = self.consume(reader)
 
-    def regex_parse(self, source: str) -> Result:
-        reader = StringReader(source)
-        if freeze_whitespace is None:
-            result = self.consume(reader)
-        else:
-            result = (self << freeze_whitespace).consume(reader)
-
-        if isinstance(result, Continue):
-            if result.remainder.finished:
-                return Success(result.value)
-            elif result.farthest is None:
-                return Failure(result.remainder.expected_error('end of source'))
-            else:
-                return Failure(result.message())
+    if isinstance(result, Continue):
+        if result.remainder.finished:
+            return Success(result.value)
+        elif result.farthest is None:
+            return Failure(result.remainder.expected_error('end of source'))
         else:
             return Failure(result.message())
-
-    return regex_parse
+    else:
+        return Failure(result.message())
 
 
 def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
@@ -61,8 +53,7 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
         return Failure(result.message())
 
 
-parse_method = default_parse_method()
-
+parse_method = default_parse_method
 
 __all__ = ['default_whitespace', 'whitespace', 'default_handle_literal', 'wrap_literal', 'handle_literal',
            'default_parse_method', 'basic_parse', 'parse_method']

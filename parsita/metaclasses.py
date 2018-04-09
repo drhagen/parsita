@@ -116,7 +116,7 @@ class TextParsersMeta(GeneralParsersMeta):
             options.whitespace = RegexParser(whitespace)
 
         options.handle_literal = options.default_handle_literal
-        options.parse_method = options.default_parse_method()
+        options.parse_method = options.default_parse_method
 
         return ParsersDict(old_options)
 
