@@ -7,8 +7,6 @@ Parsita
    :target: https://codecov.io/github/drhagen/parsita
 .. image:: https://img.shields.io/pypi/v/parsita.svg
    :target: https://pypi.python.org/pypi/parsita
-.. image:: https://img.shields.io/pypi/status/parsita.svg
-   :target: https://pypi.python.org/pypi/parsita
 .. image:: https://img.shields.io/pypi/pyversions/parsita.svg
    :target: https://pypi.python.org/pypi/parsita
 
