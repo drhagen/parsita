@@ -245,14 +245,15 @@ class ParseError(Exception):
 
 
 class Status(Generic[Input, Output]):
-    farthest = None  # type: Optional[int]
-    message = NotImplemented  # type: Callable[[], str]
+    farthest = None  # type: Optional[Reader]
+    expected = None  # type: Optional[Callable[[], str]]
 
     def merge(self, status: 'Status[Input, None]'):
         if status is not None and (self.farthest is None
-                                   or status.farthest is not None and status.farthest >= self.farthest):
+                                   or status.farthest is not None
+                                   and status.farthest.position >= self.farthest.position):
             self.farthest = status.farthest
-            self.message = status.message
+            self.expected = status.expected
         return self
 
 
@@ -266,12 +267,12 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
 
 
 class Backtrack(Generic[Input], Status[Input, None]):
-    def __init__(self, farthest: int, message: Callable[[], str]):
+    def __init__(self, farthest: Reader[Input], expected: Callable[[], str]):
         self.farthest = farthest
-        self.message = message
+        self.expected = expected
 
     def __repr__(self):
-        return 'Backtrack({}, {})'.format(repr(self.farthest), repr(self.message()))
+        return 'Backtrack({}, {})'.format(repr(self.farthest), repr(self.expected()))
 
 
 __all__ = ['Input', 'Output', 'Convert',

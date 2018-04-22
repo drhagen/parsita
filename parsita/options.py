@@ -32,7 +32,7 @@ def default_parse_method(self, source: str) -> Result[Output]:
     if isinstance(result, Continue):
          return Success(result.value)
     else:
-        return Failure(result.message())
+        return Failure(result.farthest.expected_error(result.expected()))
 
 
 def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
@@ -44,7 +44,7 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
     if isinstance(result, Continue):
         return Success(result.value)
     else:
-        return Failure(result.message())
+        return Failure(result.farthest.expected_error(result.expected()))
 
 
 parse_method = default_parse_method

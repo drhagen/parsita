@@ -347,13 +347,13 @@ class SuccessFailureTestCase(TestCase):
     def test_protection(self):
         class TestParsers(GeneralParsers):
             aaa = rep('a') & success(1) & rep('b')
-            bbb = 'aa' & failure('unmitigated failure') & 'bb'
+            bbb = 'aa' & failure('something else') & 'bb'
 
         self.assertEqual(TestParsers.aaa.parse('aabb'), Success([['a', 'a'], 1, ['b', 'b']]))
         self.assertEqual(TestParsers.aaa.parse(''), Success([[], 1, []]))
-        self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('unmitigated failure'))
+        self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('Expected something else but found b at index 2'))
         self.assertEqual(str(TestParsers.aaa), "aaa = rep('a') & success(1) & rep('b')")
-        self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('unmitigated failure') & 'bb'")
+        self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('something else') & 'bb'")
 
 
 class OptionsResetTest(TestCase):

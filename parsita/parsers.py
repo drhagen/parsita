@@ -161,11 +161,11 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
-                return Backtrack(remainder.position, lambda: remainder.expected_error(elem))
+                return Backtrack(remainder, lambda: elem)
             elif elem == remainder.first:
                 remainder = remainder.rest
             else:
-                return Backtrack(remainder.position, lambda: remainder.expected_error(elem))
+                return Backtrack(remainder, lambda: elem)
 
         return Continue(self.pattern, remainder)
 
@@ -193,7 +193,7 @@ class LiteralStringParser(Parser[str, str]):
 
             return Continue(self.pattern, reader)
         else:
-            return Backtrack(reader.position, lambda: reader.expected_error(repr(self.pattern)))
+            return Backtrack(reader, lambda: repr(self.pattern))
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.pattern)
@@ -238,7 +238,7 @@ class RegexParser(Parser[str, str]):
         match = self.pattern.match(reader.source, reader.position)
 
         if match is None:
-            return Backtrack(reader.position, lambda: reader.expected_error("r'" + self.pattern.pattern + "'"))
+            return Backtrack(reader, lambda: "r'" + self.pattern.pattern + "'")
         else:
             value = reader.source[match.start():match.end()]
             reader = reader.drop(len(value))
@@ -563,7 +563,7 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
         if reader.finished:
             return Continue(None, reader)
         else:
-            return Backtrack(reader.position, lambda: reader.expected_error('end of source'))
+            return Backtrack(reader, lambda: 'end of source')
 
     def __repr__(self):
         return self.name_or_nothing() + 'eof'
@@ -601,7 +601,7 @@ class FailureParser(Generic[Input, Output], Parser[Input, Output]):
         self.message = message
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
-        return Backtrack(reader.position, lambda: self.message)
+        return Backtrack(reader, lambda: self.message)
 
     def __repr__(self):
         return self.name_or_nothing() + 'failure({})'.format(repr(self.message))
