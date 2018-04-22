@@ -574,6 +574,7 @@ eof = EndOfSourceParser()
 
 class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(self, value: Output):
+        super().__init__()
         self.value = value
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
@@ -597,25 +598,29 @@ def success(value: Any):
 
 
 class FailureParser(Generic[Input, Output], Parser[Input, Output]):
-    def __init__(self, message: str):
-        self.message = message
+    def __init__(self, expected: str):
+        super().__init__()
+        self.expected = expected
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
-        return Backtrack(reader, lambda: self.message)
+        return Backtrack(reader, lambda: self.expected)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'failure({})'.format(repr(self.message))
+        return self.name_or_nothing() + 'failure({})'.format(repr(self.expected))
 
 
-def failure(message: str = ''):
+def failure(expected: str = ''):
     """Always fail in matching with a given message.
 
-    This parser always backtracks with the given ``message``.
+    This parser always backtracks with a message that it is expecting the
+    given ``expected``. This is useful for appending to parsers that are
+    expected to be seen in the input, but are not valid so that a more useful
+    error message can be given.
 
     Args:
-        message: Message to be conveyed
+        expected: Message to be conveyed
     """
-    return FailureParser(message)
+    return FailureParser(expected)
 
 
 __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
