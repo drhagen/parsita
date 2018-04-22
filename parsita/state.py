@@ -258,9 +258,9 @@ class Status(Generic[Input, Output]):
 
 
 class Continue(Generic[Input, Output], Status[Input, Output]):
-    def __init__(self, value: Output, remainder: Reader[Input]):
-        self.value = value
+    def __init__(self, remainder: Reader[Input], value: Output):
         self.remainder = remainder
+        self.value = value
 
     def __repr__(self):
         return 'Continue({}, {})'.format(repr(self.value), repr(self.remainder))

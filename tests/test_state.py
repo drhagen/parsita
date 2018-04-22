@@ -32,7 +32,7 @@ class StateTestCase(TestCase):
         self.assertEqual(str(read), 'StringReader(a@0)')
         self.assertEqual(str(read.rest.rest.rest), 'StringReader(finished)')
 
-        cont = Continue(40, read)
+        cont = Continue(read, 40)
         self.assertEqual(cont.value, 40)
         self.assertEqual(str(cont), 'Continue(40, StringReader(a@0))')
 

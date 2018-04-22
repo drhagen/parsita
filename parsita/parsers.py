@@ -167,7 +167,7 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
             else:
                 return Backtrack(remainder, lambda: elem)
 
-        return Continue(self.pattern, remainder)
+        return Continue(remainder, self.pattern)
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.pattern)
@@ -191,7 +191,7 @@ class LiteralStringParser(Parser[str, str]):
                 status = self.whitespace.consume(reader)
                 reader = status.remainder
 
-            return Continue(self.pattern, reader)
+            return Continue(reader, self.pattern)
         else:
             return Backtrack(reader, lambda: repr(self.pattern))
 
@@ -247,7 +247,7 @@ class RegexParser(Parser[str, str]):
                 status = self.whitespace.consume(reader)
                 reader = status.remainder
 
-            return Continue(value, reader)
+            return Continue(reader, value)
 
     def __repr__(self):
         return "reg(r'{}')".format(self.pattern.pattern)
@@ -277,9 +277,9 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         status = self.parser.consume(reader)
 
         if isinstance(status, Continue):
-            return Continue([status.value], status.remainder).merge(status)
+            return Continue(status.remainder, [status.value]).merge(status)
         else:
-            return Continue([], reader).merge(status)
+            return Continue(reader, []).merge(status)
 
     def __repr__(self):
         return self.name_or_nothing() + 'opt({})'.format(self.parser.name_or_repr())
@@ -342,7 +342,7 @@ class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of thi
             else:
                 return status
 
-        return Continue(output, remainder).merge(status)
+        return Continue(remainder, output).merge(status)
 
     def __repr__(self):
         names = []
@@ -380,7 +380,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
         if isinstance(status1, Continue):
             status2 = self.right.consume(status1.remainder).merge(status1)
             if isinstance(status2, Continue):
-                return Continue(status1.value, status2.remainder).merge(status2)
+                return Continue(status2.remainder, status1.value).merge(status2)
             else:
                 return status2
         else:
@@ -409,7 +409,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                     remainder = status.remainder
                     output.append(status.value)
                 else:
-                    return Continue(output, remainder).merge(status)
+                    return Continue(remainder, output).merge(status)
 
     def __repr__(self):
         return self.name_or_nothing() + 'rep1({})'.format(self.parser.name_or_repr())
@@ -446,7 +446,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 remainder = status.remainder
                 output.append(status.value)
             else:
-                return Continue(output, remainder).merge(status)
+                return Continue(remainder, output).merge(status)
 
     def __repr__(self):
         return self.name_or_nothing() + 'rep({})'.format(self.parser.name_or_repr())
@@ -547,7 +547,7 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         status = self.parser.consume(reader)
 
         if isinstance(status, Continue):
-            return Continue(self.converter(status.value), status.remainder).merge(status)
+            return Continue(status.remainder, self.converter(status.value)).merge(status)
         else:
             return status
 
@@ -561,7 +561,7 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
         if reader.finished:
-            return Continue(None, reader)
+            return Continue(reader, None)
         else:
             return Backtrack(reader, lambda: 'end of source')
 
@@ -577,7 +577,7 @@ class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
         self.value = value
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
-        return Continue(self.value, reader)
+        return Continue(reader, self.value)
 
     def __repr__(self):
         return self.name_or_nothing() + 'success({})'.format(repr(self.value))
