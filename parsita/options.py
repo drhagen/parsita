@@ -23,32 +23,26 @@ def wrap_literal(literal: Input):
 handle_literal = default_handle_literal
 
 
-def default_parse_method(self, source: str) -> Result:
+def default_parse_method(self, source: str) -> Result[Output]:
+    from .parsers import eof
+
     reader = StringReader(source)
-    result = self.consume(reader)
+    result = (self << eof).consume(reader)
 
     if isinstance(result, Continue):
-        if result.remainder.finished:
-            return Success(result.value)
-        elif result.farthest is None:
-            return Failure(result.remainder.expected_error('end of source'))
-        else:
-            return Failure(result.message())
+         return Success(result.value)
     else:
         return Failure(result.message())
 
 
 def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
+    from .parsers import eof
+
     reader = SequenceReader(source)
-    result = self.consume(reader)
+    result = (self << eof).consume(reader)
 
     if isinstance(result, Continue):
-        if result.remainder.finished:
-            return Success(result.value)
-        elif result.farthest is None:
-            return Failure(result.remainder.expected_error('end of source'))
-        else:
-            return Failure(result.message())
+        return Success(result.value)
     else:
         return Failure(result.message())
 
