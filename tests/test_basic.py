@@ -95,7 +95,7 @@ class OptionalTestCase(TestCase):
             b = opt(a)
 
         self.assertEqual(TestParsers.b.parse('a'), Success(['a']))
-        self.assertEqual(TestParsers.b.parse('c'), Failure('Expected a but found c at index 0'))
+        self.assertEqual(TestParsers.b.parse('c'), Failure('Expected a or end of source but found c at index 0'))
         self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
     def test_optional_longer(self):
@@ -127,7 +127,7 @@ class AlternativeTestCase(TestCase):
 
         self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
         self.assertEqual(TestParsers.ab.parse('b'), Success('b'))
-        self.assertEqual(TestParsers.ab.parse('c'), Failure('Expected a but found c at index 0'))
+        self.assertEqual(TestParsers.ab.parse('c'), Failure('Expected a or b but found c at index 0'))
         self.assertEqual(TestParsers.bc.parse('cd'), Success('cd'))
         self.assertEqual(TestParsers.bc.parse('ce'), Failure('Expected d but found e at index 1'))
         self.assertEqual(str(TestParsers.bc), 'bc = b | c')
@@ -227,11 +227,11 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.bs.parse('bbbb'), Success(['b', 'b', 'b', 'b']))
         self.assertEqual(TestParsers.bs.parse('b'), Success(['b']))
         self.assertEqual(TestParsers.bs.parse(''), Failure('Expected b but found end of source'))
-        self.assertEqual(TestParsers.bs.parse('bbbc'), Failure('Expected b but found c at index 3'))
+        self.assertEqual(TestParsers.bs.parse('bbbc'), Failure('Expected b or end of source but found c at index 3'))
         self.assertEqual(TestParsers.cs.parse('ccc'), Success(['c', 'c', 'c']))
         self.assertEqual(TestParsers.cs.parse('c'), Success(['c']))
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
-        self.assertEqual(TestParsers.cs.parse('cccb'), Failure('Expected c but found b at index 3'))
+        self.assertEqual(TestParsers.cs.parse('cccb'), Failure('Expected c or end of source but found b at index 3'))
         self.assertEqual(str(TestParsers.bs), "bs = rep1('b')")
         self.assertEqual(str(TestParsers.cs), "cs = rep('c')")
 

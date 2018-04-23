@@ -79,6 +79,25 @@ class OptionalTestCase(TestCase):
         self.assertEqual(str(TestParsers.b), 'b = opt(a)')
 
 
+class AlternativeTestCase(TestCase):
+    def test_multiple_messages(self):
+        class TestParsers(TextParsers):
+            name = reg('[a-z]+')
+            function = name & '(' >> name << ')'
+            index = name & '[' >> name << ']'
+            any = function | index | name
+
+        self.assertEqual(TestParsers.any.parse('var'), Success('var'))
+        self.assertEqual(TestParsers.any.parse('var[a]'), Success(['var', 'a']))
+        self.assertEqual(TestParsers.any.parse('var(a)'), Success(['var', 'a']))
+        self.assertEqual(TestParsers.any.parse('func{var}'),
+                         Failure("Expected '(' or '[' or end of source but found '{'\n"
+                                 "Line 1, character 5\n\n"
+                                 "func{var}\n"
+                                 "    ^    "))
+        self.assertEqual(TestParsers.any.parse('func[var'), Failure("Expected ']' but found end of source"))
+
+
 class SequentialTestCase(TestCase):
     def test_sequential(self):
         class TestParsers(TextParsers):

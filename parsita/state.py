@@ -1,6 +1,6 @@
 import re
 from io import StringIO
-from typing import Generic, Sequence, TypeVar, Callable, Optional  # noqa: F401
+from typing import Generic, Sequence, TypeVar, Callable, Optional, Tuple, Union  # noqa: F401
 
 Input = TypeVar('Input')
 Output = TypeVar('Output')
@@ -246,14 +246,40 @@ class ParseError(Exception):
 
 class Status(Generic[Input, Output]):
     farthest = None  # type: Optional[Reader]
-    expected = None  # type: Optional[Callable[[], str]]
+    expected = ()  # type: Tuple[Callable[[], str]]
 
-    def merge(self, status: 'Status[Input, None]'):
-        if status is not None and (self.farthest is None
-                                   or status.farthest is not None
-                                   and status.farthest.position >= self.farthest.position):
+    def merge(self, status: 'Status[Input, Output]') -> 'Status[Input, Output]':
+        """Merge the failure message from another status into this one.
+
+        Whichever status represents parsing that has gone the farthest is
+        retained. If both statuses have gone the same distance, then the
+        expected values from both are retained.
+
+        Args:
+            status: The status to merge into this one.
+
+        Returns:
+            This ``Status`` which may have ``farthest`` and ``expected``
+            updated accordingly.
+        """
+        if status is None or status.farthest is None:
+            # No new message; simply return unchanged
+            pass
+        elif self.farthest is None:
+            # No current message to compare to; use the message from status
             self.farthest = status.farthest
             self.expected = status.expected
+        elif status.farthest.position < self.farthest.position:
+            # New message is not farther; keep current message
+            pass
+        elif status.farthest.position > self.farthest.position:
+            # New message is farther than current message; replace with new message
+            self.farthest = status.farthest
+            self.expected = status.expected
+        else:
+            # New message and current message are equally far; merge messages
+            self.expected = status.expected + self.expected
+
         return self
 
 
@@ -269,10 +295,10 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
 class Backtrack(Generic[Input], Status[Input, None]):
     def __init__(self, farthest: Reader[Input], expected: Callable[[], str]):
         self.farthest = farthest
-        self.expected = expected
+        self.expected = (expected,)
 
     def __repr__(self):
-        return 'Backtrack({}, {})'.format(repr(self.farthest), repr(self.expected()))
+        return 'Backtrack({}, {})'.format(repr(self.farthest), list(map(lambda x: x(), self.expected)))
 
 
 __all__ = ['Input', 'Output', 'Convert',

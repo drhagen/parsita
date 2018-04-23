@@ -36,9 +36,9 @@ class StateTestCase(TestCase):
         self.assertEqual(cont.value, 40)
         self.assertEqual(str(cont), 'Continue(40, StringReader(a@0))')
 
-        back = Backtrack(2, lambda: 'no further')
-        self.assertEqual(back.expected(), 'no further')
-        self.assertEqual(str(back), "Backtrack(2, 'no further')")
+        back = Backtrack(read, lambda: 'no further')
+        self.assertEqual(back.expected[0](), 'no further')
+        self.assertEqual(str(back), "Backtrack(StringReader(a@0), ['no further'])")
 
         error = ParseError('Expected a but found b at index 0')
         self.assertEqual(str(error), 'Expected a but found b at index 0')
