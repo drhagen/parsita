@@ -92,9 +92,9 @@ class AlternativeTestCase(TestCase):
         self.assertEqual(TestParsers.any.parse('var(a)'), Success(['var', 'a']))
         self.assertEqual(TestParsers.any.parse('func{var}'),
                          Failure("Expected '(' or '[' or end of source but found '{'\n"
-                                 "Line 1, character 5\n\n"
-                                 "func{var}\n"
-                                 "    ^    "))
+                                 'Line 1, character 5\n\n'
+                                 'func{var}\n'
+                                 '    ^    '))
         self.assertEqual(TestParsers.any.parse('func[var'), Failure("Expected ']' but found end of source"))
 
 

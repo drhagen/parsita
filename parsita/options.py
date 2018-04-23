@@ -30,7 +30,7 @@ def default_parse_method(self, source: str) -> Result[Output]:
     result = (self << eof).consume(reader)
 
     if isinstance(result, Continue):
-         return Success(result.value)
+        return Success(result.value)
     else:
         return Failure(result.farthest.expected_error(' or '.join(map(lambda x: x(), result.expected))))
 
