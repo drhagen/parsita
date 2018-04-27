@@ -57,7 +57,7 @@ Below is a complete parser of `JSON <https://tools.ietf.org/html/rfc7159>`__. It
        true = lit('true') > constant(True)
        null = lit('null') > constant(None)
 
-       string = reg(json_whitespace) >> JsonStringParsers.string
+       string = JsonStringParsers.string
 
        array = '[' >> repsep(value, ',') << ']'
 
@@ -72,7 +72,7 @@ Below is a complete parser of `JSON <https://tools.ietf.org/html/rfc7159>`__. It
             '-12.40e2',
             '[false, true, null]',
             '{"__class__" : "Point", "x" : 2.3, "y" : -1.6}',
-            '{"__class__" : "Rectangle", "location" : {"x":-1.3,"y":-4.5}, "height" : 2.0, "width" : 4.0}'
+            '{"__class__" : "Rectangle", "location" : {"x":-1.3,"y":-4.5}, "height" : 2.0, "width" : 4.0}',
         ]
 
         for string in strings:

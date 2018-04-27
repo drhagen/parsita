@@ -48,7 +48,7 @@ if __name__ == '__main__':
         '[false, true, null]',
         '{"__class__" : "Point", "x" : 2.3, "y" : -1.6}',
         '{"__class__" : "Rectangle", "location" : {"x":-1.3,"y":-4.5}, "height" : 2.0, "width" : 4.0}',
-        '{"text" : ""}'
+        '{"text" : ""}',
     ]
 
     for string in strings:
