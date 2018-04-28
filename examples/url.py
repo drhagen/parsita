@@ -21,7 +21,7 @@ class TypicalUrlParsers(TextParsers, whitespace=None):
     password = rep(reg(r'[-_.+A-Za-z0-9]+') | encoded) > ''.join
     userinfo = username << ':' & password > splat(UserInfo)
 
-    domain_name = rep1sep(reg('[A-Za-z0-9]+([-][A-Za-z0-9])*') > str.lower, '.') << opt('.') > (
+    domain_name = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*') > str.lower, '.') << opt('.') > (
         lambda x: DomainName(list(reversed(x))))
     ipv4_address = reg(r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') > IPv4Address
     ipv6_address = reg(r'\[([A-Fa-f0-9]{1,4}(:[A-Fa-f0-9]{1,4}){1,7})\]'

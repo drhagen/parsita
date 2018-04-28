@@ -262,3 +262,31 @@ To use ``fwd``, first assign ``fwd()`` to a variable, then use that variable in 
         subtract = base & '-' >> expr > (lambda x: x[0] - x[1])
         expr.define(add | subtract | base)
     assert ArithmeticParsers.expr.parse('2-(1+2)') == Success(-1.0)
+
+``success(value)``: always succeed with value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This parser always succeeds with the given ``value`` of an arbitrary type while consuming no input. Its utility is limited to inserting arbitrary values into complex parsers, often as a placeholder for unimplemented code. Usually, these kinds of values are better inserted as a post processing step or with a conversion parser ``>``, but for prototyping, this parser can be convenient.
+
+.. code:: python
+
+    class HostnameParsers(TextParsers, whitespace=None):
+        port = success(80)  # TODO: do not just ignore other ports
+        host = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*'), '.')
+        server = host & port
+    assert HostnameParsers.server.parse('drhagen.com') == Success([['drhagen', 'com'], 80])
+
+``failure(expected)``: always fail with message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This parser always fails with a message that it is expecting the given string ``expected``. Its utility is limited to marking sections of code as either not yet implemented or providing a better error message for common bad input. Usually, these kinds of messages are better crafted as a processing step following parsing, but for prototyping, they can be inserted with this parser.
+
+.. code:: python
+
+    class HostnameParsers(TextParsers, whitespace=None):
+        # TODO: implement allowing different port
+        port = lit('80') | reg('[0-9]+') & failure('no other port than 80')
+        host = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*'), '.')
+        server = host << ':' & port
+    assert HostnameParsers.server.parse('drhagen.com:443') == \
+        Failure('Expected no other port than 80 but found end of source')
