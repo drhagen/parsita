@@ -231,7 +231,7 @@ A repeated separated parser matches ``parser`` separated by ``separator``, retur
     assert ListParsers.my_list.parse('[1,2,3]') == Success([1, 2, 3])
 
 ``eof``: end of file
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 A parser than matches the end of the input stream. It is not necessary to include this on every parser. The ``parse`` method on every parser is successful if it matches the entire input. The ``eof`` parser is only needed to indicate that the preceding parser is only valid at the end of the input. Most commonly, it is used an alternative to an end token when the end token may be omitted at the end of the input. Note that ``eof`` is not a function—it is a complete parser itself.
 
@@ -264,7 +264,7 @@ To use ``fwd``, first assign ``fwd()`` to a variable, then use that variable in 
     assert ArithmeticParsers.expr.parse('2-(1+2)') == Success(-1.0)
 
 ``success(value)``: always succeed with value
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This parser always succeeds with the given ``value`` of an arbitrary type while consuming no input. Its utility is limited to inserting arbitrary values into complex parsers, often as a placeholder for unimplemented code. Usually, these kinds of values are better inserted as a post processing step or with a conversion parser ``>``, but for prototyping, this parser can be convenient.
 
@@ -277,7 +277,7 @@ This parser always succeeds with the given ``value`` of an arbitrary type while 
     assert HostnameParsers.server.parse('drhagen.com') == Success([['drhagen', 'com'], 80])
 
 ``failure(expected)``: always fail with message
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This parser always fails with a message that it is expecting the given string ``expected``. Its utility is limited to marking sections of code as either not yet implemented or providing a better error message for common bad input. Usually, these kinds of messages are better crafted as a processing step following parsing, but for prototyping, they can be inserted with this parser.
 
