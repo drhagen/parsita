@@ -43,3 +43,10 @@ class StateTestCase(TestCase):
         error = ParseError('Expected a but found b at index 0')
         self.assertEqual(str(error), 'Expected a but found b at index 0')
         self.assertEqual(repr(error), "ParseError('Expected a but found b at index 0')")
+
+    def test_current_line(self):
+        # This test only exists to get 100% test coverage without doing a pragma: no cover on the whole current_line
+        # method. Under normal operation, the for loop should never complete because the position is also on some
+        # line. Here, the position has been artificially advanced beyond the length of the input.
+        reader = StringReader('foo', 3)
+        self.assertEqual(reader.current_line(), None)

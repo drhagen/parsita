@@ -144,7 +144,7 @@ class StringReader(Reader[str]):
 
     def current_line(self):
         characters_consumed = 0
-        for line_index, line in enumerate(StringIO(self.source)):  # pragma: no cover
+        for line_index, line in enumerate(StringIO(self.source)):
             if characters_consumed + len(line) > self.position:
                 # The line with the error has been found
                 character_index = self.position - characters_consumed
