@@ -160,6 +160,15 @@ class AlternativeTestCase(TestCase):
 
         self.assertEqual(TestParsers.ab.parse('a'), Success('a'))
 
+    def test_multiple_messages_duplicate(self):
+        class TestParsers(GeneralParsers):
+            a = lit('a')
+            ab = a & 'b'
+            ac = a & 'c'
+            either = ab | ac
+
+        self.assertEqual(TestParsers.either.parse('cc'), Failure('Expected a but found c at index 0'))
+
 
 class SequentialTestCase(TestCase):
     def test_sequential(self):

@@ -3,7 +3,7 @@ from typing import Generic, Sequence, List, Union, Callable, Optional, Any
 from types import MethodType
 
 from . import options
-from .state import Input, Output, Convert, Reader, StringReader, Result, Status, Continue, Backtrack
+from .state import Input, Output, Convert, Reader, StringReader, Result, Status, Success, Failure, Continue, Backtrack
 
 
 class Parser(Generic[Input, Output]):
@@ -150,6 +150,36 @@ class Parser(Generic[Input, Output]):
 
     def __gt__(self, other) -> 'ConversionParser':
         return ConversionParser(self, other)
+
+
+def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output]:
+    """Consume reader and return Success only on complete consumption.
+
+    This is a helper function for ``parse`` methods, which return ``Success``
+    when the input is completely consumed and ``Failure`` with an appropriate
+    message otherwise.
+
+    Args:
+        parser: The parser doing the consuming
+        reader: The input being consumed
+
+    Returns:
+        A parsing ``Result``
+    """
+    result = (parser << eof).consume(reader)
+
+    if isinstance(result, Continue):
+        return Success(result.value)
+    else:
+        used = set()
+        unique_expected = []
+        for expected_lambda in result.expected:
+            expected = expected_lambda()
+            if expected not in used:
+                used.add(expected)
+                unique_expected.append(expected)
+
+        return Failure(result.farthest.expected_error(' or '.join(unique_expected)))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):
@@ -677,4 +707,4 @@ __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser
            'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
            'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
            'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
-           'failure']
+           'failure', 'completely_parse_reader']

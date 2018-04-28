@@ -1,7 +1,7 @@
 import re
 from typing import Any, Sequence
 
-from .state import Input, Output, SequenceReader, StringReader, Result, Success, Failure, Continue
+from .state import Input, Output, SequenceReader, StringReader, Result
 
 # Global mutable state
 
@@ -24,27 +24,19 @@ handle_literal = default_handle_literal
 
 
 def default_parse_method(self, source: str) -> Result[Output]:
-    from .parsers import eof
+    from .parsers import completely_parse_reader
 
     reader = StringReader(source)
-    result = (self << eof).consume(reader)
 
-    if isinstance(result, Continue):
-        return Success(result.value)
-    else:
-        return Failure(result.farthest.expected_error(' or '.join(map(lambda x: x(), result.expected))))
+    return completely_parse_reader(self, reader)
 
 
 def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
-    from .parsers import eof
+    from .parsers import completely_parse_reader
 
     reader = SequenceReader(source)
-    result = (self << eof).consume(reader)
 
-    if isinstance(result, Continue):
-        return Success(result.value)
-    else:
-        return Failure(result.farthest.expected_error(' or '.join(map(lambda x: x(), result.expected))))
+    return completely_parse_reader(self, reader)
 
 
 parse_method = default_parse_method
