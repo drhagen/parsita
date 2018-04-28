@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from parsita import *
 
 
@@ -278,6 +280,30 @@ class RepeatedTestCase(TestCase):
         self.assertEqual(TestParsers.cs.parse(''), Success([]))
         self.assertEqual(str(TestParsers.bs), "bs = rep1sep('b', opt(','))")
         self.assertEqual(str(TestParsers.cs), "cs = repsep('c', opt(','))")
+
+    @pytest.mark.timeout(2)
+    def test_infinite_recursion_protection(self):
+        class TestParsers(GeneralParsers):
+            bad_rep = rep(opt('a'))
+            bad_rep1 = rep1(opt('a'))
+            bad_repsep = repsep(opt('a'), opt(':'))
+            bad_rep1sep = rep1sep(opt('a'), opt(':'))
+
+        # Recursion happens in middle of stream
+        for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+            with self.assertRaisesRegex(RuntimeError,
+                                        'Infinite recursion detected in '
+                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
+                                        'empty string was matched and will be matched forever at index 2 before b'):
+                parser.parse('aab')
+
+        # Recursion happens at end of stream
+        for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+            with self.assertRaisesRegex(RuntimeError,
+                                        'Infinite recursion detected in '
+                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
+                                        'empty string was matched and will be matched forever at end of source'):
+                parser.parse('aa')
 
 
 class ConversionTestCase(TestCase):

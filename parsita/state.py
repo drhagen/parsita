@@ -47,6 +47,27 @@ class Reader(Generic[Input]):
         else:
             return 'Expected {} but found {} at index {}'.format(expected, self.next_token(), self.position)
 
+    def recursion_error(self, repeated_parser: str):
+        """Generate an error to indicate that infinite recursion was encountered.
+
+        A parser can supply a representation of itself to this method and the
+        reader will supply the context, including the location where the
+        parser stalled.
+
+        Args:
+            repeated_parser: A representation of the repeated parser
+
+        Returns:
+            A full error message
+        """
+
+        if self.finished:
+            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever at ' \
+                   'end of source'.format(repeated_parser)
+        else:
+            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever at ' \
+                   'index {} before {}'.format(repeated_parser, self.position, self.next_token())
+
     def __repr__(self):
         if self.finished:
             return 'Reader(finished)'
@@ -121,6 +142,25 @@ class StringReader(Reader[str]):
         match = self.next_token_regex.match(self.source, self.position)
         return self.source[match.start():match.end()]
 
+    def current_line(self):
+        characters_consumed = 0
+        for line_index, line in enumerate(StringIO(self.source)):  # pragma: no cover
+            if characters_consumed + len(line) > self.position:
+                # The line with the error has been found
+                character_index = self.position - characters_consumed
+
+                # This creates a line like this '        ^                  '
+                pointer = (' ' * character_index) + '^' + (' ' * (len(line) - character_index - 1))
+
+                # This adds a newline to line in case it is the end of the file
+                if line[-1] != '\n':
+                    line = line + '\n'
+
+                # Add one to indexes to account for 0-indexes
+                return line_index + 1, character_index + 1, line, pointer
+            else:
+                characters_consumed += len(line)
+
     def expected_error(self, expected: str) -> str:
         """Generate a basic error to include the current state.
 
@@ -136,26 +176,33 @@ class StringReader(Reader[str]):
         """
 
         if self.finished:
-            return 'Expected {} but found end of source'.format(expected)
+            return super().expected_error(expected)
         else:
-            characters_consumed = 0
-            for line_index, line in enumerate(StringIO(self.source)):  # pragma: no cover
-                if characters_consumed + len(line) > self.position:
-                    # The line with the error has been found
-                    character_index = self.position - characters_consumed
+            line_index, character_index, line, pointer = self.current_line()
 
-                    # This creates a line like this '        ^                  '
-                    pointer = (' ' * character_index) + '^' + (' ' * (len(line) - character_index - 1))
+            return 'Expected {} but found {}\nLine {}, character {}\n\n{}{}'.format(
+                expected, repr(self.next_token()), line_index, character_index, line, pointer)
 
-                    # This adds a newline to line in case it is the end of the file
-                    if line[-1] != '\n':
-                        line = line + '\n'
+    def recursion_error(self, repeated_parser: str):
+        """Generate an error to indicate that infinite recursion was encountered.
 
-                    # Add one to indexes to account for 0-indexes
-                    return 'Expected {} but found {}\nLine {}, character {}\n\n{}{}'.format(
-                        expected, repr(self.next_token()), line_index + 1, character_index + 1, line, pointer)
-                else:
-                    characters_consumed += len(line)
+        A parser can supply a representation of itself to this method and the
+        reader will supply the context, including the location where the
+        parser stalled.
+
+        Args:
+            repeated_parser: A representation of the repeated parser
+
+        Returns:
+            A full error message
+        """
+        if self.finished:
+            return super().recursion_error(repeated_parser)
+        else:
+            line_index, character_index, line, pointer = self.current_line()
+
+            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever\n' \
+                   'Line {}, character {}\n\n{}{}'.format(repeated_parser, line_index, character_index, line, pointer)
 
     def __repr__(self):
         if self.finished:

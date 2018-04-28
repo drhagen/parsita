@@ -406,6 +406,9 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
             while True:
                 status = self.parser.consume(remainder).merge(status)
                 if isinstance(status, Continue):
+                    if remainder.position == status.remainder.position:
+                        raise RuntimeError(remainder.recursion_error(str(self)))
+
                     remainder = status.remainder
                     output.append(status.value)
                 else:
@@ -443,6 +446,9 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         while True:
             status = self.parser.consume(remainder).merge(status)
             if isinstance(status, Continue):
+                if remainder.position == status.remainder.position:
+                    raise RuntimeError(remainder.recursion_error(str(self)))
+
                 remainder = status.remainder
                 output.append(status.value)
             else:
@@ -470,12 +476,34 @@ def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
         super().__init__()
-        parser.protected = True
         self.parser = parser
         self.separator = separator
 
-        definition = parser & rep(separator >> parser) > (lambda x: [x[0]] + x[1])
-        self.consume = definition.consume
+    def consume(self, reader: Reader[Input]):
+        status = self.parser.consume(reader)
+
+        if not isinstance(status, Continue):
+            return status
+        else:
+            output = [status.value]
+            remainder = status.remainder
+            while True:
+                # If the separator matches, but the parser does not, the remainder from the last successful parser step
+                # must be used, not the remainder from any separator. That is why the parser starts from the remainder
+                # on the status, but remainder is not updated until after the parser succeeds.
+                status = self.separator.consume(remainder).merge(status)
+                if isinstance(status, Continue):
+                    status = self.parser.consume(status.remainder).merge(status)
+                    if isinstance(status, Continue):
+                        if remainder.position == status.remainder.position:
+                            raise RuntimeError(remainder.recursion_error(str(self)))
+
+                        remainder = status.remainder
+                        output.append(status.value)
+                    else:
+                        return Continue(remainder, output).merge(status)
+                else:
+                    return Continue(remainder, output).merge(status)
 
     def __repr__(self):
         return self.name_or_nothing() + 'rep1sep({}, {})'.format(self.parser.name_or_repr(),
@@ -505,12 +533,34 @@ def rep1sep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Seq
 class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
         super().__init__()
-        parser.protected = True
         self.parser = parser
         self.separator = separator
 
-        self.definition = opt(rep1sep(parser, separator)) > (lambda x: x[0] if x else [])
-        self.consume = self.definition.consume
+    def consume(self, reader: Reader[Input]):
+        status = self.parser.consume(reader)
+
+        if not isinstance(status, Continue):
+            return Continue(reader, []).merge(status)
+        else:
+            output = [status.value]
+            remainder = status.remainder
+            while True:
+                # If the separator matches, but the parser does not, the remainder from the last successful parser step
+                # must be used, not the remainder from any separator. That is why the parser starts from the remainder
+                # on the status, but remainder is not updated until after the parser succeeds.
+                status = self.separator.consume(remainder).merge(status)
+                if isinstance(status, Continue):
+                    status = self.parser.consume(status.remainder).merge(status)
+                    if isinstance(status, Continue):
+                        if remainder.position == status.remainder.position:
+                            raise RuntimeError(remainder.recursion_error(str(self)))
+
+                        remainder = status.remainder
+                        output.append(status.value)
+                    else:
+                        return Continue(remainder, output).merge(status)
+                else:
+                    return Continue(remainder, output).merge(status)
 
     def __repr__(self):
         return self.name_or_nothing() + 'repsep({}, {})'.format(self.parser.name_or_repr(),

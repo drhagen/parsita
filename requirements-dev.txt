@@ -3,3 +3,4 @@ pep8-naming
 flake8-quotes
 pytest
 pytest-cov
+pytest-timeout
