@@ -1,6 +1,7 @@
 .idea
 __pycache__
 .cache
+.pytest_cache
 .tox
 parsita.egg-info
 .coverage
