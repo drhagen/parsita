@@ -204,7 +204,7 @@ class RecursionTestCase(TestCase):
         for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
             with self.assertRaisesRegex(RuntimeError,
                                         'Infinite recursion detected in '
-                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
+                                        r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
                                         'empty string was matched and will be matched forever\n'
                                         'Line 1, character 13\n\nfoo foo foo bar'):
                 parser.parse('foo foo foo bar\nfoo foo foo')
@@ -213,7 +213,7 @@ class RecursionTestCase(TestCase):
         for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
             with self.assertRaisesRegex(RuntimeError,
                                         'Infinite recursion detected in '
-                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
+                                        r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
                                         'empty string was matched and will be matched forever at end of source'):
                 parser.parse('foo foo foo\nfoo foo foo')
 

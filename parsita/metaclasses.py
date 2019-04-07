@@ -125,7 +125,7 @@ class TextParsersMeta(GeneralParsersMeta):
 
 
 class TextParsers(metaclass=TextParsersMeta):
-    """Context for parsing text.
+    r"""Context for parsing text.
 
     This is not a real class. Don't instantiate it. This is used by inheriting
     from it and defining parsers as class attributes in the body of the child

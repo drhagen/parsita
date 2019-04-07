@@ -302,7 +302,7 @@ class RepeatedTestCase(TestCase):
         for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
             with self.assertRaisesRegex(RuntimeError,
                                         'Infinite recursion detected in '
-                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
+                                        r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
                                         'empty string was matched and will be matched forever at index 2 before b'):
                 parser.parse('aab')
 
@@ -310,7 +310,7 @@ class RepeatedTestCase(TestCase):
         for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
             with self.assertRaisesRegex(RuntimeError,
                                         'Infinite recursion detected in '
-                                        "bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
+                                        r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
                                         'empty string was matched and will be matched forever at end of source'):
                 parser.parse('aa')
 
