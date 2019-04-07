@@ -16,9 +16,6 @@ setuptools.setup(
     url='https://github.com/drhagen/parsita',
     license='MIT',
 
-    extras_require={
-        ':python_version<"3.5"': ['typing'],
-    },
     packages=setuptools.find_packages(),
 
     classifiers=[
@@ -30,7 +27,6 @@ setuptools.setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
