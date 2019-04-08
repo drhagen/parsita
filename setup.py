@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-import setuptools
+from pathlib import Path
 
+import setuptools
 
 setuptools.setup(
     name='parsita',
     version='1.3.2',
 
     description='Parser combinator library for Python.',
-    long_description=open('README.rst').read(),
+    long_description=Path('README.rst').read_text(encoding='utf-8'),
     keywords='parser combinator',
 
     author='David Hagen',
