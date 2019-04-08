@@ -19,7 +19,7 @@ Parsita is a parser combinator library written in Python. Parser combinators pro
 
 Like all good parser combinator libraries, this one abuses operators to provide a clean grammar-like syntax. The ``__or__`` method is defined so that ``|`` tests between two alternatives. The ``__and__`` method is defined so that ``&`` tests two parsers in sequence. Other operators are used as well.
 
-In a technique that I think is new to Python, Parsita uses metaclass magic to allow for forward declarations of values. This is important for parser combinators because grammars are often recursive or mutually recursive, means that some components must be used in the definition of others before they themselves are defined.
+In a technique that I think is new to Python, Parsita uses metaclass magic to allow for forward declarations of values. This is important for parser combinators because grammars are often recursive or mutually recursive, meaning that some components must be used in the definition of others before they themselves are defined.
 
 Motivating example
 ^^^^^^^^^^^^^^^^^^
@@ -29,42 +29,41 @@ Below is a complete parser of `JSON <https://tools.ietf.org/html/rfc7159>`__. It
 .. code:: python
 
     from parsita import *
+    from parsita.util import constant
 
-    json_whitespace = r'[ \t\n\r]*'
+    class JsonStringParsers(TextParsers, whitespace=None):
+        quote = lit(r'\"') > constant('"')
+        reverse_solidus = lit(r'\\') > constant('\\')
+        solidus = lit(r'\/') > constant('/')
+        backspace = lit(r'\b') > constant('\b')
+        form_feed = lit(r'\f') > constant('\f')
+        line_feed = lit(r'\n') > constant('\n')
+        carriage_return = lit(r'\r') > constant('\r')
+        tab = lit(r'\t') > constant('\t')
+        uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
 
-   class JsonStringParsers(TextParsers, whitespace=None):
-       quote = lit(r'\"') > constant('"')
-       reverse_solidus = lit(r'\\') > constant('\\')
-       solidus = lit(r'\/') > constant('/')
-       backspace = lit(r'\b') > constant('\b')
-       form_feed = lit(r'\f') > constant('\f')
-       line_feed = lit(r'\n') > constant('\n')
-       carriage_return = lit(r'\r') > constant('\r')
-       tab = lit(r'\t') > constant('\t')
-       uni = reg(r'\\u([0-9a-fA-F]{4})') > (lambda x: chr(int(x.group(1), 16)))
+        escaped = (quote | reverse_solidus | solidus | backspace | form_feed
+                  | line_feed | carriage_return | tab | uni)
+        unescaped = reg(r'[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+')
 
-       escaped = (quote | reverse_solidus | solidus | backspace | form_feed |
-                  line_feed | carriage_return | tab | uni)
-       unescaped = reg(r'[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+')
-
-       string = '"' >> rep(escaped | unescaped) << '"' > ''.join
+        string = '"' >> rep(escaped | unescaped) << '"' > ''.join
 
 
-   class JsonParsers(TextParsers, whitespace=json_whitespace):
-       number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
+    class JsonParsers(TextParsers, whitespace=r'[ \t\n\r]*'):
+        number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
 
-       false = lit('false') > constant(False)
-       true = lit('true') > constant(True)
-       null = lit('null') > constant(None)
+        false = lit('false') > constant(False)
+        true = lit('true') > constant(True)
+        null = lit('null') > constant(None)
 
-       string = JsonStringParsers.string
+        string = JsonStringParsers.string
 
-       array = '[' >> repsep(value, ',') << ']'
+        array = '[' >> repsep(value, ',') << ']'
 
-       entry = string << ':' & value
-       obj = '{' >> repsep(entry, ',') << '}' > dict
+        entry = string << ':' & value
+        obj = '{' >> repsep(entry, ',') << '}' > dict
 
-       value = number | false | true | null | string | array | obj
+        value = number | false | true | null | string | array | obj
 
     if __name__ == '__main__':
         strings = [
@@ -103,7 +102,7 @@ Metaclass magic
     class MyParsers(TextParsers):
         ...
 
-If you are parsing strings (and you almost certainly are), use ``TextParser`` not the other one. If you know what it means to parse things other than strings, you probably don't need this tutorial anyway. The ``TextParser`` ignores whitespace. By default it considers ``r"\s*"`` to be whitespace, but this can be configured using the ``whitespace`` keyword. Use ``None`` to disable whitespace skipping.
+If you are parsing strings (and you almost certainly are), use ``TextParsers`` not the other one. If you know what it means to parse things other than strings, you probably don't need this tutorial anyway. ``TextParsers`` ignores whitespace. By default it considers ``r"\s*"`` to be whitespace, but this can be configured using the ``whitespace`` keyword. Use ``None`` to disable whitespace skipping.
 
 .. code:: python
 
@@ -290,3 +289,66 @@ This parser always fails with a message that it is expecting the given string ``
         server = host << ':' & port
     assert HostnameParsers.server.parse('drhagen.com:443') == \
         Failure('Expected no other port than 80 but found end of source')
+
+Utilities
+^^^^^^^^^
+
+There are several utility functions, ``constant``, ``splat``, and ``unsplat``. They are mostly useful when used with the conversion parser (``>``).
+
+``constant(value)``: create a function that always returns the same value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The function ``constant(value: A) -> Callable[..., A]`` accepts any single value returns a function. The function takes any number of arguments of any types and returns ``value``. It is useful for defining parsers (usually of a particular literal) that evaluate to a particular value.
+
+.. code:: python
+
+    from parsita import *
+    from parsita.util import constant
+
+    class BooleanParsers(TextParsers, whitespace=None):
+        true = lit('true') > constant(True)
+        false = lit('false') > constant(False)
+        boolean = true | false
+    assert BooleanParsers.boolean.parse('false') == Success(False)
+
+``splat(function)``: convert a function of many arguments to take only one list argument
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The function ``splat(function: Callable[Tuple[*B], A]) -> Callable[Tuple[Tuple[*B]], A]`` has a complicated type signature, but does a simple thing. It takes a single function that takes multiple arguments and converts it to a function that takes only one argument, which is a list of all original arguments. It is particularly useful for passing a list of results from a sequential parser ``&`` to a function that takes each element as an separate argument. By applying ``splat`` to the function, it now takes the single list that is returned by the sequential parser.
+
+.. code:: python
+
+    from collections import namedtuple
+    from parsita import *
+    from parsita.util import splat
+
+    Url = namedtuple('Url', ['host', 'port', 'path'])
+
+    class UrlParsers(TextParsers, whitespace=None):
+        host = reg(r'[A-Za-z0-9.]+')
+        port = reg(r'[0-9]+') > int
+        path = reg(r'[-._~A-Za-z0-9/]*')
+        url = 'https://' >> host << ':' & port & path > splat(Url)
+    assert UrlParsers.url.parse('https://drhagen.com:443/blog/') == \
+        Success(Url('drhagen.com', 443, '/blog/'))
+
+``unsplat(function)``: convert a function of one list argument to take many arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The function ``unsplat(function: Callable[Tuple[Tuple[*B]], A]) -> Callable[Tuple[*B], A]`` does the opposite of ``splat``. It takes a single function that takes a single argument that is a list and converts it to a function that takes multiple arguments, each of which was an element of the original list. It is not very useful for writing parsers because the conversion parser always calls its converter function with a single argument, but is included here to complement ``splat``.
+
+.. code:: python
+
+    from parsita.util import splat, unsplat
+
+    def sum_args(*x):
+        return sum(x)
+
+    def sum_list(x):
+        return sum(x)
+
+    splatted_sum_args = splat(sum_args)
+    unsplatted_sum_list = unsplat(sum_list)
+
+    assert unsplatted_sum_list(2, 3, 5) == sum_args(2, 3, 5)
+    assert splatted_sum_args([2, 3, 5]) == sum_list([2, 3, 5])

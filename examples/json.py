@@ -3,8 +3,6 @@ from parsita.util import constant
 
 # JSON definition according to https://tools.ietf.org/html/rfc7159
 
-json_whitespace = r'[ \t\n\r]*'
-
 
 class JsonStringParsers(TextParsers, whitespace=None):
     quote = lit(r'\"') > constant('"')
@@ -24,7 +22,7 @@ class JsonStringParsers(TextParsers, whitespace=None):
     string = '"' >> rep(escaped | unescaped) << '"' > ''.join
 
 
-class JsonParsers(TextParsers, whitespace=json_whitespace):
+class JsonParsers(TextParsers, whitespace=r'[ \t\n\r]*'):
     number = reg(r'-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?') > float
 
     false = lit('false') > constant(False)
