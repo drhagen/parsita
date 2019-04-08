@@ -1,24 +1,23 @@
 language: python
 
+dist: xenial
+
 matrix:
-    include:
-        - python: 3.4
-          env: TOXENV=py34
-        - python: 3.5
-          env: TOXENV=py35
-        - python: 3.6
-          env: TOXENV=py36
-        - python: 3.7
-          env: TOXENV=py37
-          dist: xenial
-          sudo: true
+  include:
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.6
+      env: TOXENV=py36
+    - python: 3.7
+      env: TOXENV=py37
+    - python: 3.7
+      env: TOXENV=pep8
 
 notifications:
-    false
+  email: false
 
 install:
-  - pip install -U setuptools
-  - pip install tox
+  pip install tox
 
 script:
   tox
