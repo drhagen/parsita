@@ -407,3 +407,13 @@ class OptionsResetTest(TestCase):
         self.assertIsInstance(TestOuter.outer.parse('%("abc ")'), Failure)
         self.assertIsInstance(TestOuter.outer.parse(' %("abc")'), Failure)
         self.assertIsInstance(TestOuter.outer.parse('%("abc") '), Failure)
+
+
+class MetaclassTest(TestCase):
+    def test_disallow_instatiation(self):
+        class TestParsers(GeneralParsers):
+            a = lit('a')
+            bb = lit('bb')
+
+        with self.assertRaises(TypeError):
+            _ = TestParsers()

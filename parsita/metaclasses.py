@@ -86,6 +86,11 @@ class GeneralParsersMeta(type):
         for key, value in old_options.items():
             setattr(options, key, value)
 
+    def __call__(cls, *args, **kwargs):
+        raise TypeError('Parsers cannot be instantiated. They use class bodies purely as contexts for managing '
+                        'defaults and allowing forward declarations. Access the individual parsers as static '
+                        'attributes.')
+
 
 class GeneralParsers(metaclass=GeneralParsersMeta):
     """Context for parsing general sequences.
