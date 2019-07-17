@@ -17,7 +17,8 @@ setuptools.setup(
     url='https://github.com/drhagen/parsita',
     license='MIT',
 
-    packages=setuptools.find_packages(),
+    package_dir={'': 'src'},
+    packages=setuptools.find_packages('src'),
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
