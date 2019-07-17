@@ -31,7 +31,7 @@ class LiteralTestCase(TestCase):
             bb = lit('bb')
 
         self.assertEqual(TestParsers.a.parse('a').or_die(), 'a')
-        self.assertRaisesRegexp(ParseError, 'Expected b but found a at index 0', TestParsers.bb.parse('aa').or_die)
+        self.assertRaisesRegex(ParseError, 'Expected b but found a at index 0', TestParsers.bb.parse('aa').or_die)
 
 
 class ForwardDeclarationTestCase(TestCase):
