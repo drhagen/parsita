@@ -7,9 +7,11 @@ consumed by that parser.
 """
 
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Generic
 
-from parsita import Parser
+from parsita import Parser, TextParsers, reg
+from parsita.util import splat
 from parsita.state import Reader, Status, Continue, Input, Output
 
 
@@ -73,31 +75,32 @@ def positioned(parser: Parser[Input, PositionAware[Output]]):
     return PositionedParser(parser)
 
 
+# Everything below here is an example use case
+@dataclass
+class UnfinishedVariable(PositionAware):
+    name: str
+
+    def set_position(self, start: int, length: int):
+        return Variable(self.name, start, length)
+
+
+@dataclass
+class Variable:
+    name: str
+    start: int
+    length: int
+
+
+@dataclass
+class Plus:
+    first: Variable
+    second: Variable
+
+
+class PlusParsers(TextParsers):
+    variable = positioned(reg('[A-Za-z][A-Za-z0-9_]*') > UnfinishedVariable)
+    plus = variable & '+' >> variable > splat(Plus)
+
+
 if __name__ == '__main__':
-    from dataclasses import dataclass
-    from parsita import TextParsers, reg
-    from parsita.util import splat
-
-    @dataclass
-    class UnfinishedVariable(PositionAware):
-        name: str
-
-        def set_position(self, start: int, length: int):
-            return Variable(self.name, start, length)
-
-    @dataclass
-    class Variable:
-        name: str
-        start: int
-        length: int
-
-    @dataclass
-    class Plus:
-        first: Variable
-        second: Variable
-
-    class PlusParsers(TextParsers):
-        variable = positioned(reg('[A-Za-z][A-Za-z0-9_]*') > UnfinishedVariable)
-        plus = variable & '+' >> variable > splat(Plus)
-
     print(PlusParsers.plus.parse('abc + xyz').or_die())
