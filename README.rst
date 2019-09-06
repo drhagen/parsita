@@ -157,7 +157,7 @@ This tries to match ``parser1``. If it fails, it then tries to match ``parser2``
     class NumberParsers(TextParsers):
         integer = reg(r'[-+]?[0-9]+') > int
         real = reg(r'[+-]?\d+\.\d+(e[+-]?\d+)?') | 'nan' | 'inf' > float
-        number = integer | real
+        number = real | integer
     assert NumberParsers.number.parse('4.0000') == Success(4.0)
 
 ``parser1 & parser2``: sequential parser
