@@ -124,7 +124,7 @@ class Parser(Generic[Input, Output]):
     def __and__(self, other) -> 'SequentialParser':
         other = self.handle_other(other)
         if isinstance(self, SequentialParser) and not self.protected:
-            return SequentialParser(*(self.parsers + (other,)))
+            return SequentialParser(*self.parsers, other)
         else:
             return SequentialParser(self, other)
 
@@ -191,11 +191,11 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
-                return Backtrack(remainder, lambda: elem)
+                return Backtrack(remainder, lambda: str(elem))
             elif elem == remainder.first:
                 remainder = remainder.rest
             else:
-                return Backtrack(remainder, lambda: elem)
+                return Backtrack(remainder, lambda: str(elem))
 
         return Continue(remainder, self.pattern)
 
@@ -229,7 +229,7 @@ class LiteralStringParser(Parser[str, str]):
         return self.name_or_nothing() + repr(self.pattern)
 
 
-def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parser:
+def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser:
     """Match a literal sequence.
 
     In the `TextParsers`` context, this matches the literal string
@@ -331,7 +331,7 @@ def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
 
 
 class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
-    def __init__(self, parser: Parser[Input, Output], *parsers: Sequence[Parser[Input, Output]]):
+    def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
@@ -355,7 +355,7 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
-    def __init__(self, parser: Parser[Input, Any], *parsers: Sequence[Parser[Input, Any]]):
+    def __init__(self, parser: Parser[Input, Any], *parsers: Parser[Input, Any]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 

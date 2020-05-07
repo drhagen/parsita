@@ -17,7 +17,7 @@ def default_handle_literal(literal: Any):
 
 def wrap_literal(literal: Input):
     from .parsers import LiteralParser
-    return LiteralParser(literal)
+    return LiteralParser((literal,))
 
 
 handle_literal = default_handle_literal
