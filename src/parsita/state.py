@@ -142,7 +142,7 @@ class StringReader(Reader[str]):
     def next_token(self) -> str:
         match = self.next_token_regex.match(self.source, self.position)
         if match is None:
-            return self.source[match.start]
+            return self.source[self.position]
         else:
             return self.source[match.start():match.end()]
 

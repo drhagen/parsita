@@ -1,3 +1,4 @@
+import re
 from unittest import TestCase
 
 from parsita import *
@@ -50,3 +51,15 @@ class StateTestCase(TestCase):
         # line. Here, the position has been artificially advanced beyond the length of the input.
         reader = StringReader('foo', 3)
         self.assertEqual(reader.current_line(), None)
+
+    def test_reader_with_defective_next_token_regex(self):
+        # With the default value of next_token_regex, a match cannot fail. However, if a fallible regex is provided to
+        # a super class next_token should not crash.
+        class DefectiveReader(StringReader):
+            next_token_regex = re.compile(r'[A-Za-z0-9]+')
+
+        good_position = DefectiveReader('foo_foo', 4)
+        self.assertEqual(good_position.next_token(), 'foo')
+
+        bad_position = DefectiveReader('foo_foo', 3)
+        self.assertEqual(bad_position.next_token(), '_')
