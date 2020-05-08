@@ -37,8 +37,8 @@ class LiteralTestCase(TestCase):
 class PredicateTestCase(TestCase):
     def test_predicate(self):
         class TestParsers(GeneralParsers):
-            a = pred(lambda x: x in ('A', 'a'), 'letter A')
-            d = pred(str.isdigit, 'digit')
+            a = pred(any1, lambda x: x in ('A', 'a'), 'letter A')
+            d = pred(any1, str.isdigit, 'digit')
 
         self.assertEqual(TestParsers.a.parse('a'), Success('a'))
         self.assertEqual(TestParsers.a.parse('A'), Success('A'))
@@ -403,6 +403,16 @@ class SuccessFailureTestCase(TestCase):
         self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('Expected something else but found b at index 2'))
         self.assertEqual(str(TestParsers.aaa), "aaa = rep('a') & success(1) & rep('b')")
         self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('something else') & 'bb'")
+
+
+class AnyTestCase(TestCase):
+    def test_any(self):
+        class TestParsers(GeneralParsers):
+            any2 = any1 & any1
+
+        self.assertEqual(TestParsers.any2.parse('ab'), Success(['a', 'b']))
+        self.assertEqual(TestParsers.any2.parse('a'), Failure('Expected any but found end of source'))
+        self.assertEqual(str(TestParsers.any2), "any2 = any1 & any1")
 
 
 class OptionsResetTest(TestCase):

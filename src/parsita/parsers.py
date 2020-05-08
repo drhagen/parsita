@@ -254,45 +254,41 @@ def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parse
         return options.handle_literal(literal)
 
 
-class PredicateParser(Generic[Input], Parser[Input, Input]):
-    def __init__(self, predicate: Callable[[Input], bool],
-            predicate_descr: str):
+class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
+    def __init__(self, parser: Parser[Input, Output],
+                 predicate: Callable[[Output], bool],
+                 predicate_descr: str):
         super().__init__()
+        self.parser = parser
         self.predicate = predicate
         self.predicate_descr = predicate_descr
 
     def consume(self, reader: Reader[Input]):
         remainder = reader
-        if remainder.finished:
-            return Backtrack(remainder, lambda: self.predicate_descr)
-        remainder_first = remainder.first
-        if self.predicate(remainder_first):
-            remainder = remainder.rest
-        else:
-            return Backtrack(remainder, lambda: self.predicate_descr)
-
-        return Continue(remainder, remainder_first)
+        status = self.parser.consume(remainder)
+        if isinstance(status, Continue):
+            if not self.predicate(status.value):
+                return Backtrack(remainder, lambda: self.predicate_descr)
+        return status
 
     def __repr__(self):
         return self.name_or_nothing() + self.predicate_descr
 
 
-def pred(predicate: Callable[[Input], bool], predicate_descr: str) -> Parser:
-    """Match an element if it satisfies the predicate.
-
-    In the ``TextParsers`` context, this would accept only a single character.
-    It's better to use ``reg`` in that case, if possible.
-    This parser is more useful in the ``GeneralContext``, allowing e. g.
-    matching by token type but ignoring source information in the token.
+def pred(parser: Parser[Input, Output],
+         predicate: Callable[[Output], bool],
+         predicate_descr: str) -> PredicateParser[Input, Output]:
+    """Match ``parser``'s result if it satisfies the predicate.
 
     Args:
-        predicate: A predicate to satisfy
+        parser: Provides the result
+        predicate: A predicate for the result to satisfy
         predicate_descr: Name for the predicate, to use in error reporting
 
     Returns:
         A ``PredicateParser``.
     """
-    return PredicateParser(predicate, predicate_descr)
+    return PredicateParser(parser, predicate, predicate_descr)
 
 
 class RegexParser(Parser[str, str]):
@@ -744,9 +740,30 @@ def failure(expected: str = ''):
     return FailureParser(expected)
 
 
+class AnyParser(Generic[Input], Parser[Input, Input]):
+    """Matches any single element in the input.
+
+       This is useful with ``pred``. Also note this parser will fail on end of stream.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+        if reader.finished:
+            return Backtrack(reader, lambda: 'any')
+        else:
+            return Continue(reader.rest, reader.first)
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'any1'
+
+
+any1 = AnyParser()
+
+
 __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
            'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
            'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
            'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
            'failure', 'completely_parse_reader',
-           'PredicateParser', 'pred']
+           'PredicateParser', 'pred', 'any1']
