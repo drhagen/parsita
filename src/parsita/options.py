@@ -15,9 +15,9 @@ def default_handle_literal(literal: Any):
     return LiteralStringParser(literal, whitespace)
 
 
-def wrap_literal(literal: Input):
+def wrap_literal(literal: Sequence[Input]):
     from .parsers import LiteralParser
-    return LiteralParser((literal,))
+    return LiteralParser(literal)
 
 
 handle_literal = default_handle_literal

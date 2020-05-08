@@ -141,8 +141,10 @@ class StringReader(Reader[str]):
 
     def next_token(self) -> str:
         match = self.next_token_regex.match(self.source, self.position)
-        assert match is not None
-        return self.source[match.start():match.end()]
+        if match is None:
+            return self.source[match.start]
+        else:
+            return self.source[match.start():match.end()]
 
     def current_line(self):
         characters_consumed = 0
