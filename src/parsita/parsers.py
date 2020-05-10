@@ -255,40 +255,37 @@ def lit(literal: Sequence[Input], *literals: Sequence[Sequence[Input]]) -> Parse
 
 
 class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
-    def __init__(self, parser: Parser[Input, Output],
-                 predicate: Callable[[Output], bool],
-                 predicate_descr: str):
+    def __init__(self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str):
         super().__init__()
         self.parser = parser
         self.predicate = predicate
-        self.predicate_descr = predicate_descr
+        self.description = description
 
     def consume(self, reader: Reader[Input]):
         remainder = reader
         status = self.parser.consume(remainder)
         if isinstance(status, Continue):
             if not self.predicate(status.value):
-                return Backtrack(remainder, lambda: self.predicate_descr)
+                return Backtrack(remainder, lambda: self.description)
         return status
 
     def __repr__(self):
-        return self.name_or_nothing() + self.predicate_descr
+        return self.name_or_nothing() + 'pred({}, {})'.format(repr(self.parser), self.description)
 
 
-def pred(parser: Parser[Input, Output],
-         predicate: Callable[[Output], bool],
-         predicate_descr: str) -> PredicateParser[Input, Output]:
+def pred(parser: Parser[Input, Output], predicate: Callable[[Output], bool],
+         description: str) -> PredicateParser[Input, Output]:
     """Match ``parser``'s result if it satisfies the predicate.
 
     Args:
         parser: Provides the result
         predicate: A predicate for the result to satisfy
-        predicate_descr: Name for the predicate, to use in error reporting
+        description: Name for the predicate, to use in error reporting
 
     Returns:
         A ``PredicateParser``.
     """
-    return PredicateParser(parser, predicate, predicate_descr)
+    return PredicateParser(parser, predicate, description)
 
 
 class RegexParser(Parser[str, str]):
@@ -741,16 +738,19 @@ def failure(expected: str = ''):
 
 
 class AnyParser(Generic[Input], Parser[Input, Input]):
-    """Matches any single element in the input.
+    """Match any single element.
 
-       This is useful with ``pred``. Also note this parser will fail on end of stream.
+    This parser matches any single element, returning it. This is useful when it
+    does not matter what is at this position or when validation is deferred to a
+    later step, such as with the ``pred`` parser. This parser can only fail at
+    the end of the stream.
     """
     def __init__(self):
         super().__init__()
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
         if reader.finished:
-            return Backtrack(reader, lambda: 'any')
+            return Backtrack(reader, lambda: 'anything')
         else:
             return Continue(reader.rest, reader.first)
 
@@ -765,5 +765,4 @@ __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser
            'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
            'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
            'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
-           'failure', 'completely_parse_reader',
-           'PredicateParser', 'pred', 'any1']
+           'failure', 'PredicateParser', 'pred', 'AnyParser', 'any1', 'completely_parse_reader']
