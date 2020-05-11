@@ -34,6 +34,20 @@ class LiteralTestCase(TestCase):
         self.assertRaisesRegex(ParseError, 'Expected b but found a at index 0', TestParsers.bb.parse('aa').or_die)
 
 
+class PredicateTestCase(TestCase):
+    def test_predicate(self):
+        class TestParsers(GeneralParsers):
+            a = pred(any1, lambda x: x in ('A', 'a'), 'letter A')
+            d = pred(any1, str.isdigit, 'digit')
+
+        self.assertEqual(TestParsers.a.parse('a'), Success('a'))
+        self.assertEqual(TestParsers.a.parse('A'), Success('A'))
+        self.assertEqual(TestParsers.d.parse('2'), Success('2'))
+        self.assertEqual(TestParsers.d.parse('23'), Failure('Expected end of source but found 3 at index 1'))
+        self.assertEqual(TestParsers.d.parse('a'), Failure('Expected digit but found a at index 0'))
+        self.assertEqual(str(TestParsers.a), "a = pred(any1, letter A)")
+
+
 class ForwardDeclarationTestCase(TestCase):
     def test_forward_declaration(self):
         class TestParsers(GeneralParsers):
@@ -389,6 +403,16 @@ class SuccessFailureTestCase(TestCase):
         self.assertEqual(TestParsers.bbb.parse('aabb'), Failure('Expected something else but found b at index 2'))
         self.assertEqual(str(TestParsers.aaa), "aaa = rep('a') & success(1) & rep('b')")
         self.assertEqual(str(TestParsers.bbb), "bbb = 'aa' & failure('something else') & 'bb'")
+
+
+class AnyTestCase(TestCase):
+    def test_any(self):
+        class TestParsers(GeneralParsers):
+            any2 = any1 & any1
+
+        self.assertEqual(TestParsers.any2.parse('ab'), Success(['a', 'b']))
+        self.assertEqual(TestParsers.any2.parse('a'), Failure('Expected anything but found end of source'))
+        self.assertEqual(str(TestParsers.any2), "any2 = any1 & any1")
 
 
 class OptionsResetTest(TestCase):

@@ -229,6 +229,33 @@ A repeated separated parser matches ``parser`` separated by ``separator``, retur
         my_list = '[' >> repsep(integer, ',') << ']'
     assert ListParsers.my_list.parse('[1,2,3]') == Success([1, 2, 3])
 
+``pred(parser, predicate, description)``: predicate parser
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A predicate parser matches ``parser`` and, if it succeeds, runs a test function ``predicate`` on the return value. If ``predicate`` returns ``True``, the predicate parser succeeds, returning the same value; if it returns ``False``, the parser fails with the message that it is expecting ``description``.
+
+.. code:: python
+
+    class IntervalParsers(TextParsers):
+        number = reg('\d+') > int
+        pair = '[' >> number << ',' & number << ']'
+        interval = pred(pair, lambda x: x[0] <= x[1], 'ordered pair')
+    assert IntervalParsers.interval.parse('[1, 2]') == Success([1, 2])
+    assert IntervalParsers.interval.parse('[2, 1]') != Success([2, 1])
+
+``any1``: any one element
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A parser that matches any single input element. This is not a particularly useful parser in the context of parsing text (for which ``reg(r'.')`` would be more standard). But in the ``GeneralParsers`` context, this is useful as the first argument to ``pred`` when one merely wants to run the predicate on a single token. This parser can only fail at the end of the stream. Note that ``any1`` is not a function—it is a complete parser itself.
+
+.. code:: python
+
+    class DigitParsers(GeneralParsers):
+        digit = pred(any1, lambda x: x['type'] == 'digit', 'a digit') > \
+            (lambda x: x['payload'])
+    assert DigitParsers.digit.parse([{'type': 'digit', 'payload': 3}]) == \
+        Success(3)
+
 ``eof``: end of file
 ^^^^^^^^^^^^^^^^^^^^
 

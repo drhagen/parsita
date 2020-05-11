@@ -254,6 +254,43 @@ def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser:
         return options.handle_literal(literal)
 
 
+class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
+    def __init__(self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str):
+        super().__init__()
+        self.parser = parser
+        self.predicate = predicate
+        self.description = description
+
+    def consume(self, reader: Reader[Input]):
+        remainder = reader
+        status = self.parser.consume(remainder)
+        if isinstance(status, Continue):
+            if self.predicate(status.value):
+                return status
+            else:
+                return Backtrack(remainder, lambda: self.description)
+        else:
+            return status
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'pred({}, {})'.format(repr(self.parser), self.description)
+
+
+def pred(parser: Parser[Input, Output], predicate: Callable[[Output], bool],
+         description: str) -> PredicateParser[Input, Output]:
+    """Match ``parser``'s result if it satisfies the predicate.
+
+    Args:
+        parser: Provides the result
+        predicate: A predicate for the result to satisfy
+        description: Name for the predicate, to use in error reporting
+
+    Returns:
+        A ``PredicateParser``.
+    """
+    return PredicateParser(parser, predicate, description)
+
+
 class RegexParser(Parser[str, str]):
     def __init__(self, pattern: str, whitespace: Parser[str, None] = None):  # Python lacks type of compiled regex
         super().__init__()
@@ -703,8 +740,32 @@ def failure(expected: str = ''):
     return FailureParser(expected)
 
 
+class AnyParser(Generic[Input], Parser[Input, Input]):
+    """Match any single element.
+
+    This parser matches any single element, returning it. This is useful when it
+    does not matter what is at this position or when validation is deferred to a
+    later step, such as with the ``pred`` parser. This parser can only fail at
+    the end of the stream.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+        if reader.finished:
+            return Backtrack(reader, lambda: 'anything')
+        else:
+            return Continue(reader.rest, reader.first)
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'any1'
+
+
+any1 = AnyParser()
+
+
 __all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
            'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
            'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
            'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
-           'failure', 'completely_parse_reader']
+           'failure', 'PredicateParser', 'pred', 'AnyParser', 'any1', 'completely_parse_reader']

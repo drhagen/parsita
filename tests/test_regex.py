@@ -29,6 +29,18 @@ class LiteralTestCase(TestCase):
         self.assertEqual(str(TestParsers.hundred), "hundred = '100'")
 
 
+class PredicateTestCase(TestCase):
+    def test_interval(self):
+        class TestParsers(TextParsers):
+            number = reg(r'\d+') > int
+            pair = '[' >> number << ',' & number << ']'
+            interval = pred(pair, lambda x: x[0] <= x[1], 'ordered pair')
+
+        self.assertEqual(TestParsers.interval.parse('[1, 2]'), Success([1, 2]))
+        self.assertIsInstance(TestParsers.interval.parse('[2, 1]'), Failure)
+        self.assertEqual(TestParsers.pair.parse('[1,a]'), TestParsers.interval.parse('[1,a]'))
+
+
 class RegexTestCase(TestCase):
     def test_regex(self):
         class TestParsers(TextParsers):
