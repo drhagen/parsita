@@ -32,12 +32,13 @@ class LiteralTestCase(TestCase):
 class PredicateTestCase(TestCase):
     def test_interval(self):
         class TestParsers(TextParsers):
-            number = reg('\d+') > int
+            number = reg(r'\d+') > int
             pair = '[' >> number << ',' & number << ']'
             interval = pred(pair, lambda x: x[0] <= x[1], 'ordered pair')
 
         self.assertEqual(TestParsers.interval.parse('[1, 2]'), Success([1, 2]))
         self.assertIsInstance(TestParsers.interval.parse('[2, 1]'), Failure)
+        self.assertEqual(TestParsers.pair.parse('[1,a]'), TestParsers.interval.parse('[1,a]'))
 
 
 class RegexTestCase(TestCase):

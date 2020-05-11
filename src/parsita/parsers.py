@@ -265,9 +265,12 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         remainder = reader
         status = self.parser.consume(remainder)
         if isinstance(status, Continue):
-            if not self.predicate(status.value):
+            if self.predicate(status.value):
+                return status
+            else:
                 return Backtrack(remainder, lambda: self.description)
-        return status
+        else:
+            return status
 
     def __repr__(self):
         return self.name_or_nothing() + 'pred({}, {})'.format(repr(self.parser), self.description)
