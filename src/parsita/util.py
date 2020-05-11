@@ -1,6 +1,6 @@
 from typing import Callable, TypeVar, Iterable
 
-A = TypeVar('Input')
+A = TypeVar('A')
 
 
 def constant(x: A) -> Callable[..., A]:

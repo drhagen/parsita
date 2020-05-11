@@ -20,6 +20,7 @@ class Reader(Generic[Input]):
         finished (bool): Indicates if the source is at the end. It is an error
             to access ``first`` or ``rest`` if ``finished`` is ``True``.
     """
+
     first = NotImplemented  # type: Input
     rest = NotImplemented  # type: Reader[Input]
     position = NotImplemented  # type: int
@@ -75,7 +76,7 @@ class Reader(Generic[Input]):
             return 'Reader({}@{})'.format(self.first, self.position)
 
 
-class SequenceReader(Reader):
+class SequenceReader(Reader[Input]):
     """A reader for sequences that should not be sliced.
 
     Python makes a copy when a sequence is sliced. This reader avoids making
@@ -126,21 +127,24 @@ class StringReader(Reader[str]):
         return self.source[self.position]
 
     @property
-    def rest(self) -> 'StringReader[str]':
+    def rest(self) -> 'StringReader':
         return StringReader(self.source, self.position + 1)
 
     @property
     def finished(self) -> bool:
         return self.position >= len(self.source)
 
-    def drop(self, count: int) -> 'StringReader[Input]':
+    def drop(self, count: int) -> 'StringReader':
         return StringReader(self.source, self.position + count)
 
     next_token_regex = re.compile(r'[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+')
 
     def next_token(self) -> str:
         match = self.next_token_regex.match(self.source, self.position)
-        return self.source[match.start():match.end()]
+        if match is None:
+            return self.source[self.position]
+        else:
+            return self.source[match.start():match.end()]
 
     def current_line(self):
         characters_consumed = 0
@@ -293,7 +297,7 @@ class ParseError(Exception):
 
 class Status(Generic[Input, Output]):
     farthest = None  # type: Optional[Reader]
-    expected = ()  # type: Tuple[Callable[[], str]]
+    expected = ()  # type: Tuple[Callable[[], str], ...]
 
     def merge(self, status: 'Status[Input, Output]') -> 'Status[Input, Output]':
         """Merge the failure message from another status into this one.
