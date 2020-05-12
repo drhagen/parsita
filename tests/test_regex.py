@@ -44,12 +44,12 @@ class PredicateTestCase(TestCase):
 class RegexTestCase(TestCase):
     def test_regex(self):
         class TestParsers(TextParsers):
-            digits = reg(r'\d+') > float
+            digits = reg(r'\d+')
 
-        self.assertEqual(TestParsers.digits.parse('100'), Success(100))
-        self.assertEqual(TestParsers.digits.parse('   100'), Success(100))
-        self.assertEqual(TestParsers.digits.parse('100    '), Success(100))
-        self.assertEqual(TestParsers.digits.parse('   100    '), Success(100))
+        self.assertEqual(TestParsers.digits.parse('100'), Success('100'))
+        self.assertEqual(TestParsers.digits.parse('   100'), Success('100'))
+        self.assertEqual(TestParsers.digits.parse('100    '), Success('100'))
+        self.assertEqual(TestParsers.digits.parse('   100    '), Success('100'))
         self.assertEqual(str(TestParsers.digits), r"digits = reg(r'\d+')")
 
     def test_no_whitespace(self):

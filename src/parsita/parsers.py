@@ -317,7 +317,7 @@ class RegexParser(Parser[str, str]):
             return Continue(reader, value)
 
     def __repr__(self):
-        return "reg(r'{}')".format(self.pattern.pattern)
+        return self.name_or_nothing() + "reg(r'{}')".format(self.pattern.pattern)
 
 
 def reg(pattern: str) -> RegexParser:
