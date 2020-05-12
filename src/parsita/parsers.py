@@ -12,7 +12,7 @@ class Parser(Generic[Input, Output]):
     Inheritors of this class must:
 
     1. Implement the ``consume`` method
-    2. Implement the ``__str__`` method
+    2. Implement the ``__repr__`` method
     3. Call super().__init__() in their constructor to get the parse method from
        the context.
 
