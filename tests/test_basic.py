@@ -45,7 +45,7 @@ class PredicateTestCase(TestCase):
         self.assertEqual(TestParsers.d.parse('2'), Success('2'))
         self.assertEqual(TestParsers.d.parse('23'), Failure('Expected end of source but found 3 at index 1'))
         self.assertEqual(TestParsers.d.parse('a'), Failure('Expected digit but found a at index 0'))
-        self.assertEqual(str(TestParsers.a), "a = pred(any1, letter A)")
+        self.assertEqual(str(TestParsers.a), 'a = pred(any1, letter A)')
 
 
 class ForwardDeclarationTestCase(TestCase):
@@ -412,7 +412,7 @@ class AnyTestCase(TestCase):
 
         self.assertEqual(TestParsers.any2.parse('ab'), Success(['a', 'b']))
         self.assertEqual(TestParsers.any2.parse('a'), Failure('Expected anything but found end of source'))
-        self.assertEqual(str(TestParsers.any2), "any2 = any1 & any1")
+        self.assertEqual(str(TestParsers.any2), 'any2 = any1 & any1')
 
 
 class OptionsResetTest(TestCase):
