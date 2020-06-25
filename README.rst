@@ -84,7 +84,7 @@ The recommended means of installation is with ``pip`` from PyPI.
 
 .. code:: bash
 
-    pip3 install parsita
+    pip install parsita
 
 There is a lot of generic parsing machinery under the hood. Parser combinators have a rich science behind them. If you know all about that and want to do advanced parsing, by all means pop open the source hood and install some nitro. However, most users will want the basic interface, which is described below.
 
@@ -121,7 +121,7 @@ This is the simplest parser. It matches the exact string provided and returns th
     class HelloParsers(TextParsers):
         hello = lit('Hello World!')
     assert HelloParsers.hello.parse('Hello World!') == Success('Hello World!')
-    assert HelloParsers.hello.parse('Goodbye') == Failure("Hello World! expected but Goodbye found")
+    assert isinstance(HelloParsers.hello.parse('Goodbye'), Failure)
 
 In most cases, the call to ``lit`` is handled automatically. If a bare string is provided to the functions and operators below, it will be promoted to literal parser whenever possible. Only when an operator is between two Python types, like a string and a string ``'a' | 'b'`` or a string and function ``'100' > int`` will this "implicit conversion" not take place and you have to use ``lit`` (e.g. ``lit('a', 'b')`` and ``lit('100') > int``).
 
@@ -170,7 +170,7 @@ All the parsers above will match at most one thing. This is the syntax for match
     class UrlParsers(TextParsers, whitespace=None):
         url = lit('http', 'ftp') & '://' & reg(r'[^/]+') & reg(r'.*')
     assert UrlParsers.url.parse('http://drhagen.com/blog/sane-equality/') == \
-        Success(['http', '://', 'drhagen.com', '/blog/sane_equality/'])
+        Success(['http', '://', 'drhagen.com', '/blog/sane-equality/'])
 
 ``parser1 >> parser2`` and ``parser1 << parser2``: discard left and right parsers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -201,9 +201,10 @@ An optional parser tries to match its argument. If the argument succeeds, it ret
 .. code:: python
 
     class DeclarationParsers(TextParsers):
-        id = reg(r'[A-Za-z_][A-Za-z0-9_]+')
+        id = reg(r'[A-Za-z_][A-Za-z0-9_]*')
         declaration = id & opt(':' >> id)
     assert DeclarationParsers.declaration.parse('x: int') == Success(['x', ['int']])
+    assert DeclarationParsers.declaration.parse('x') == Success(['x', []])
 
 ``rep(parser)`` and ``rep1(parser)``: repeated parsers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -214,7 +215,7 @@ A repeated parser matches repeated instances of its parser argument. It returns 
 
     class SummationParsers(TextParsers):
         integer = reg(r'[-+]?[0-9]+') > int
-        summation = integer & rep('+' >> integer) > lambda x: sum([x[0]] + x[1])
+        summation = integer & rep('+' >> integer) > (lambda x: sum([x[0]] + x[1]))
     assert SummationParsers.summation.parse('1 + 1 + 2 + 3 + 5') == Success(12)
 
 ``repsep(parser, separator)`` and ``rep1sep(parser, separator)``: repeated separated parsers
@@ -280,14 +281,12 @@ To use ``fwd``, first assign ``fwd()`` to a variable, then use that variable in 
 
 .. code:: python
 
-    class ArithmeticParsers(TextParsers):
-        number = reg(r'[+-]?\d+(\.\d+)?(e[+-]?\d+)?') > float
+    class AddingParsers(TextParsers):
+        number = reg(r'[+-]?\d+') > int
         expr = fwd()
         base = '(' >> expr << ')' | number
-        add = base & '+' >> expr > (lambda x: x[0] + x[1])
-        subtract = base & '-' >> expr > (lambda x: x[0] - x[1])
-        expr.define(add | subtract | base)
-    assert ArithmeticParsers.expr.parse('2-(1+2)') == Success(-1.0)
+        expr.define(rep1sep(base, '+') > sum)
+    assert AddingParsers.expr.parse('2+(1+2)+3') == Success(8)
 
 ``success(value)``: always succeed with value
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
