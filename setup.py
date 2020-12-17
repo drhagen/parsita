@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='parsita',
-    version='1.4.0',
+    version='1.4.1',
 
     description='Parser combinator library for Python.',
     long_description=Path('README.rst').read_text(encoding='utf-8'),
