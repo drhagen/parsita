@@ -222,6 +222,15 @@ class Result(Generic[Output]):
     """
 
     def or_die(self):
+        """Return value if Success, raise exception if Failure.
+
+        Returns:
+            If Success, the parsed value
+
+        Raises:
+        ParseError
+            If Failure, with appropriate message
+        """
         raise NotImplementedError()
 
 
@@ -237,7 +246,7 @@ class Success(Generic[Output], Result[Output]):
     def __init__(self, value: Output):
         self.value = value
 
-    def or_die(self):
+    def or_die(self) -> Output:
         return self.value
 
     def __eq__(self, other):
@@ -264,7 +273,7 @@ class Failure(Generic[Output], Result[Output]):
     def __init__(self, message: str):
         self.message = message
 
-    def or_die(self):
+    def or_die(self) -> Output:
         raise ParseError(self.message)
 
     def __eq__(self, other):

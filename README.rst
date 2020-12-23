@@ -92,6 +92,33 @@ There is a lot of generic parsing machinery under the hood. Parser combinators h
 
     from parsita import *
 
+Basic usage
+^^^^^^^^^^^
+
+Parsing is done by passing the input string to the parser's ``parse`` method.
+
+.. code:: python
+
+    class DomainNameParsers(TextParsers, whitespace=None):
+        domain = rep1sep(reg('[-a-z0-9]+'), '.')
+
+    result = DomainNameParsers.domain.parse('drhagen.com')
+
+This returns an instance of the ``Result`` class, which has two subclasses ``Success`` and ``Failure``. The standard way to test if ``result`` is a ``Success`` or ``Failure`` is to use ``isinstance(result, Success)``. If ``Success``, the parsed value can be obtained with ``result.value``. If ``Failure``, the error message can be obtained with ``result.message``.
+
+.. code:: python
+
+    if isinstance(result, Success):
+        python_list = result.value
+    else:
+        raise RuntimeError(result.message)
+
+Alternatively, ``result.or_die()`` returns the value if it is a ``Success`` and raises a ``ParseError`` with the message if it is a ``Failure``. It is common to apply this immediately after the call to ``parse`` when an exception on failure is desired.
+
+.. code:: python
+
+    python_list = DomainNameParsers.domain.parse('drhagen.com').or_die()
+
 Metaclass magic
 ^^^^^^^^^^^^^^^
 
