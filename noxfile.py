@@ -14,6 +14,7 @@ def coverage(session: nox_poetry.Session):
     session.install('coverage[toml]')
     session.run('coverage', 'combine')
     session.run('coverage', 'html')
+    session.run('coverage', 'xml')
 
 
 @nox_poetry.session(venv_backend='none')

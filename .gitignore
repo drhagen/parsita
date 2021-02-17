@@ -6,5 +6,6 @@ __pycache__
 parsita.egg-info
 .coverage
 htmlcov
+coverage.xml
 build
 dist
