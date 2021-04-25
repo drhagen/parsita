@@ -221,7 +221,7 @@ class Result(Generic[Output]):
     The class of all values returned from Parser.parse.
     """
 
-    def or_die(self):
+    def or_die(self) -> Output:
         """Return value if Success, raise exception if Failure.
 
         Returns:
