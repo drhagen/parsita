@@ -18,7 +18,7 @@ jobs:
       - name: Install nox
         run: |
           python -m pip install --upgrade pip
-          pip install nox_poetry poetry
+          pip install nox_poetry==0.8.1 poetry
       - name: Test with nox
         run: nox -e test-${{ matrix.python-version }}
       - name: Store coverage
@@ -39,7 +39,7 @@ jobs:
       - name: Install nox
         run: |
           python -m pip install --upgrade pip
-          pip install nox_poetry poetry
+          pip install nox_poetry==0.8.1 poetry
       - name: Fetch coverage
         uses: actions/download-artifact@v2
         with:
@@ -60,6 +60,6 @@ jobs:
       - name: Install nox
         run: |
           python -m pip install --upgrade pip
-          pip install nox_poetry poetry
+          pip install nox_poetry==0.8.1 poetry
       - name: Run linters
         run: nox -e lint
