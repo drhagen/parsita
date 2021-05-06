@@ -9,3 +9,4 @@ htmlcov
 coverage.xml
 build
 dist
+site
