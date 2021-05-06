@@ -1,0 +1,59 @@
+site_name: Parsita
+site_description: Parser combinator library for Python
+site_author: David Hagen
+
+repo_name: drhagen/parsita
+repo_url: https://github.com/drhagen/parsita/
+edit_uri: ''
+
+copyright: >
+  &copy; David R Hagen. Content available under an
+  <a href="https://github.com/drhagen/parsita/blob/master/LICENSE">MIT license</a>.
+
+theme:
+  name: material
+
+  icon:
+    logo: fontawesome/solid/skating
+    repo: fontawesome/brands/github
+
+  palette:
+    - scheme: default
+      primary: black
+      accent: yellow
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: yellow
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drhagen
+    - icon: fontawesome/brands/stack-overflow
+      link: https://stackoverflow.com/users/1485877/drhagen
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/drhagen
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/davidrhagen/
+
+nav:
+  - Home: index.md
+  - Getting started: getting_started.md
+  - Terminal parsers: terminal_parsers.md
+  - Conversion parsers: conversion_parsers.md
+  - Alternative parsers: alternative_parsers.md
+  - Sequential parsers: sequential_parsers.md
+  - Repeated parsers: repeated_parsers.md
+  - Miscellaneous parsers: miscellaneous_parsers.md
+  - Utility functions: utility_functions.md
+  - Contributing: contributing.md
