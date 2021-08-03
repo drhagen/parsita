@@ -364,6 +364,20 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "isort"
+version = "5.9.3"
+description = "A Python utility / library to sort Python imports."
+category = "dev"
+optional = false
+python-versions = ">=3.6.1,<4.0"
+
+[package.extras]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
+requirements_deprecated_finder = ["pipreqs", "pip-api"]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
+plugins = ["setuptools"]
+
+[[package]]
 name = "jeepney"
 version = "0.7.1"
 description = "Low-level, pure Python DBus protocol wrapper."
@@ -1043,7 +1057,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.0"
-content-hash = "df05a76d924f51bf7ee28e85fca29513d6cbe6a48b8be34316e667c7c337ac69"
+content-hash = "5336d03d147e682cfd8abb13444ce64b81e968fef5fa78c35f3036025ce73ffc"
 
 [metadata.files]
 appdirs = [
@@ -1267,6 +1281,10 @@ importlib-metadata = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+isort = [
+    {file = "isort-5.9.3-py3-none-any.whl", hash = "sha256:e17d6e2b81095c9db0a03a8025a957f334d6ea30b26f9ec70805411e5c7c81f2"},
+    {file = "isort-5.9.3.tar.gz", hash = "sha256:9c2ea1e62d871267b78307fe511c0838ba0da28698c5732d54e2790bf3ba9899"},
 ]
 jeepney = [
     {file = "jeepney-0.7.1-py3-none-any.whl", hash = "sha256:1b5a0ea5c0e7b166b2f5895b91a08c14de8915afda4407fb5022a195224958ac"},

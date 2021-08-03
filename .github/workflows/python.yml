@@ -62,4 +62,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install nox_poetry==0.8.5 poetry
       - name: Run code quality checks
-        run: nox -e black lint
+        run: nox -e black isort lint

@@ -24,6 +24,12 @@ def black(session: nox_poetry.Session):
 
 
 @nox_poetry.session(venv_backend="none")
+def isort(session: nox_poetry.Session):
+    session.install("isort")
+    session.run("isort", "--check", ".")
+
+
+@nox_poetry.session(venv_backend="none")
 def lint(session: nox_poetry.Session):
     session.install("flakehell", "flake8", "pep8-naming")
     session.run("flakehell", "lint", "src", "tests", "examples")
