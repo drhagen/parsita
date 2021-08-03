@@ -18,6 +18,12 @@ def coverage(session: nox_poetry.Session):
 
 
 @nox_poetry.session(venv_backend='none')
+def black(session: nox_poetry.Session):
+    session.install('black')
+    session.run('black', '--check', '.')
+
+
+@nox_poetry.session(venv_backend='none')
 def lint(session: nox_poetry.Session):
-    session.install('flakehell', 'flake8', 'pep8-naming', 'flake8-quotes')
+    session.install('flakehell', 'flake8', 'pep8-naming')
     session.run('flakehell', 'lint', 'src', 'tests', 'examples')
