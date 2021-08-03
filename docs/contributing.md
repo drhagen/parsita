@@ -39,11 +39,13 @@ nox -e test-3.9
 
 It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway. 
 
-## Linting
+## Code quality
 
-Parsita uses Flake8 to do ensure a minimum standard of code quality. The linting command is encapsulated with Nox:
+Parsita uses Black, isort, and Flake8 to do ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
 
 ```shell
+nox -e black
+nox -e isort
 nox -e lint
 ```
 

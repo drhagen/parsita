@@ -29,10 +29,10 @@ name = HelloWorldParsers.hello_world.parse('Hello, David!').or_die()
 assert name == 'David'
 
 # A parsing failure produces a useful error message
-name = HelloWorldParsers.hello_world.parse('Hello Fred!').or_die()
-# parsita.state.ParseError: Expected ',' but found 'Fred'
+name = HelloWorldParsers.hello_world.parse('Hello David!').or_die()
+# parsita.state.ParseError: Expected ',' but found 'David'
 # Line 1, character 7
-
-# Hello Fred!
+#
+# Hello David!
 #       ^
 ```

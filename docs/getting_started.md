@@ -1,5 +1,7 @@
 # Getting started
 
+David Hagen gave an [introductory talk](https://www.youtube.com/watch?v=9JSGGSRgUcw) on Parsita at SciPy 2021. The documentation is more thorough, but the talk is useful for anyone looking for a quick walk-through.
+
 ## Defining a parser
 
 Parsita parsers are written inside the bodies of classes that inherit from `TextParsers`. (If you are parsing something other than a string, such a stream of tokens, there is the `GeneralParsers` class.) Such classes are not meant to be instantiated. They are used purely as a kind of souped-up context manager.
