@@ -1,5 +1,6 @@
 import sys
 from unittest import TestCase
+
 import pytest
 
 
@@ -20,7 +21,7 @@ class JsonTestCase(TestCase):
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="Example made for Python 3.7 and requires dataclasses")
 class Positioned(TestCase):
     def test_positioned(self):
-        from examples.positioned import PlusParsers, Variable, Plus
+        from examples.positioned import Plus, PlusParsers, Variable
 
         value = PlusParsers.plus.parse("abc+xyz").or_die()
         self.assertEqual(value, Plus(Variable("abc", 0, 3), Variable("xyz", 4, 3)))

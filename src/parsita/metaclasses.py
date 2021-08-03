@@ -1,5 +1,5 @@
-import inspect
 import builtins
+import inspect
 import re
 
 from . import options

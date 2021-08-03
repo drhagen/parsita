@@ -2,7 +2,7 @@ import re
 from unittest import TestCase
 
 from parsita import *
-from parsita.state import Continue, Backtrack
+from parsita.state import Backtrack, Continue
 
 
 class StateTestCase(TestCase):

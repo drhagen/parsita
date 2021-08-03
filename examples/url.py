@@ -1,4 +1,4 @@
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict, namedtuple
 from ipaddress import IPv4Address, IPv6Address
 
 from parsita import *

@@ -1,7 +1,7 @@
 import re
 from typing import Any, Sequence
 
-from .state import Input, Output, SequenceReader, StringReader, Result
+from .state import Input, Output, Result, SequenceReader, StringReader
 
 # Global mutable state
 

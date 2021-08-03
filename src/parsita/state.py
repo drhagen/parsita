@@ -1,6 +1,6 @@
 import re
 from io import StringIO
-from typing import Generic, Sequence, TypeVar, Callable, Optional, Tuple, Union  # noqa: F401
+from typing import Callable, Generic, Optional, Sequence, Tuple, TypeVar, Union  # noqa: F401
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")

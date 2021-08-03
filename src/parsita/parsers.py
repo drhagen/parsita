@@ -1,9 +1,9 @@
 import re
-from typing import Generic, Sequence, List, Union, Callable, Optional, Any
 from types import MethodType
+from typing import Any, Callable, Generic, List, Optional, Sequence, Union
 
 from . import options
-from .state import Input, Output, Convert, Reader, StringReader, Result, Status, Success, Failure, Continue, Backtrack
+from .state import Backtrack, Continue, Convert, Failure, Input, Output, Reader, Result, Status, StringReader, Success
 
 
 class Parser(Generic[Input, Output]):

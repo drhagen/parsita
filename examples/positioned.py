@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from typing import Generic
 
 from parsita import Parser, TextParsers, reg
+from parsita.state import Continue, Input, Output, Reader, Status
 from parsita.util import splat
-from parsita.state import Reader, Status, Continue, Input, Output
 
 
 class PositionAware(Generic[Output]):
