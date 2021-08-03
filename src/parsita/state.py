@@ -2,9 +2,9 @@ import re
 from io import StringIO
 from typing import Generic, Sequence, TypeVar, Callable, Optional, Tuple, Union  # noqa: F401
 
-Input = TypeVar('Input')
-Output = TypeVar('Output')
-Convert = TypeVar('Convert')
+Input = TypeVar("Input")
+Output = TypeVar("Output")
+Convert = TypeVar("Convert")
 
 
 class Reader(Generic[Input]):
@@ -44,9 +44,9 @@ class Reader(Generic[Input]):
         """
 
         if self.finished:
-            return 'Expected {} but found end of source'.format(expected)
+            return "Expected {} but found end of source".format(expected)
         else:
-            return 'Expected {} but found {} at index {}'.format(expected, self.next_token(), self.position)
+            return "Expected {} but found {} at index {}".format(expected, self.next_token(), self.position)
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -63,17 +63,21 @@ class Reader(Generic[Input]):
         """
 
         if self.finished:
-            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever at ' \
-                   'end of source'.format(repeated_parser)
+            return (
+                "Infinite recursion detected in {}; empty string was matched and will be matched forever at "
+                "end of source".format(repeated_parser)
+            )
         else:
-            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever at ' \
-                   'index {} before {}'.format(repeated_parser, self.position, self.next_token())
+            return (
+                "Infinite recursion detected in {}; empty string was matched and will be matched forever at "
+                "index {} before {}".format(repeated_parser, self.position, self.next_token())
+            )
 
     def __repr__(self):
         if self.finished:
-            return 'Reader(finished)'
+            return "Reader(finished)"
         else:
-            return 'Reader({}@{})'.format(self.first, self.position)
+            return "Reader({}@{})".format(self.first, self.position)
 
 
 class SequenceReader(Reader[Input]):
@@ -97,7 +101,7 @@ class SequenceReader(Reader[Input]):
         return self.source[self.position]
 
     @property
-    def rest(self) -> 'SequenceReader[Input]':
+    def rest(self) -> "SequenceReader[Input]":
         return SequenceReader(self.source, self.position + 1)
 
     @property
@@ -127,24 +131,24 @@ class StringReader(Reader[str]):
         return self.source[self.position]
 
     @property
-    def rest(self) -> 'StringReader':
+    def rest(self) -> "StringReader":
         return StringReader(self.source, self.position + 1)
 
     @property
     def finished(self) -> bool:
         return self.position >= len(self.source)
 
-    def drop(self, count: int) -> 'StringReader':
+    def drop(self, count: int) -> "StringReader":
         return StringReader(self.source, self.position + count)
 
-    next_token_regex = re.compile(r'[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+')
+    next_token_regex = re.compile(r"[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+")
 
     def next_token(self) -> str:
         match = self.next_token_regex.match(self.source, self.position)
         if match is None:
             return self.source[self.position]
         else:
-            return self.source[match.start():match.end()]
+            return self.source[match.start() : match.end()]
 
     def current_line(self):
         characters_consumed = 0
@@ -154,11 +158,11 @@ class StringReader(Reader[str]):
                 character_index = self.position - characters_consumed
 
                 # This creates a line like this '        ^                  '
-                pointer = (' ' * character_index) + '^' + (' ' * (len(line) - character_index - 1))
+                pointer = (" " * character_index) + "^" + (" " * (len(line) - character_index - 1))
 
                 # This adds a newline to line in case it is the end of the file
-                if line[-1] != '\n':
-                    line = line + '\n'
+                if line[-1] != "\n":
+                    line = line + "\n"
 
                 # Add one to indexes to account for 0-indexes
                 return line_index + 1, character_index + 1, line, pointer
@@ -184,8 +188,9 @@ class StringReader(Reader[str]):
         else:
             line_index, character_index, line, pointer = self.current_line()
 
-            return 'Expected {} but found {}\nLine {}, character {}\n\n{}{}'.format(
-                expected, repr(self.next_token()), line_index, character_index, line, pointer)
+            return "Expected {} but found {}\nLine {}, character {}\n\n{}{}".format(
+                expected, repr(self.next_token()), line_index, character_index, line, pointer
+            )
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -205,14 +210,16 @@ class StringReader(Reader[str]):
         else:
             line_index, character_index, line, pointer = self.current_line()
 
-            return 'Infinite recursion detected in {}; empty string was matched and will be matched forever\n' \
-                   'Line {}, character {}\n\n{}{}'.format(repeated_parser, line_index, character_index, line, pointer)
+            return (
+                "Infinite recursion detected in {}; empty string was matched and will be matched forever\n"
+                "Line {}, character {}\n\n{}{}".format(repeated_parser, line_index, character_index, line, pointer)
+            )
 
     def __repr__(self):
         if self.finished:
-            return 'StringReader(finished)'
+            return "StringReader(finished)"
         else:
-            return 'StringReader({}@{})'.format(self.next_token(), self.position)
+            return "StringReader({}@{})".format(self.next_token(), self.position)
 
 
 class Result(Generic[Output]):
@@ -256,7 +263,7 @@ class Success(Generic[Output], Result[Output]):
             return NotImplemented
 
     def __repr__(self):
-        return 'Success({})'.format(repr(self.value))
+        return "Success({})".format(repr(self.value))
 
 
 class Failure(Generic[Output], Result[Output]):
@@ -283,7 +290,7 @@ class Failure(Generic[Output], Result[Output]):
             return NotImplemented
 
     def __repr__(self):
-        return 'Failure({})'.format(repr(self.message))
+        return "Failure({})".format(repr(self.message))
 
 
 class ParseError(Exception):
@@ -294,6 +301,7 @@ class ParseError(Exception):
     Attributes:
         message (str): A human-readable error message
     """
+
     def __init__(self, message: str):
         self.message = message
 
@@ -301,14 +309,14 @@ class ParseError(Exception):
         return self.message
 
     def __repr__(self):
-        return 'ParseError({})'.format(repr(self.message))
+        return "ParseError({})".format(repr(self.message))
 
 
 class Status(Generic[Input, Output]):
     farthest = None  # type: Optional[Reader]
     expected = ()  # type: Tuple[Callable[[], str], ...]
 
-    def merge(self, status: 'Status[Input, Output]') -> 'Status[Input, Output]':
+    def merge(self, status: "Status[Input, Output]") -> "Status[Input, Output]":
         """Merge the failure message from another status into this one.
 
         Whichever status represents parsing that has gone the farthest is
@@ -349,7 +357,7 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
         self.value = value
 
     def __repr__(self):
-        return 'Continue({}, {})'.format(repr(self.value), repr(self.remainder))
+        return "Continue({}, {})".format(repr(self.value), repr(self.remainder))
 
 
 class Backtrack(Generic[Input], Status[Input, None]):
@@ -358,9 +366,21 @@ class Backtrack(Generic[Input], Status[Input, None]):
         self.expected = (expected,)
 
     def __repr__(self):
-        return 'Backtrack({}, {})'.format(repr(self.farthest), list(map(lambda x: x(), self.expected)))
+        return "Backtrack({}, {})".format(repr(self.farthest), list(map(lambda x: x(), self.expected)))
 
 
-__all__ = ['Input', 'Output', 'Convert',
-           'Reader', 'SequenceReader', 'StringReader',
-           'Result', 'Success', 'Failure', 'ParseError', 'Status', 'Continue', 'Backtrack']
+__all__ = [
+    "Input",
+    "Output",
+    "Convert",
+    "Reader",
+    "SequenceReader",
+    "StringReader",
+    "Result",
+    "Success",
+    "Failure",
+    "ParseError",
+    "Status",
+    "Continue",
+    "Backtrack",
+]

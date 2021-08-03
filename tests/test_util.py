@@ -8,8 +8,8 @@ class ConstantTestCase(TestCase):
         a = constant(1)
 
         self.assertEqual(a(2), 1)
-        self.assertEqual(a('hello', 2), 1)
-        self.assertEqual(a('hello', 2, key=None), 1)
+        self.assertEqual(a("hello", 2), 1)
+        self.assertEqual(a("hello", 2, key=None), 1)
 
 
 class SplatTestCase(TestCase):

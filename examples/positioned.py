@@ -57,8 +57,7 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + 'positioned({})'.format(
-            self.parser.name_or_repr())
+        return self.name_or_nothing() + "positioned({})".format(self.parser.name_or_repr())
 
 
 def positioned(parser: Parser[Input, PositionAware[Output]]):
@@ -98,9 +97,9 @@ class Plus:
 
 
 class PlusParsers(TextParsers):
-    variable = positioned(reg('[A-Za-z][A-Za-z0-9_]*') > UnfinishedVariable)
-    plus = variable & '+' >> variable > splat(Plus)
+    variable = positioned(reg("[A-Za-z][A-Za-z0-9_]*") > UnfinishedVariable)
+    plus = variable & "+" >> variable > splat(Plus)
 
 
-if __name__ == '__main__':
-    print(PlusParsers.plus.parse('abc + xyz').or_die())
+if __name__ == "__main__":
+    print(PlusParsers.plus.parse("abc + xyz").or_die())

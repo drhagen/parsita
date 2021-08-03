@@ -38,7 +38,7 @@ class ForwardDeclaration(Parser):
         self._definition = None
 
     def __getattribute__(self, member):
-        if member != '_definition' and self._definition is not None:
+        if member != "_definition" and self._definition is not None:
             return getattr(self._definition, member)
         else:
             return object.__getattribute__(self, member)
@@ -61,8 +61,8 @@ class GeneralParsersMeta(type):
     @classmethod
     def __prepare__(mcs, name, bases, **_):  # noqa: N804
         old_options = {
-            'handle_literal': options.handle_literal,
-            'parse_method': options.parse_method,
+            "handle_literal": options.handle_literal,
+            "parse_method": options.parse_method,
         }
 
         options.handle_literal = options.wrap_literal
@@ -87,9 +87,10 @@ class GeneralParsersMeta(type):
             setattr(options, key, value)
 
     def __call__(cls, *args, **kwargs):
-        raise TypeError('Parsers cannot be instantiated. They use class bodies purely as contexts for managing '
-                        'defaults and allowing forward declarations. Access the individual parsers as static '
-                        'attributes.')
+        raise TypeError(
+            "Parsers cannot be instantiated. They use class bodies purely as contexts for managing defaults and "
+            "allowing forward declarations. Access the individual parsers as static attributes."
+        )
 
 
 class GeneralParsers(metaclass=GeneralParsersMeta):
@@ -99,6 +100,7 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
     from it and defining parsers as class attributes in the body of the child
     class.
     """
+
     pass
 
 
@@ -106,9 +108,9 @@ class TextParsersMeta(GeneralParsersMeta):
     @classmethod
     def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):  # noqa: N804
         old_options = {
-            'whitespace': options.whitespace,
-            'handle_literal': options.handle_literal,
-            'parse_method': options.parse_method,
+            "whitespace": options.whitespace,
+            "handle_literal": options.handle_literal,
+            "parse_method": options.parse_method,
         }
 
         # Store whitespace in global location so regex parsers can see it
@@ -143,4 +145,4 @@ class TextParsers(metaclass=TextParsersMeta):
     pass
 
 
-__all__ = ['ForwardDeclaration', 'fwd', 'GeneralParsers', 'TextParsers']
+__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]

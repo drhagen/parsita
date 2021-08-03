@@ -93,18 +93,18 @@ class Parser(Generic[Input, Output]):
 
     def name_or_nothing(self) -> Optional[str]:
         if self.name is None:
-            return ''
+            return ""
         else:
-            return self.name + ' = '
+            return self.name + " = "
 
     @staticmethod
-    def handle_other(obj: Any) -> 'Parser':
+    def handle_other(obj: Any) -> "Parser":
         if isinstance(obj, Parser):
             return obj
         else:
             return options.handle_literal(obj)
 
-    def __or__(self, other) -> 'AlternativeParser':
+    def __or__(self, other) -> "AlternativeParser":
         other = self.handle_other(other)
         parsers = []
         if isinstance(self, AlternativeParser) and not self.protected:
@@ -117,38 +117,38 @@ class Parser(Generic[Input, Output]):
             parsers.append(other)
         return AlternativeParser(*parsers)
 
-    def __ror__(self, other) -> 'AlternativeParser':
+    def __ror__(self, other) -> "AlternativeParser":
         other = self.handle_other(other)
         return other.__or__(self)
 
-    def __and__(self, other) -> 'SequentialParser':
+    def __and__(self, other) -> "SequentialParser":
         other = self.handle_other(other)
         if isinstance(self, SequentialParser) and not self.protected:
             return SequentialParser(*self.parsers, other)
         else:
             return SequentialParser(self, other)
 
-    def __rand__(self, other) -> 'SequentialParser':
+    def __rand__(self, other) -> "SequentialParser":
         other = self.handle_other(other)
         return other.__and__(self)
 
-    def __rshift__(self, other) -> 'DiscardLeftParser':
+    def __rshift__(self, other) -> "DiscardLeftParser":
         other = self.handle_other(other)
         return DiscardLeftParser(self, other)
 
-    def __rrshift__(self, other) -> 'DiscardLeftParser':
+    def __rrshift__(self, other) -> "DiscardLeftParser":
         other = self.handle_other(other)
         return other.__rshift__(self)
 
-    def __lshift__(self, other) -> 'DiscardRightParser':
+    def __lshift__(self, other) -> "DiscardRightParser":
         other = self.handle_other(other)
         return DiscardRightParser(self, other)
 
-    def __rlshift__(self, other) -> 'DiscardRightParser':
+    def __rlshift__(self, other) -> "DiscardRightParser":
         other = self.handle_other(other)
         return other.__lshift__(self)
 
-    def __gt__(self, other) -> 'ConversionParser':
+    def __gt__(self, other) -> "ConversionParser":
         return ConversionParser(self, other)
 
 
@@ -179,7 +179,7 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
                 used.add(expected)
                 unique_expected.append(expected)
 
-        return Failure(result.farthest.expected_error(' or '.join(unique_expected)))
+        return Failure(result.farthest.expected_error(" or ".join(unique_expected)))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):
@@ -273,11 +273,12 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + 'pred({}, {})'.format(repr(self.parser), self.description)
+        return self.name_or_nothing() + "pred({}, {})".format(repr(self.parser), self.description)
 
 
-def pred(parser: Parser[Input, Output], predicate: Callable[[Output], bool],
-         description: str) -> PredicateParser[Input, Output]:
+def pred(
+    parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str
+) -> PredicateParser[Input, Output]:
     """Match ``parser``'s result if it satisfies the predicate.
 
     Args:
@@ -307,7 +308,7 @@ class RegexParser(Parser[str, str]):
         if match is None:
             return Backtrack(reader, lambda: "r'" + self.pattern.pattern + "'")
         else:
-            value = reader.source[match.start():match.end()]
+            value = reader.source[match.start() : match.end()]
             reader = reader.drop(len(value))
 
             if self.whitespace is not None:
@@ -349,7 +350,7 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
             return Continue(reader, []).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'opt({})'.format(self.parser.name_or_repr())
+        return self.name_or_nothing() + "opt({})".format(self.parser.name_or_repr())
 
 
 def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
@@ -388,7 +389,7 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + ' | '.join(names)
+        return self.name_or_nothing() + " | ".join(names)
 
 
 class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
@@ -416,7 +417,7 @@ class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of thi
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + ' & '.join(names)
+        return self.name_or_nothing() + " & ".join(names)
 
 
 class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
@@ -433,7 +434,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + '{} >> {}'.format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + "{} >> {}".format(self.left.name_or_repr(), self.right.name_or_repr())
 
 
 class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
@@ -454,7 +455,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
             return status1
 
     def __repr__(self):
-        return self.name_or_nothing() + '{} << {}'.format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + "{} << {}".format(self.left.name_or_repr(), self.right.name_or_repr())
 
 
 class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -482,7 +483,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'rep1({})'.format(self.parser.name_or_repr())
+        return self.name_or_nothing() + "rep1({})".format(self.parser.name_or_repr())
 
 
 def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
@@ -522,7 +523,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'rep({})'.format(self.parser.name_or_repr())
+        return self.name_or_nothing() + "rep({})".format(self.parser.name_or_repr())
 
 
 def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
@@ -573,12 +574,14 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'rep1sep({}, {})'.format(self.parser.name_or_repr(),
-                                                                 self.separator.name_or_repr())
+        return self.name_or_nothing() + "rep1sep({}, {})".format(
+            self.parser.name_or_repr(), self.separator.name_or_repr()
+        )
 
 
-def rep1sep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
-        -> RepeatedOnceSeparatedParser:
+def rep1sep(
+    parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]
+) -> RepeatedOnceSeparatedParser:
     """Match a parser one or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``.
@@ -630,12 +633,14 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'repsep({}, {})'.format(self.parser.name_or_repr(),
-                                                                self.separator.name_or_repr())
+        return self.name_or_nothing() + "repsep({}, {})".format(
+            self.parser.name_or_repr(), self.separator.name_or_repr()
+        )
 
 
-def repsep(parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]) \
-        -> RepeatedSeparatedParser:
+def repsep(
+    parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]
+) -> RepeatedSeparatedParser:
     """Match a parser zero or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``. A
@@ -680,10 +685,10 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
         if reader.finished:
             return Continue(reader, None)
         else:
-            return Backtrack(reader, lambda: 'end of source')
+            return Backtrack(reader, lambda: "end of source")
 
     def __repr__(self):
-        return self.name_or_nothing() + 'eof'
+        return self.name_or_nothing() + "eof"
 
 
 eof = EndOfSourceParser()
@@ -698,7 +703,7 @@ class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
         return Continue(reader, self.value)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'success({})'.format(repr(self.value))
+        return self.name_or_nothing() + "success({})".format(repr(self.value))
 
 
 def success(value: Any):
@@ -723,10 +728,10 @@ class FailureParser(Generic[Input, Output], Parser[Input, Output]):
         return Backtrack(reader, lambda: self.expected)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'failure({})'.format(repr(self.expected))
+        return self.name_or_nothing() + "failure({})".format(repr(self.expected))
 
 
-def failure(expected: str = ''):
+def failure(expected: str = ""):
     """Always fail in matching with a given message.
 
     This parser always backtracks with a message that it is expecting the
@@ -748,24 +753,54 @@ class AnyParser(Generic[Input], Parser[Input, Input]):
     later step, such as with the ``pred`` parser. This parser can only fail at
     the end of the stream.
     """
+
     def __init__(self):
         super().__init__()
 
     def consume(self, reader: Reader[Input]) -> Status[Input, None]:
         if reader.finished:
-            return Backtrack(reader, lambda: 'anything')
+            return Backtrack(reader, lambda: "anything")
         else:
             return Continue(reader.rest, reader.first)
 
     def __repr__(self):
-        return self.name_or_nothing() + 'any1'
+        return self.name_or_nothing() + "any1"
 
 
 any1 = AnyParser()
 
 
-__all__ = ['Parser', 'LiteralParser', 'LiteralStringParser', 'lit', 'RegexParser', 'reg', 'OptionalParser', 'opt',
-           'AlternativeParser', 'SequentialParser', 'DiscardLeftParser', 'DiscardRightParser', 'RepeatedOnceParser',
-           'rep1', 'RepeatedParser', 'rep', 'RepeatedOnceSeparatedParser', 'rep1sep', 'RepeatedSeparatedParser',
-           'repsep', 'ConversionParser', 'EndOfSourceParser', 'eof', 'SuccessParser', 'success', 'FailureParser',
-           'failure', 'PredicateParser', 'pred', 'AnyParser', 'any1', 'completely_parse_reader']
+__all__ = [
+    "Parser",
+    "LiteralParser",
+    "LiteralStringParser",
+    "lit",
+    "RegexParser",
+    "reg",
+    "OptionalParser",
+    "opt",
+    "AlternativeParser",
+    "SequentialParser",
+    "DiscardLeftParser",
+    "DiscardRightParser",
+    "RepeatedOnceParser",
+    "rep1",
+    "RepeatedParser",
+    "rep",
+    "RepeatedOnceSeparatedParser",
+    "rep1sep",
+    "RepeatedSeparatedParser",
+    "repsep",
+    "ConversionParser",
+    "EndOfSourceParser",
+    "eof",
+    "SuccessParser",
+    "success",
+    "FailureParser",
+    "failure",
+    "PredicateParser",
+    "pred",
+    "AnyParser",
+    "any1",
+    "completely_parse_reader",
+]

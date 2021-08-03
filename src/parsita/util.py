@@ -1,6 +1,6 @@
 from typing import Callable, TypeVar, Iterable
 
-A = TypeVar('A')
+A = TypeVar("A")
 
 
 def constant(x: A) -> Callable[..., A]:
@@ -69,4 +69,4 @@ def unsplat(f: Callable[[Iterable], A]) -> Callable[..., A]:
     return unsplatted
 
 
-__all__ = ['constant', 'splat', 'unsplat']
+__all__ = ["constant", "splat", "unsplat"]
