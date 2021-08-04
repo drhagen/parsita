@@ -275,7 +275,7 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + "pred({}, {})".format(repr(self.parser), self.description)
+        return self.name_or_nothing() + f"pred({self.parser.name_or_repr()}, {self.description})"
 
 
 def pred(
@@ -309,7 +309,7 @@ class RegexParser(Parser[str, str]):
         match = self.pattern.match(reader.source, reader.position)
 
         if match is None:
-            return Backtrack(reader, lambda: "r'" + self.pattern.pattern + "'")
+            return Backtrack(reader, lambda: f"r'{self.pattern.pattern}'")
         else:
             value = reader.source[match.start() : match.end()]
             reader = reader.drop(len(value))
@@ -321,7 +321,7 @@ class RegexParser(Parser[str, str]):
             return Continue(reader, value)
 
     def __repr__(self):
-        return self.name_or_nothing() + "reg(r'{}')".format(self.pattern.pattern)
+        return self.name_or_nothing() + f"reg(r'{self.pattern.pattern}')"
 
 
 def reg(pattern: str) -> RegexParser:
@@ -353,7 +353,7 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
             return Continue(reader, []).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "opt({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + f"opt({self.parser.name_or_repr()})"
 
 
 def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
@@ -437,7 +437,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + "{} >> {}".format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + f"{self.left.name_or_repr()} >> {self.right.name_or_repr()}"
 
 
 class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
@@ -458,7 +458,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
             return status1
 
     def __repr__(self):
-        return self.name_or_nothing() + "{} << {}".format(self.left.name_or_repr(), self.right.name_or_repr())
+        return self.name_or_nothing() + f"{self.left.name_or_repr()} << {self.right.name_or_repr()}"
 
 
 class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -486,7 +486,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep1({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + f"rep1({self.parser.name_or_repr()})"
 
 
 def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
@@ -526,7 +526,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()})"
 
 
 def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
@@ -577,9 +577,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "rep1sep({}, {})".format(
-            self.parser.name_or_repr(), self.separator.name_or_repr()
-        )
+        return self.name_or_nothing() + f"rep1sep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
 
 
 def rep1sep(
@@ -636,9 +634,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                     return Continue(remainder, output).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + "repsep({}, {})".format(
-            self.parser.name_or_repr(), self.separator.name_or_repr()
-        )
+        return self.name_or_nothing() + f"repsep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
 
 
 def repsep(
@@ -706,7 +702,7 @@ class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
         return Continue(reader, self.value)
 
     def __repr__(self):
-        return self.name_or_nothing() + "success({})".format(repr(self.value))
+        return self.name_or_nothing() + f"success({self.value!r})"
 
 
 def success(value: Any):
@@ -731,7 +727,7 @@ class FailureParser(Generic[Input, Output], Parser[Input, Output]):
         return Backtrack(reader, lambda: self.expected)
 
     def __repr__(self):
-        return self.name_or_nothing() + "failure({})".format(repr(self.expected))
+        return self.name_or_nothing() + f"failure({self.expected!r})"
 
 
 def failure(expected: str = ""):

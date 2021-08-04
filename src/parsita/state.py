@@ -46,9 +46,9 @@ class Reader(Generic[Input]):
         """
 
         if self.finished:
-            return "Expected {} but found end of source".format(expected)
+            return f"Expected {expected} but found end of source"
         else:
-            return "Expected {} but found {} at index {}".format(expected, self.next_token(), self.position)
+            return f"Expected {expected} but found {self.next_token()} at index {self.position}"
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -66,20 +66,20 @@ class Reader(Generic[Input]):
 
         if self.finished:
             return (
-                "Infinite recursion detected in {}; empty string was matched and will be matched forever at "
-                "end of source".format(repeated_parser)
+                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
+                "forever at end of source"
             )
         else:
             return (
-                "Infinite recursion detected in {}; empty string was matched and will be matched forever at "
-                "index {} before {}".format(repeated_parser, self.position, self.next_token())
+                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
+                f"forever at index {self.position} before {self.next_token()}"
             )
 
     def __repr__(self):
         if self.finished:
             return "Reader(finished)"
         else:
-            return "Reader({}@{})".format(self.first, self.position)
+            return f"Reader({self.first}@{self.position})"
 
 
 class SequenceReader(Reader[Input]):
@@ -190,8 +190,9 @@ class StringReader(Reader[str]):
         else:
             line_index, character_index, line, pointer = self.current_line()
 
-            return "Expected {} but found {}\nLine {}, character {}\n\n{}{}".format(
-                expected, repr(self.next_token()), line_index, character_index, line, pointer
+            return (
+                f"Expected {expected} but found {self.next_token()!r}\n"
+                f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
             )
 
     def recursion_error(self, repeated_parser: str):
@@ -213,15 +214,15 @@ class StringReader(Reader[str]):
             line_index, character_index, line, pointer = self.current_line()
 
             return (
-                "Infinite recursion detected in {}; empty string was matched and will be matched forever\n"
-                "Line {}, character {}\n\n{}{}".format(repeated_parser, line_index, character_index, line, pointer)
+                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
+                f"forever\nLine {line_index}, character {character_index}\n\n{line}{pointer}"
             )
 
     def __repr__(self):
         if self.finished:
             return "StringReader(finished)"
         else:
-            return "StringReader({}@{})".format(self.next_token(), self.position)
+            return f"StringReader({self.next_token()}@{self.position})"
 
 
 class Result(Generic[Output]):
@@ -265,7 +266,7 @@ class Success(Generic[Output], Result[Output]):
             return NotImplemented
 
     def __repr__(self):
-        return "Success({})".format(repr(self.value))
+        return f"Success({self.value!r})"
 
 
 class Failure(Generic[Output], Result[Output]):
@@ -292,7 +293,7 @@ class Failure(Generic[Output], Result[Output]):
             return NotImplemented
 
     def __repr__(self):
-        return "Failure({})".format(repr(self.message))
+        return f"Failure({self.message!r})"
 
 
 class ParseError(Exception):
@@ -311,7 +312,7 @@ class ParseError(Exception):
         return self.message
 
     def __repr__(self):
-        return "ParseError({})".format(repr(self.message))
+        return f"ParseError({self.message!r})"
 
 
 class Status(Generic[Input, Output]):
@@ -359,7 +360,7 @@ class Continue(Generic[Input, Output], Status[Input, Output]):
         self.value = value
 
     def __repr__(self):
-        return "Continue({}, {})".format(repr(self.value), repr(self.remainder))
+        return f"Continue({self.value!r}, {self.remainder!r})"
 
 
 class Backtrack(Generic[Input], Status[Input, None]):
@@ -368,7 +369,7 @@ class Backtrack(Generic[Input], Status[Input, None]):
         self.expected = (expected,)
 
     def __repr__(self):
-        return "Backtrack({}, {})".format(repr(self.farthest), list(map(lambda x: x(), self.expected)))
+        return f"Backtrack({self.farthest!r}, {list(map(lambda x: x(), self.expected))})"
 
 
 __all__ = [
