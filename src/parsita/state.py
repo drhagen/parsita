@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import re
 from io import StringIO
-from typing import Callable, Generic, Optional, Sequence, Tuple, TypeVar, Union  # noqa: F401
+from typing import Callable, Generic, Optional, Sequence, Tuple, TypeVar
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")
@@ -21,10 +23,10 @@ class Reader(Generic[Input]):
             to access ``first`` or ``rest`` if ``finished`` is ``True``.
     """
 
-    first = NotImplemented  # type: Input
-    rest = NotImplemented  # type: Reader[Input]
-    position = NotImplemented  # type: int
-    finished = NotImplemented  # type: bool
+    first: Input
+    rest: Reader[Input]
+    position: int
+    finished: bool
 
     def next_token(self):
         return self.first
@@ -101,7 +103,7 @@ class SequenceReader(Reader[Input]):
         return self.source[self.position]
 
     @property
-    def rest(self) -> "SequenceReader[Input]":
+    def rest(self) -> SequenceReader[Input]:
         return SequenceReader(self.source, self.position + 1)
 
     @property
@@ -131,14 +133,14 @@ class StringReader(Reader[str]):
         return self.source[self.position]
 
     @property
-    def rest(self) -> "StringReader":
+    def rest(self) -> StringReader:
         return StringReader(self.source, self.position + 1)
 
     @property
     def finished(self) -> bool:
         return self.position >= len(self.source)
 
-    def drop(self, count: int) -> "StringReader":
+    def drop(self, count: int) -> StringReader:
         return StringReader(self.source, self.position + count)
 
     next_token_regex = re.compile(r"[\(\)\[\]\{\}\"\']|\w+|[^\w\s\(\)\[\]\{\}\"\']+|\s+")
@@ -313,10 +315,10 @@ class ParseError(Exception):
 
 
 class Status(Generic[Input, Output]):
-    farthest = None  # type: Optional[Reader]
-    expected = ()  # type: Tuple[Callable[[], str], ...]
+    farthest: Optional[Reader] = None
+    expected: Tuple[Callable[[], str], ...] = ()
 
-    def merge(self, status: "Status[Input, Output]") -> "Status[Input, Output]":
+    def merge(self, status: Status[Input, Output]) -> Status[Input, Output]:
         """Merge the failure message from another status into this one.
 
         Whichever status represents parsing that has gone the farthest is

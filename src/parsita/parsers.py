@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from types import MethodType
 from typing import Any, Callable, Generic, List, Optional, Sequence, Union
@@ -76,14 +78,14 @@ class Parser(Generic[Input, Output]):
             the value from ``Continue`` is copied to make a ``Success``. If the
             parser failed in matching, the error message is copied to a
             ``Failure``. If the parser succeeded but the source was not
-            completelt consumed, a ``Failure`` with a message indicating this
+            completely consumed, a ``Failure`` with a message indicating this
             is returned.
         """
         raise NotImplementedError()
 
-    name = None  # type: Optional[str]
+    name: Optional[str] = None
 
-    protected = False  # type: bool
+    protected: bool = False
 
     def name_or_repr(self) -> str:
         if self.name is None:
@@ -98,13 +100,13 @@ class Parser(Generic[Input, Output]):
             return self.name + " = "
 
     @staticmethod
-    def handle_other(obj: Any) -> "Parser":
+    def handle_other(obj: Any) -> Parser:
         if isinstance(obj, Parser):
             return obj
         else:
             return options.handle_literal(obj)
 
-    def __or__(self, other) -> "AlternativeParser":
+    def __or__(self, other) -> AlternativeParser:
         other = self.handle_other(other)
         parsers = []
         if isinstance(self, AlternativeParser) and not self.protected:
@@ -117,38 +119,38 @@ class Parser(Generic[Input, Output]):
             parsers.append(other)
         return AlternativeParser(*parsers)
 
-    def __ror__(self, other) -> "AlternativeParser":
+    def __ror__(self, other) -> AlternativeParser:
         other = self.handle_other(other)
         return other.__or__(self)
 
-    def __and__(self, other) -> "SequentialParser":
+    def __and__(self, other) -> SequentialParser:
         other = self.handle_other(other)
         if isinstance(self, SequentialParser) and not self.protected:
             return SequentialParser(*self.parsers, other)
         else:
             return SequentialParser(self, other)
 
-    def __rand__(self, other) -> "SequentialParser":
+    def __rand__(self, other) -> SequentialParser:
         other = self.handle_other(other)
         return other.__and__(self)
 
-    def __rshift__(self, other) -> "DiscardLeftParser":
+    def __rshift__(self, other) -> DiscardLeftParser:
         other = self.handle_other(other)
         return DiscardLeftParser(self, other)
 
-    def __rrshift__(self, other) -> "DiscardLeftParser":
+    def __rrshift__(self, other) -> DiscardLeftParser:
         other = self.handle_other(other)
         return other.__rshift__(self)
 
-    def __lshift__(self, other) -> "DiscardRightParser":
+    def __lshift__(self, other) -> DiscardRightParser:
         other = self.handle_other(other)
         return DiscardRightParser(self, other)
 
-    def __rlshift__(self, other) -> "DiscardRightParser":
+    def __rlshift__(self, other) -> DiscardRightParser:
         other = self.handle_other(other)
         return other.__lshift__(self)
 
-    def __gt__(self, other) -> "ConversionParser":
+    def __gt__(self, other) -> ConversionParser:
         return ConversionParser(self, other)
 
 
@@ -204,7 +206,7 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
 
 
 class LiteralStringParser(Parser[str, str]):
-    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):
+    def __init__(self, pattern: str, whitespace: Optional[Parser[str, None]] = None):
         super().__init__()
         self.whitespace = whitespace
         self.pattern = pattern
@@ -293,7 +295,8 @@ def pred(
 
 
 class RegexParser(Parser[str, str]):
-    def __init__(self, pattern: str, whitespace: Parser[str, None] = None):  # Python lacks type of compiled regex
+    # Python lacks type of compiled regex so use str
+    def __init__(self, pattern: str, whitespace: Optional[Parser[str, None]] = None):
         super().__init__()
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
