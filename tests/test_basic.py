@@ -184,6 +184,15 @@ class AlternativeTestCase(TestCase):
         self.assertEqual(TestParsers.either.parse("cc"), Failure("Expected a but found c at index 0"))
 
 
+class LongestALternativeTestCase(TestCase):
+    def test_longest(self):
+        class TestParsers(GeneralParsers):
+            a = lit("a")
+            either = longest(a, "b")
+
+        self.assertEqual(str(TestParsers.either), "either = longest(a, 'b')")
+
+
 class SequentialTestCase(TestCase):
     def test_sequential(self):
         class TestParsers(GeneralParsers):

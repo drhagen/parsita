@@ -15,6 +15,51 @@ class NumberParsers(TextParsers):
 assert NumberParsers.number.parse('4.0000') == Success(4.0)
 ```
 
+Currently, `first(a, b, c)` is an alias for `a | b | c`. This reflects the current behavior of the alternative parser, which is to return immediately when there is a success and not try any later parsers. In most parsers, the first and longest alternative parsers have the same behavior, especially if the order of the alternatives is carefully considered. In a future release of Parsita, the `a | b` syntax will construct a `longest` parser, which tries all the parsers and returns the success that consumed the most input. If the current behavior of stopping on the first success is important, construct the parser with the `first` function so that it will continue to operate as expected in future releases.
+
+## `first(*parsers)`: first alternative parser
+
+This tries to match each parser supplied. As soon as one parser succeeds, this returns with that parser's successful value. If later parsers would have succeeded, that is irrelevant because they are not tried. If all supplied parsers fail, this fails with the longest failure.
+
+```python
+from parsita import *
+
+class ExpressionParsers(TextParsers):
+    keyword = lit('pi', 'nan', 'inf')
+    name = reg(r'[a-zA-Z_]+')
+    function = name & '(' >> expression << ')'
+    expression = first(keyword, function, name)
+
+assert ExpressionParsers.expression.parse('f(x)') == Success(['f', 'x'])
+assert ExpressionParsers.expression.parse('pi(x)') == Failure(
+    "Expected end of source but found '('\n"
+    "Line 1, character 3\n\n"
+    "pi(x)\n"
+    "  ^  "
+)
+# Note how the above fails because `keyword` is matched by `first` so that
+# `function`, which would have matched the input, was not tried.
+```
+
+This is the current implementation of the `a | b | c` syntax. In a future version of Parsita, the longest alternative parser will be used instead.
+
+## `longest(*parsers)`: longest alternative parser
+
+This tries to match each parser supplied. Unlike `first`, `longest` keeps trying parsers even if one or more succeed. After it has tried them all, it returns the result of the one that made the most progress, that is, consumed the most input. If none of the supplied parsers succeeds, then an error is returned corresponding to the parser that got farthest. If two or more parsers are successful and are tied for making the most progress, the result of the first such parser is returned.
+
+```python
+from parsita import *
+
+class ExpressionParsers(TextParsers):
+    name = reg(r'[a-zA-Z_]+')
+    function = name & '(' >> expression << ')'
+    expression = longest(name, function)
+
+assert ExpressionParsers.expression.parse('f(x)') == Success(['f', 'x'])
+```
+
+In a future version of Parsita, this will replace `first` as the implementation behind the `a | b | c` syntax.
+
 ## `opt(parser)`: optional parser
 An optional parser tries to match its argument. If the argument succeeds, it returns a list of length one with the successful value as its only element. If the argument fails, then `opt` succeeds anyway, but returns an empty list and consumes no input.
 

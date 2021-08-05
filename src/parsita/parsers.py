@@ -395,6 +395,81 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + " | ".join(names)
 
 
+def first(parser: Union[Parser, Sequence[Input]], *parsers: Union[Parser, Sequence[Input]]):
+    """Match the first of several alternative parsers.
+
+    A ``AlternativeParser`` attempts to match each supplied parser. If a parser
+    succeeds, its result is immediately returned and later parsers are not
+    attempted. If all parsers fail, a failure is returned.
+
+    Currently, the behavior of `|` matches this function. If the current
+    behavior of always returning the first parser to succeed is desired, this
+    function should be used instead, because a future release of Parsita will
+    change the behavior of `|` to use `longest` instead.
+
+    Args:
+        *parsers: Non-empty list of ``Parser``s or literals to try
+    """
+    cleaned_parsers = [lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]]
+    return AlternativeParser(*cleaned_parsers)
+
+
+class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
+    def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
+        super().__init__()
+        self.parsers = (parser,) + tuple(parsers)
+
+    def consume(self, reader: Reader[Input]):
+        statuses: List[Status] = []
+        longest_success: Optional[Continue] = None
+        for parser in self.parsers:
+            status = parser.consume(reader)
+            statuses.append(status)
+            if isinstance(status, Continue):
+                if longest_success is None or status.remainder.position > longest_success.remainder.position:
+                    longest_success = status
+
+        if longest_success is not None:
+            # Run backwards because of the way merge works
+            for status in reversed(statuses):
+                longest_success = longest_success.merge(status)
+            return longest_success
+        else:
+            # All statuses are failures
+            # Run backwards because of the way merge works
+            best_failure: Optional[Backtrack] = statuses[-1]
+            for status in reversed(statuses[:-1]):
+                best_failure = best_failure.merge(status)
+            return best_failure
+
+    def __repr__(self):
+        names = []
+        for parser in self.parsers:
+            names.append(parser.name_or_repr())
+
+        return self.name_or_nothing() + f"longest({', '.join(names)})"
+
+
+def longest(parser: Union[Parser, Sequence[Input]], *parsers: Union[Parser, Sequence[Input]]):
+    """Match the longest of several alternative parsers.
+
+    A ``LongestAlternativeParser`` attempts to match all supplied parsers. If
+    multiple parsers succeed, the result of the one that makes the farthest
+    successful progress is returned. If all parsers fail, a failure is returned.
+    If multiple alternatives succeed with the same progress, the first one is
+    returned.
+
+    Currently, the behavior of `|` matches `first`. If you desired returning the
+    longest match instead of the first, use this function instead. A future
+    release of Parsita will change the behavior of `|` to use `longest`.
+
+    Args:
+        *parsers: Non-empty list of ``Parser``s or literals to try
+    """
+    cleaned_parsers = [lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]]
+    return LongestAlternativeParser(*cleaned_parsers)
+
+
 class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
     def __init__(self, parser: Parser[Input, Any], *parsers: Parser[Input, Any]):
         super().__init__()
@@ -779,6 +854,9 @@ __all__ = [
     "OptionalParser",
     "opt",
     "AlternativeParser",
+    "first",
+    "LongestAlternativeParser",
+    "longest",
     "SequentialParser",
     "DiscardLeftParser",
     "DiscardRightParser",

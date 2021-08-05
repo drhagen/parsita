@@ -130,6 +130,57 @@ class AlternativeTestCase(TestCase):
         )
         self.assertEqual(TestParsers.any.parse("func[var"), Failure("Expected ']' but found end of source"))
 
+    def test_first_function(self):
+        class TestParsers(TextParsers):
+            name = reg("[a-z]+")
+            function = name & "(" >> name << ")"
+            index = name & "[" >> name << "]"
+            any = first(name, function, index)
+
+        self.assertEqual(
+            TestParsers.any.parse("var(arg)"),
+            Failure("Expected end of source but found '('\nLine 1, character 4\n\nvar(arg)\n   ^    "),
+        )
+
+    def test_longest_function(self):
+        class TestParsers(TextParsers):
+            name = reg("[a-z]+")
+            function = name & "(" >> name << ")"
+            index = name & "[" >> name << "]"
+            any = longest(name, function, index)
+
+        self.assertEqual(TestParsers.any.parse("var(arg)"), Success(["var", "arg"]))
+        self.assertEqual(
+            TestParsers.any.parse("func{var}"),
+            Failure(
+                "Expected '(' or '[' or end of source but found '{'\n"
+                "Line 1, character 5\n\n"
+                "func{var}\n"
+                "    ^    "
+            ),
+        )
+
+    def test_longest_function_shortest_later(self):
+        class TestParsers(TextParsers):
+            name = reg("[a-z]+")
+            function = name & "(" >> name << ")"
+            index = name & "[" >> name << "]"
+            any = longest(function, index, name)
+
+        self.assertEqual(TestParsers.any.parse("var(arg)"), Success(["var", "arg"]))
+
+    def test_longest_function_all_failures(self):
+        class TestParsers(TextParsers):
+            name = reg("[a-z]+")
+            function = name & "(" >> name << ")"
+            index = name & "[" >> name << "]"
+            any = longest(function, index)
+
+        self.assertEqual(
+            TestParsers.any.parse("func{var}"),
+            Failure("Expected '(' or '[' but found '{'\nLine 1, character 5\n\nfunc{var}\n    ^    "),
+        )
+
 
 class SequentialTestCase(TestCase):
     def test_sequential(self):
