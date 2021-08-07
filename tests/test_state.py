@@ -1,20 +1,20 @@
 import re
 
 from parsita import Failure, ParseError, SequenceReader, StringReader, Success
-from parsita.state import Backtrack, Continue
+from parsita.state import Continue, State
 
 
 def test_state_creation():
     succ = Success(40)
     assert succ.value == 40
     assert succ == Success(40)
-    assert str(succ) == "Success(40)"
+    assert str(succ) == "Success(value=40)"
     assert succ != Success("a")
 
     fail = Failure("my message")
     assert fail.message == "my message"
     assert fail == Failure("my message")
-    assert str(fail) == "Failure('my message')"
+    assert str(fail) == "Failure(message='my message')"
     assert fail != Failure("another message")
 
     assert succ != fail
@@ -33,15 +33,41 @@ def test_state_creation():
 
     cont = Continue(read, 40)
     assert cont.value == 40
-    assert str(cont) == "Continue(40, StringReader(a@0))"
-
-    back = Backtrack(read, lambda: "no further")
-    assert back.expected[0]() == "no further"
-    assert str(back) == "Backtrack(StringReader(a@0), ['no further'])"
+    assert str(cont) == "Continue(remainder=StringReader(a@0), value=40)"
 
     error = ParseError("Expected a but found b at index 0")
     assert str(error) == "Expected a but found b at index 0"
     assert repr(error) == "ParseError('Expected a but found b at index 0')"
+
+
+def test_register_failure_first():
+    state = State()
+    state.register_failure("foo", StringReader("bar baz", 0))
+    assert state.expected == ["foo"]
+    assert state.farthest.position == 0
+
+
+def test_register_failure_at_middle():
+    state = State()
+    state.register_failure("foo", StringReader("bar baz", 4))
+    assert state.expected == ["foo"]
+    assert state.farthest.position == 4
+
+
+def test_register_failure_latest():
+    state = State()
+    state.register_failure("foo", StringReader("bar baz", 0))
+    state.register_failure("egg", StringReader("bar baz", 4))
+    assert state.expected == ["egg"]
+    assert state.farthest.position == 4
+
+
+def test_register_failure_tied():
+    state = State()
+    state.register_failure("foo", StringReader("bar baz", 4))
+    state.register_failure("egg", StringReader("bar baz", 4))
+    assert state.expected == ["foo", "egg"]
+    assert state.farthest.position == 4
 
 
 def test_current_line():

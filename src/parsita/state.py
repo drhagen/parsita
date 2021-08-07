@@ -1,12 +1,31 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from io import StringIO
-from typing import Callable, Generic, Optional, Sequence, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, NoReturn, Optional, Sequence, Tuple, TypeVar
+
+if TYPE_CHECKING:
+    from .parsers import Parser
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")
 Convert = TypeVar("Convert")
+
+
+class State:
+    def __init__(self):
+        self.farthest: Optional[Reader[Any]] = None
+        self.expected: List[str] = []
+        self.memo: Dict[Tuple[Parser[Any, Any], int], Optional[Continue[Any, Any]]] = {}
+
+    def register_failure(self, expected: str, reader: Reader[Any]):
+        if self.farthest is None or self.farthest.position < reader.position:
+            self.expected.clear()
+            self.expected.append(expected)
+            self.farthest = reader
+        elif self.farthest.position == reader.position:
+            self.expected.append(expected)
 
 
 class Reader(Generic[Input]):
@@ -33,7 +52,7 @@ class Reader(Generic[Input]):
     def next_token(self):
         return self.first
 
-    def expected_error(self, expected: str) -> str:
+    def expected_error(self, expected: Sequence[str]) -> str:
         """Generate a basic error to include the current state.
 
         A parser can supply only a representation of what it is expecting to
@@ -41,16 +60,18 @@ class Reader(Generic[Input]):
         to the error.
 
         Args:
-            expected: A representation of what the parser is currently expecting
+            expected: A list of representations of what the parser is currently
+                expecting
 
         Returns:
             A full error message
         """
+        expected_string = " or ".join(expected)
 
         if self.finished:
-            return f"Expected {expected} but found end of source"
+            return f"Expected {expected_string} but found end of source"
         else:
-            return f"Expected {expected} but found {self.next_token()} at index {self.position}"
+            return f"Expected {expected_string} but found {self.next_token()} at index {self.position}"
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -186,6 +207,7 @@ class StringReader(Reader[str]):
         Returns:
             A full error message
         """
+        expected_string = " or ".join(expected)
 
         if self.finished:
             return super().expected_error(expected)
@@ -193,7 +215,7 @@ class StringReader(Reader[str]):
             line_index, character_index, line, pointer = self.current_line()
 
             return (
-                f"Expected {expected} but found {self.next_token()!r}\n"
+                f"Expected {expected_string} but found {self.next_token()!r}\n"
                 f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
             )
 
@@ -246,6 +268,7 @@ class Result(Generic[Output]):
         raise NotImplementedError()
 
 
+@dataclass(frozen=True)
 class Success(Generic[Output], Result[Output]):
     """Parsing succeeded.
 
@@ -255,47 +278,28 @@ class Success(Generic[Output], Result[Output]):
         value (Output): The value returned from the parser.
     """
 
-    def __init__(self, value: Output):
-        self.value = value
+    value: Output
 
     def or_die(self) -> Output:
         return self.value
 
-    def __eq__(self, other):
-        if isinstance(other, Success):
-            return self.value == other.value
-        else:
-            return NotImplemented
 
-    def __repr__(self):
-        return f"Success({self.value!r})"
-
-
-class Failure(Generic[Output], Result[Output]):
+@dataclass(frozen=True)
+class Failure(Result[NoReturn]):
     """Parsing failed.
 
-    Returned from Parser.parse when the parser did not match the source or the
-    source was not completely consumed.
+    Returned from ``Parser.parse`` when the parser did not match the source or
+    the source was not completely consumed.
 
     Attributes:
         message (str): A human-readable error from the farthest point reached
             during parsing.
     """
 
-    def __init__(self, message: str):
-        self.message = message
+    message: str
 
-    def or_die(self) -> Output:
+    def or_die(self) -> NoReturn:
         raise ParseError(self.message)
-
-    def __eq__(self, other):
-        if isinstance(other, Failure):
-            return self.message == other.message
-        else:
-            return NotImplemented
-
-    def __repr__(self):
-        return f"Failure({self.message!r})"
 
 
 class ParseError(Exception):
@@ -317,67 +321,17 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
-class Status(Generic[Input, Output]):
-    farthest: Optional[Reader] = None
-    expected: Tuple[Callable[[], str], ...] = ()
-
-    def merge(self, status: Status[Input, Output]) -> Status[Input, Output]:
-        """Merge the failure message from another status into this one.
-
-        Whichever status represents parsing that has gone the farthest is
-        retained. If both statuses have gone the same distance, then the
-        expected values from both are retained.
-
-        Args:
-            status: The status to merge into this one.
-
-        Returns:
-            This ``Status`` which may have ``farthest`` and ``expected``
-            updated accordingly.
-        """
-        if status is None or status.farthest is None:
-            # No new message; simply return unchanged
-            pass
-        elif self.farthest is None:
-            # No current message to compare to; use the message from status
-            self.farthest = status.farthest
-            self.expected = status.expected
-        elif status.farthest.position < self.farthest.position:
-            # New message is not farther; keep current message
-            pass
-        elif status.farthest.position > self.farthest.position:
-            # New message is farther than current message; replace with new message
-            self.farthest = status.farthest
-            self.expected = status.expected
-        else:
-            # New message and current message are equally far; merge messages
-            self.expected = status.expected + self.expected
-
-        return self
-
-
-class Continue(Generic[Input, Output], Status[Input, Output]):
-    def __init__(self, remainder: Reader[Input], value: Output):
-        self.remainder = remainder
-        self.value = value
-
-    def __repr__(self):
-        return f"Continue({self.value!r}, {self.remainder!r})"
-
-
-class Backtrack(Generic[Input], Status[Input, None]):
-    def __init__(self, farthest: Reader[Input], expected: Callable[[], str]):
-        self.farthest = farthest
-        self.expected = (expected,)
-
-    def __repr__(self):
-        return f"Backtrack({self.farthest!r}, {[x() for x in self.expected]})"
+@dataclass(frozen=True)
+class Continue(Generic[Input, Output]):
+    remainder: Reader[Input]
+    value: Output
 
 
 __all__ = [
     "Input",
     "Output",
     "Convert",
+    "State",
     "Reader",
     "SequenceReader",
     "StringReader",
@@ -385,7 +339,5 @@ __all__ = [
     "Success",
     "Failure",
     "ParseError",
-    "Status",
     "Continue",
-    "Backtrack",
 ]
