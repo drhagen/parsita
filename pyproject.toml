@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "parsita"
-version = "1.5.0"
+version = "1.6.0"
 description = "Parser combinator library for Python"
 authors = ["David Hagen <david@drhagen.com>"]
 license = "MIT"
