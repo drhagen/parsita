@@ -215,6 +215,48 @@ def test_repeated():
     assert TestParsers.notrail1.parse("()") == Failure("Expected r'\\d+' but found ')'\nLine 1, character 2\n\n()\n ^")
 
 
+def test_transformation_as_fallible_conversion():
+    class Percent:
+        def __init__(self, number: int):
+            self.number = number
+
+        def __eq__(self, other):
+            if isinstance(other, Percent):
+                return self.number == other.number
+            else:
+                return NotImplemented
+
+    class TestParsers(TextParsers):
+        def to_percent(number: int):
+            if not 0 <= number <= 100:
+                return failure("a number between 0 and 100")
+            else:
+                return success(Percent(number))
+
+        percent = (reg(r"[0-9]+") > int) >= to_percent
+
+    assert TestParsers.percent.parse("50") == Success(Percent(50))
+    assert TestParsers.percent.parse("150") == Failure("Expected a number between 0 and 100 but found end of source")
+    assert TestParsers.percent.parse("a") == Failure("Expected r'[0-9]+' but found 'a'\nLine 1, character 1\n\na\n^")
+
+
+def test_transformation_as_parameterized_parser():
+    class NumberParsers(TextParsers):
+        def select_parser(type: str):
+            if type == "int":
+                return reg(r"[0-9]+") > int
+            elif type == "decimal":
+                return reg(r"[0-9]+\.[0-9]+") > float
+
+        type = lit("int", "decimal")
+        number = type >= select_parser
+
+    assert NumberParsers.number.parse("int 5") == Success(5)
+    assert NumberParsers.number.parse("decimal 5") == Failure(
+        "Expected r'[0-9]+\\.[0-9]+' but found '5'\nLine 1, character 9\n\ndecimal 5\n        ^"
+    )
+
+
 def test_recursion_literals():
     class TestParsers(TextParsers):
         one = lit("1") > float

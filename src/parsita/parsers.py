@@ -153,6 +153,9 @@ class Parser(Generic[Input, Output]):
     def __gt__(self, other) -> ConversionParser:
         return ConversionParser(self, other)
 
+    def __ge__(self, other) -> TransformationParser:
+        return TransformationParser(self, other)
+
 
 def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output]:
     """Consume reader and return Success only on complete consumption.
@@ -751,6 +754,21 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         return self.name_or_nothing() + repr(self.parser)
 
 
+class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
+    def __init__(self, parser: Parser[Input, Output], transformer: Callable[[Output], Parser[Output, Convert]]):
+        super().__init__()
+        self.parser = parser
+        self.transformer = transformer
+
+    def consume(self, reader: Reader[Input]) -> Status[Input, Convert]:
+        status = self.parser.consume(reader)
+
+        if isinstance(status, Continue):
+            return self.transformer(status.value).consume(status.remainder)
+        else:
+            return status
+
+
 class EndOfSourceParser(Generic[Input], Parser[Input, None]):
     def __init__(self):
         super().__init__()
@@ -869,6 +887,7 @@ __all__ = [
     "RepeatedSeparatedParser",
     "repsep",
     "ConversionParser",
+    "TransformationParser",
     "EndOfSourceParser",
     "eof",
     "SuccessParser",
