@@ -315,6 +315,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#parser-function-transformation-parser" class="md-nav__link">
+    parser &gt;= function: transformation parser
+  </a>
+  
+    <nav class="md-nav" aria-label="parser &gt;= function: transformation parser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fallible-conversion" class="md-nav__link">
+    Fallible conversion
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parsers-parameterized-by-previous-input" class="md-nav__link">
+    Parsers parameterized by previous input
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -445,6 +472,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#parser-function-transformation-parser" class="md-nav__link">
+    parser &gt;= function: transformation parser
+  </a>
+  
+    <nav class="md-nav" aria-label="parser &gt;= function: transformation parser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fallible-conversion" class="md-nav__link">
+    Fallible conversion
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parsers-parameterized-by-previous-input" class="md-nav__link">
+    Parsers parameterized by previous input
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -467,6 +521,49 @@
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
 
 <span class="k">assert</span> <span class="n">IntegerParsers</span><span class="o">.</span><span class="n">integer</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;-128&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="parser-function-transformation-parser"><code>parser &gt;= function</code>: transformation parser</h2>
+<p>Transformation parsers pass the parsed output to a function which returns a new parser. This new parser is then immediately applied to the remaining input. There are two main uses for this parser.</p>
+<h3 id="fallible-conversion">Fallible conversion</h3>
+<p>The first use is as a fallible conversion parser. The conversion parser cannot tolerate failure. From the conversion parser's perspective, by the time the parsed output gets to the conversion function, parsing has already succeeded, just the output value is being changed. If the parsing needs to fail, then the transformation parser can be used. The transformer function can return a <code>SuccessParser</code> with <code>success</code> or a <code>FailureParser</code> with <code>failure</code> to declare success or failure based on its calculation.</p>
+<p>The <code>TransformationParser</code> is basically equivalent to a <code>PredicateParser</code> followed by a <code>ConversionParser</code>. Where you would otherwise write <code>pred(parser, is_valid_object) &gt; create_object</code>, you can write <code>parser &gt;= maybe_create_object</code>, instead.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Percent</span><span class="p">:</span>
+    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="k">def</span> <span class="nf">to_percent</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parser</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Percent</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">number</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">failure</span><span class="p">(</span><span class="s2">&quot;a number between 0 and 100&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">success</span><span class="p">(</span><span class="n">Percent</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">PercentParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+    <span class="n">percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">to_percent</span>
+
+<span class="k">assert</span> <span class="n">PercentParsers</span><span class="o">.</span><span class="n">percent</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;50&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="n">Percent</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">PercentParsers</span><span class="o">.</span><span class="n">percent</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;150&#39;</span><span class="p">),</span> <span class="n">Failure</span><span class="p">)</span>
+</code></pre></div>
+<p>In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to <code>&gt;=</code> before it was converted into a failure. Future versions of Parsita will address this issue.</p>
+<h3 id="parsers-parameterized-by-previous-input">Parsers parameterized by previous input</h3>
+<p>The second use is to parse later text based on previous text. This is incredibly powerful, but in my experience, not that useful. When viewing parser combinators as a monad, this is the <code>bind</code> operation, so functional programming enthusiasts are really into it. It is only included in Parsita because it came free with the fallible conversion parser use case above.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">select_parser</span><span class="p">(</span><span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;decimal&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+\.[0-9]+&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">float</span>
+
+<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;decimal&#39;</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="nb">type</span> <span class="o">&gt;=</span> <span class="n">select_parser</span>
+
+<span class="k">assert</span> <span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;int 5&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;int 2.0&#39;</span><span class="p">),</span> <span class="n">Failure</span><span class="p">)</span>
 </code></pre></div>
                 
               
