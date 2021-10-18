@@ -769,6 +769,55 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
             return status
 
 
+class DebugParser(Generic[Input, Output], Parser[Input, Input]):
+    def __init__(
+            self, parser: Parser[Input, Output], verbose: bool = False,
+            callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None
+    ):
+        super().__init__()
+        self.parser = parser
+        self.parser_def = repr(parser)
+        self.name_cb = lambda: f"to see {self.parserdef} before moving on"
+        self.verbose = verbose
+        self.callback = callback
+
+    def consume(self, reader: Reader[Input]):
+        if self.callback:
+            self.callback(self.parser, reader)
+        if self.verbose:
+            evaluating = reader.source[reader.position:reader.position + 5]
+            print(f"""EVALUATING "{evaluating}..." FOR PARSER {self.parser_def}""")
+            result = self.parser.consume(reader)
+            print(f"""RESULT {repr(result)}""")
+            return result
+        else:
+            result = self.parser.consume(reader)
+            return result
+
+    def __repr__(self):
+        return self.name_or_nothing() + 'debug({})'.format(repr(self.parser))
+
+
+def debug(
+        parser: Parser[Input, Output], verbose: bool = False,
+        debug_callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None
+) -> DebugParser:
+    """Lets you set breakpoints and print parser progress
+
+    You can use the verbose flag to print messages as the parser is being evaluated
+
+    You can use the callback method to insert a callback that will execute before the parser is evaluated, the call will include the reader
+
+    Args:
+        :param parser: a parser that parses terms that you want to make sure are present
+        :param verbose: write progress messages to stdout
+        :param callback: calls this function before evaluating the provided parser
+    """
+    if isinstance(parser, str):
+        parser = lit(parser)
+    return DebugParser(parser, verbose, debug_callback)
+
+
 class EndOfSourceParser(Generic[Input], Parser[Input, None]):
     def __init__(self):
         super().__init__()
