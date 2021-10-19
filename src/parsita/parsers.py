@@ -583,31 +583,46 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output]):
+    def __init__(self, parser: Parser[Input, Output], min:int=0, max:int=None):
         super().__init__()
         self.parser = parser
+        self.min = min
+        self.max = max
+        parserdef = repr(parser)
+        clauses = [
+            f'at least {min}' if min > 0 else '',
+            f'less than {max}' if max is not None else ''
+        ]
+        joined = ' and '.join([clause for clause in clauses if clause])
+        final_clause = joined and f' {joined} times' or ''
+        name = f"repeated {parserdef}{final_clause}"
+        self.name_cb = lambda: name
 
     def consume(self, reader: Reader[Input]):
-        output = []
-        status = None
+        result = []
         remainder = reader
+        status = None
+        while not remainder.finished:
+            status = self.parser.consume(remainder)
+            if not isinstance(status, Continue):
+                break
+            if remainder.position == status.remainder.position:
+                raise RuntimeError(remainder.recursion_error(str(self)))
+            remainder = status.remainder
+            result.append(status.value)
 
-        while True:
-            status = self.parser.consume(remainder).merge(status)
-            if isinstance(status, Continue):
-                if remainder.position == status.remainder.position:
-                    raise RuntimeError(remainder.recursion_error(str(self)))
-
-                remainder = status.remainder
-                output.append(status.value)
-            else:
-                return Continue(remainder, output).merge(status)
+        if self.max is not None and len(result) > self.max:
+            return Backtrack(reader, self.name_cb)
+        if len(result) >= self.min:
+            return Continue(remainder, result).merge(status)
+        else:
+            return Backtrack(reader, self.name_cb)
 
     def __repr__(self):
         return self.name_or_nothing() + f"rep({self.parser.name_or_repr()})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
+def rep(parser: Union[Parser, Sequence[Input]], min:int = 0, max:int = None) -> RepeatedParser:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -615,11 +630,13 @@ def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
     is returned.
 
     Args:
-        parser: Parser or literal
+        :param parser: Parser or literal
+        :param min: minimum number of entries matched before the parser can succeed
+        :param max: maximum number of entries matched before the parser can succeed
     """
     if isinstance(parser, str):
         parser = lit(parser)
-    return RepeatedParser(parser)
+    return RepeatedParser(parser, min, max)
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):

@@ -299,36 +299,6 @@ def test_recursion_regex():
     assert TestParsers.expr.parse("1 + 2 + 3") == Success(6)
 
 
-@pytest.mark.timeout(2)
-def test_infinite_recursion_protection():
-    class TestParsers(TextParsers):
-        bad_rep = rep(opt("foo"))
-        bad_rep1 = rep1(opt("foo"))
-        bad_repsep = repsep(opt("foo"), opt(","))
-        bad_rep1sep = rep1sep(opt("foo"), opt(","))
-
-    # Recursion happens in middle of stream
-    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
-            "empty string was matched and will be matched forever\n"
-            "Line 1, character 13\n\nfoo foo foo bar",
-        ):
-            parser.parse("foo foo foo bar\nfoo foo foo")
-
-    # Recursion happens at end of stream
-    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
-            "empty string was matched and will be matched forever at end of source",
-        ):
-            parser.parse("foo foo foo\nfoo foo foo")
-
-
 def test_protection():
     class TestParsers(TextParsers):
         end_aa = "aa" << eof

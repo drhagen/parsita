@@ -273,6 +273,15 @@ def test_repeated():
     assert str(TestParsers.cs) == "cs = rep('c')"
 
 
+def test_repeated_with_bounds():
+
+    assert rep("b", min=2).parse('bbbb') == Success(["b", "b", "b", "b"])
+    assert rep("b", max=5).parse('bbbb') == Success(["b", "b", "b", "b"])
+    assert rep("b", min=3, max=5).parse('bbbb') == Success(["b", "b", "b", "b"])
+    assert isinstance(rep("b", min=5).parse('bbbb'), Failure)
+    assert isinstance(rep("b", max=3).parse('bbbb'), Failure)
+
+
 def test_repeated_longer():
     class TestParsers(GeneralParsers):
         bf = rep1("bf")
@@ -339,12 +348,17 @@ def test_infinite_recursion_protection():
             parser.parse("aab")
 
     # Recursion happens at end of stream
-    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+    for parser in [TestParsers.bad_rep]:
         with pytest.raises(
             RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
-            "empty string was matched and will be matched forever at end of source",
+            match=r"Infinite recursion detected in .*"
+        ):
+            parser.parse("bb")
+
+    for parser in (TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+        with pytest.raises(
+            RuntimeError,
+            match=r"Infinite recursion detected in .*"
         ):
             parser.parse("aa")
 
