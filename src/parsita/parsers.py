@@ -583,18 +583,15 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], min:int=0, max:int=None):
+    def __init__(self, parser: Parser[Input, Output], min: int = 0, max: int = None):
         super().__init__()
         self.parser = parser
         self.min = min
         self.max = max
         parserdef = repr(parser)
-        clauses = [
-            f'at least {min}' if min > 0 else '',
-            f'less than {max}' if max is not None else ''
-        ]
-        joined = ' and '.join([clause for clause in clauses if clause])
-        final_clause = joined and f' {joined} times' or ''
+        clauses = [f"at least {min}" if min > 0 else "", f"less than {max}" if max is not None else ""]
+        joined = " and ".join([clause for clause in clauses if clause])
+        final_clause = joined and f" {joined} times" or ""
         name = f"repeated {parserdef}{final_clause}"
         self.name_cb = lambda: name
 
@@ -622,7 +619,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         return self.name_or_nothing() + f"rep({self.parser.name_or_repr()})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]], min:int = 0, max:int = None) -> RepeatedParser:
+def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: int = None) -> RepeatedParser:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -788,8 +785,10 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
 
 class DebugParser(Generic[Input, Output], Parser[Input, Input]):
     def __init__(
-            self, parser: Parser[Input, Output], verbose: bool = False,
-            callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None
+        self,
+        parser: Parser[Input, Output],
+        verbose: bool = False,
+        callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None,
     ):
         super().__init__()
         self.parser = parser
@@ -802,7 +801,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Input]):
         if self.callback:
             self.callback(self.parser, reader)
         if self.verbose:
-            evaluating = reader.source[reader.position:reader.position + 5]
+            evaluating = reader.source[reader.position : reader.position + 5]
             print(f"""EVALUATING "{evaluating}..." FOR PARSER {self.parser_def}""")
             result = self.parser.consume(reader)
             print(f"""RESULT {repr(result)}""")
@@ -812,12 +811,13 @@ class DebugParser(Generic[Input, Output], Parser[Input, Input]):
             return result
 
     def __repr__(self):
-        return self.name_or_nothing() + 'debug({})'.format(repr(self.parser))
+        return self.name_or_nothing() + "debug({})".format(repr(self.parser))
 
 
 def debug(
-        parser: Parser[Input, Output], verbose: bool = False,
-        debug_callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None
+    parser: Parser[Input, Output],
+    verbose: bool = False,
+    debug_callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None,
 ) -> DebugParser:
     """Lets you set breakpoints and print parser progress
 

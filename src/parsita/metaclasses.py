@@ -14,7 +14,7 @@ class ParsersDict(dict):
 
     def __missing__(self, key):
         frame = inspect.currentframe()
-        while frame.f_code.co_name != '__missing__':
+        while frame.f_code.co_name != "__missing__":
             frame = frame.f_back
         frame = frame.f_back.f_back
         frame_locals = frame.f_locals

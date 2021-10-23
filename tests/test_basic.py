@@ -275,11 +275,11 @@ def test_repeated():
 
 def test_repeated_with_bounds():
 
-    assert rep("b", min=2).parse('bbbb') == Success(["b", "b", "b", "b"])
-    assert rep("b", max=5).parse('bbbb') == Success(["b", "b", "b", "b"])
-    assert rep("b", min=3, max=5).parse('bbbb') == Success(["b", "b", "b", "b"])
-    assert isinstance(rep("b", min=5).parse('bbbb'), Failure)
-    assert isinstance(rep("b", max=3).parse('bbbb'), Failure)
+    assert rep("b", min=2).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert rep("b", max=5).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert rep("b", min=3, max=5).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert isinstance(rep("b", min=5).parse("bbbb"), Failure)
+    assert isinstance(rep("b", max=3).parse("bbbb"), Failure)
 
 
 def test_repeated_longer():
@@ -349,17 +349,11 @@ def test_infinite_recursion_protection():
 
     # Recursion happens at end of stream
     for parser in [TestParsers.bad_rep]:
-        with pytest.raises(
-            RuntimeError,
-            match=r"Infinite recursion detected in .*"
-        ):
+        with pytest.raises(RuntimeError, match=r"Infinite recursion detected in .*"):
             parser.parse("bb")
 
     for parser in (TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match=r"Infinite recursion detected in .*"
-        ):
+        with pytest.raises(RuntimeError, match=r"Infinite recursion detected in .*"):
             parser.parse("aa")
 
 

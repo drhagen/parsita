@@ -6,18 +6,18 @@ from parsita import Failure, Success
 def nest_string(source: Any):
     if not isinstance(source, str):
         source = str(source)
-    result = ''
+    result = ""
     tab_depth = 0
     for char in source:
-        if char in {'(', '['}:
-            result += '\n'
+        if char in {"(", "["}:
+            result += "\n"
             tab_depth += 1
-            result += '--' * tab_depth
+            result += "--" * tab_depth
             result += char
-        elif char in {')', ']'}:
+        elif char in {")", "]"}:
 
-            result += '\n'
-            result += '--' * tab_depth
+            result += "\n"
+            result += "--" * tab_depth
             result += char
             tab_depth -= 1
         else:
@@ -45,6 +45,4 @@ def collect_parsing_expectations(expectations: Dict[str, Any], parser):
 
         actual_result_str = nest_string(actual_result)
         expected_str = nest_string(Success(expected_outcome))
-        yield \
-            f"{input}\n---\n{actual_result_str}", \
-            f"{input}\n---\n{expected_str}", input
+        yield f"{input}\n---\n{actual_result_str}", f"{input}\n---\n{expected_str}", input

@@ -1,4 +1,4 @@
-from parsita import TextParsers, lit, Failure, Success
+from parsita import Failure, Success, TextParsers, lit
 from parsita.parsers import debug
 from parsita.util import *
 
@@ -38,15 +38,15 @@ def test_debug():
 
     def debug_cb(parser, reader):
         nonlocal result
-        remainder = reader.source[reader.position:]
-        result = remainder == '45'
+        remainder = reader.source[reader.position :]
+        result = remainder == "45"
         result &= isinstance(parser.parse(remainder), Failure)
-        result &= isinstance(parser.parse('345'), Success)
+        result &= isinstance(parser.parse("345"), Success)
 
     class TestParsers(TextParsers):
-        a = lit('123')
-        b = lit('345')
+        a = lit("123")
+        b = lit("345")
         c = a & debug(b, debug_callback=debug_cb)
 
-    TestParsers.c.parse('12345')
+    TestParsers.c.parse("12345")
     assert result
