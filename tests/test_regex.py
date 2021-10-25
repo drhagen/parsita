@@ -257,6 +257,38 @@ def test_transformation_as_parameterized_parser():
     )
 
 
+def test_debug_callback():
+    result = False
+
+    def callback(parser, reader):
+        nonlocal result
+        remainder = reader.source[reader.position :]
+        result = remainder == "45"
+        result &= isinstance(parser.parse(remainder), Failure)
+        result &= isinstance(parser.parse("345"), Success)
+
+    class TestParsers(TextParsers):
+        a = lit("123")
+        b = lit("345")
+        c = a & debug(b, callback=callback)
+
+    TestParsers.c.parse("12345")
+    assert result
+    assert str(TestParsers.c) == "c = a & debug(b)"
+
+
+def test_debug_verbose(capsys):
+    class TestParsers(TextParsers):
+        a = lit("123")
+        c = a & debug("345", verbose=True)
+
+    TestParsers.c.parse("12345")
+
+    captured = capsys.readouterr()
+    assert "Evaluating" in captured.out
+    assert "Result" in captured.out
+
+
 def test_recursion_literals():
     class TestParsers(TextParsers):
         one = lit("1") > float

@@ -572,7 +572,8 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
     This matches ``parser`` multiple times in a row. If it matches as least
     once, it returns a list of values from each time ``parser`` matched. If it
-    does not match ``parser`` at all, it fails.
+    does not match ``parser`` at all, it fails. This parser is shorthand for
+    ``rep(parser, min=1)``.
 
     Args:
         parser: Parser or literal
@@ -583,16 +584,23 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output]):
+    def __init__(self, parser: Parser[Input, Output], min: int = 0, max: Optional[int] = None):
         super().__init__()
         self.parser = parser
+        self.min = min
+        self.max = max
+        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
+        joined = " and ".join([clause for clause in clauses if clause != ""])
+        final_clause = f" {joined} times" if joined != "" else ""
+        name = f"repeated {parser!r}{final_clause}"
+        self._expected = lambda: name
 
     def consume(self, reader: Reader[Input]):
         output = []
         status = None
         remainder = reader
 
-        while True:
+        while self.max is None or len(output) < self.max:
             status = self.parser.consume(remainder).merge(status)
             if isinstance(status, Continue):
                 if remainder.position == status.remainder.position:
@@ -601,13 +609,20 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 remainder = status.remainder
                 output.append(status.value)
             else:
-                return Continue(remainder, output).merge(status)
+                break
+
+        if len(output) >= self.min:
+            return Continue(remainder, output).merge(status)
+        else:
+            return Backtrack(remainder, self._expected).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()})"
+        min_string = f", min={self.min}" if self.min > 0 else ""
+        max_string = f", max={self.max}" if self.max is not None else ""
+        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
+def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: Optional[int] = None) -> RepeatedParser:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -616,10 +631,12 @@ def rep(parser: Union[Parser, Sequence[Input]]) -> RepeatedParser:
 
     Args:
         parser: Parser or literal
+        min: Minimum number of entries matched before the parser can succeed
+        max: Maximum number of entries that will be matched
     """
     if isinstance(parser, str):
         parser = lit(parser)
-    return RepeatedParser(parser)
+    return RepeatedParser(parser, min, max)
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -769,6 +786,66 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
             return status
 
 
+class DebugParser(Generic[Input, Output], Parser[Input, Output]):
+    def __init__(
+        self,
+        parser: Parser[Input, Output],
+        verbose: bool = False,
+        callback: Callable[[Parser[Input, Output], Reader[Input]], None] = None,
+    ):
+        super().__init__()
+        self.parser = parser
+        self.verbose = verbose
+        self.callback = callback
+        self._parser_string = repr(parser)
+
+    def consume(self, reader: Reader[Input]):
+        if self.verbose:
+            print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
+
+        if self.callback:
+            self.callback(self.parser, reader)
+
+        result = self.parser.consume(reader)
+
+        if self.verbose:
+            print(f"""Result {repr(result)}""")
+
+        return result
+
+    def __repr__(self):
+        return self.name_or_nothing() + f"debug({self.parser.name_or_repr()})"
+
+
+def debug(
+    parser: Parser[Input, Output],
+    *,
+    verbose: bool = False,
+    callback: Optional[Callable[[Parser[Input, Input], Reader[Input]], None]] = None,
+) -> DebugParser:
+    """Execute debugging hooks before a parser.
+
+    This parser is used purely for debugging purposes. From a parsing
+    perspective, it behaves identically to the provided ``parser``, which makes
+    ``debug`` a kind of harmless wrapper around a another parser. The
+    functionality of the ``debug`` comes from providing one or more of the
+    optional arguments.
+
+    Args:
+        parser: Parser or literal
+        verbose: If True, causes a message to be printed containing the
+            representation of ``parser`` and the next token before the
+            invocation of ``parser``. After ``parser`` returns, the
+            ``ParseResult`` returned is printed.
+        callback: If not ``None``, is invoked immediately before ``parser`` is
+            invoked. This allows the use to inspect the state of the input or
+            add breakpoints before the possibly troublesome parser is invoked.
+    """
+    if isinstance(parser, str):
+        parser = lit(parser)
+    return DebugParser(parser, verbose, callback)
+
+
 class EndOfSourceParser(Generic[Input], Parser[Input, None]):
     def __init__(self):
         super().__init__()
@@ -888,6 +965,8 @@ __all__ = [
     "repsep",
     "ConversionParser",
     "TransformationParser",
+    "DebugParser",
+    "debug",
     "EndOfSourceParser",
     "eof",
     "SuccessParser",

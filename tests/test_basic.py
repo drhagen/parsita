@@ -273,6 +273,15 @@ def test_repeated():
     assert str(TestParsers.cs) == "cs = rep('c')"
 
 
+def test_repeated_with_bounds():
+    assert rep("b", min=2).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert rep("b", max=5).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert rep("b", min=3, max=5).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert rep("b", min=4, max=4).parse("bbbb") == Success(["b", "b", "b", "b"])
+    assert isinstance(rep("b", min=5).parse("bbbb"), Failure)
+    assert isinstance(rep("b", max=3).parse("bbbb"), Failure)
+
+
 def test_repeated_longer():
     class TestParsers(GeneralParsers):
         bf = rep1("bf")
