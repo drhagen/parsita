@@ -572,7 +572,8 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
     This matches ``parser`` multiple times in a row. If it matches as least
     once, it returns a list of values from each time ``parser`` matched. If it
-    does not match ``parser`` at all, it fails.
+    does not match ``parser`` at all, it fails. This parser is shorthand for
+    ``rep(parser, min=1)``.
 
     Args:
         parser: Parser or literal
@@ -583,43 +584,45 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], min: int = 0, max: int = None):
+    def __init__(self, parser: Parser[Input, Output], min: int = 0, max: Optional[int] = None):
         super().__init__()
         self.parser = parser
         self.min = min
         self.max = max
-        parserdef = repr(parser)
-        clauses = [f"at least {min}" if min > 0 else "", f"less than {max}" if max is not None else ""]
-        joined = " and ".join([clause for clause in clauses if clause])
-        final_clause = joined and f" {joined} times" or ""
-        name = f"repeated {parserdef}{final_clause}"
-        self.name_cb = lambda: name
+        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
+        joined = " and ".join([clause for clause in clauses if clause != ""])
+        final_clause = f" {joined} times" if joined != "" else ""
+        name = f"repeated {parser!r}{final_clause}"
+        self._expected = lambda: name
 
     def consume(self, reader: Reader[Input]):
-        result = []
-        remainder = reader
+        output = []
         status = None
-        while not remainder.finished:
-            status = self.parser.consume(remainder)
-            if not isinstance(status, Continue):
-                break
-            if remainder.position == status.remainder.position:
-                raise RuntimeError(remainder.recursion_error(str(self)))
-            remainder = status.remainder
-            result.append(status.value)
+        remainder = reader
 
-        if self.max is not None and len(result) > self.max:
-            return Backtrack(reader, self.name_cb)
-        if len(result) >= self.min:
-            return Continue(remainder, result).merge(status)
+        while self.max is None or len(output) < self.max:
+            status = self.parser.consume(remainder).merge(status)
+            if isinstance(status, Continue):
+                if remainder.position == status.remainder.position:
+                    raise RuntimeError(remainder.recursion_error(str(self)))
+
+                remainder = status.remainder
+                output.append(status.value)
+            else:
+                break
+
+        if len(output) >= self.min:
+            return Continue(remainder, output).merge(status)
         else:
-            return Backtrack(reader, self.name_cb)
+            return Backtrack(remainder, self._expected).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()})"
+        min_string = f", min={self.min}" if self.min > 0 else ""
+        max_string = f", max={self.max}" if self.max is not None else ""
+        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: int = None) -> RepeatedParser:
+def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: Optional[int] = None) -> RepeatedParser:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -627,9 +630,9 @@ def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: int = None) -
     is returned.
 
     Args:
-        :param parser: Parser or literal
-        :param min: minimum number of entries matched before the parser can succeed
-        :param max: maximum number of entries matched before the parser can succeed
+        parser: Parser or literal
+        min: Minimum number of entries matched before the parser can succeed
+        max: Maximum number of entries that will be matched
     """
     if isinstance(parser, str):
         parser = lit(parser)
@@ -794,11 +797,11 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.parser = parser
         self.verbose = verbose
         self.callback = callback
-        self.parser_string = repr(parser)
+        self._parser_string = repr(parser)
 
     def consume(self, reader: Reader[Input]):
         if self.verbose:
-            print(f"""Evaluating token {reader.next_token()} using parser {self.parser_string}""")
+            print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
         if self.callback:
             self.callback(self.parser, reader)
