@@ -348,12 +348,13 @@ def test_infinite_recursion_protection():
             parser.parse("aab")
 
     # Recursion happens at end of stream
-    for parser in [TestParsers.bad_rep]:
-        with pytest.raises(RuntimeError, match=r"Infinite recursion detected in .*"):
-            parser.parse("bb")
-
-    for parser in (TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(RuntimeError, match=r"Infinite recursion detected in .*"):
+    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+        with pytest.raises(
+            RuntimeError,
+            match="Infinite recursion detected in "
+            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
+            "empty string was matched and will be matched forever at end of source",
+        ):
             parser.parse("aa")
 
 
