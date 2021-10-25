@@ -13,21 +13,23 @@ class ParsersDict(dict):
         self.forward_declarations = dict()  # Stores forward declarations as they are discovered
 
     def __missing__(self, key):
-        frame = inspect.currentframe()
-        while frame.f_code.co_name != "__missing__":
+        frame = inspect.currentframe()  # Should be the frame of __missing__
+        while frame.f_code.co_name != "__missing__":  # pragma: no cover
+            # But sometimes debuggers add frames on top of the stack; get back to `__missing__`'s frame
             frame = frame.f_back
-        frame = frame.f_back.f_back
-        frame_locals = frame.f_locals
 
-        class_body_globals = inspect.currentframe().f_back.f_globals
-        if key in class_body_globals:
+        class_body_frame = frame.f_back.f_back  # Frame of parser context is two frames back
+        class_body_locals = class_body_frame.f_locals
+        class_body_globals = class_body_frame.f_globals
+
+        if key in self.forward_declarations:
+            return self.forward_declarations[key]
+        elif key in class_body_locals:
+            return class_body_locals[key]
+        elif key in class_body_globals:
             return class_body_globals[key]
-        elif key in frame_locals:
-            return frame_locals[key]
         elif key in dir(builtins):
             return getattr(builtins, key)
-        elif key in self.forward_declarations:
-            return self.forward_declarations[key]
         else:
             new_forward_declaration = ForwardDeclaration()
             self.forward_declarations[key] = new_forward_declaration
