@@ -1,5 +1,3 @@
-from parsita import Failure, Success, TextParsers, lit
-from parsita.parsers import debug
 from parsita.util import *
 
 
@@ -31,22 +29,3 @@ def test_unsplat():
 
     g = unsplat(f)
     assert g(1, 2, 3) == 6
-
-
-def test_debug():
-    result = False
-
-    def debug_cb(parser, reader):
-        nonlocal result
-        remainder = reader.source[reader.position :]
-        result = remainder == "45"
-        result &= isinstance(parser.parse(remainder), Failure)
-        result &= isinstance(parser.parse("345"), Success)
-
-    class TestParsers(TextParsers):
-        a = lit("123")
-        b = lit("345")
-        c = a & debug(b, debug_callback=debug_cb)
-
-    TestParsers.c.parse("12345")
-    assert result

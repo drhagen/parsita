@@ -783,56 +783,64 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
             return status
 
 
-class DebugParser(Generic[Input, Output], Parser[Input, Input]):
+class DebugParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(
         self,
         parser: Parser[Input, Output],
         verbose: bool = False,
-        callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None,
+        callback: Callable[[Parser[Input, Output], Reader[Input]], None] = None,
     ):
         super().__init__()
         self.parser = parser
-        self.parser_def = repr(parser)
-        self.name_cb = lambda: f"to see {self.parserdef} before moving on"
         self.verbose = verbose
         self.callback = callback
+        self.parser_string = repr(parser)
 
     def consume(self, reader: Reader[Input]):
+        if self.verbose:
+            print(f"""Evaluating token {reader.next_token()} using parser {self.parser_string}""")
+
         if self.callback:
             self.callback(self.parser, reader)
+
+        result = self.parser.consume(reader)
+
         if self.verbose:
-            evaluating = reader.source[reader.position : reader.position + 5]
-            print(f"""EVALUATING "{evaluating}..." FOR PARSER {self.parser_def}""")
-            result = self.parser.consume(reader)
-            print(f"""RESULT {repr(result)}""")
-            return result
-        else:
-            result = self.parser.consume(reader)
-            return result
+            print(f"""Result {repr(result)}""")
+
+        return result
 
     def __repr__(self):
-        return self.name_or_nothing() + "debug({})".format(repr(self.parser))
+        return self.name_or_nothing() + f"debug({self.parser.name_or_repr()})"
 
 
 def debug(
     parser: Parser[Input, Output],
+    *,
     verbose: bool = False,
-    debug_callback: Callable[[Parser[Input, Input], Reader[Input]], None] = None,
+    callback: Optional[Callable[[Parser[Input, Input], Reader[Input]], None]] = None,
 ) -> DebugParser:
-    """Lets you set breakpoints and print parser progress
+    """Execute debugging hooks before a parser.
 
-    You can use the verbose flag to print messages as the parser is being evaluated
-
-    You can use the callback method to insert a callback that will execute before the parser is evaluated, the call will include the reader
+    This parser is used purely for debugging purposes. From a parsing
+    perspective, it behaves identically to the provided ``parser``, which makes
+    ``debug`` a kind of harmless wrapper around a another parser. The
+    functionality of the ``debug`` comes from providing one or more of the
+    optional arguments.
 
     Args:
-        :param parser: a parser that parses terms that you want to make sure are present
-        :param verbose: write progress messages to stdout
-        :param callback: calls this function before evaluating the provided parser
+        parser: Parser or literal
+        verbose: If True, causes a message to be printed containing the
+            representation of ``parser`` and the next token before the
+            invocation of ``parser``. After ``parser`` returns, the
+            ``ParseResult`` returned is printed.
+        callback: If not ``None``, is invoked immediately before ``parser`` is
+            invoked. This allows the use to inspect the state of the input or
+            add breakpoints before the possibly troublesome parser is invoked.
     """
     if isinstance(parser, str):
         parser = lit(parser)
-    return DebugParser(parser, verbose, debug_callback)
+    return DebugParser(parser, verbose, callback)
 
 
 class EndOfSourceParser(Generic[Input], Parser[Input, None]):
@@ -954,6 +962,8 @@ __all__ = [
     "repsep",
     "ConversionParser",
     "TransformationParser",
+    "DebugParser",
+    "debug",
     "EndOfSourceParser",
     "eof",
     "SuccessParser",
