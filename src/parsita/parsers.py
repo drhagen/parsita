@@ -914,6 +914,48 @@ def failure(expected: str = ""):
     return FailureParser(expected)
 
 
+class UntilParser(Generic[Input, Output], Parser[Input, Input]):
+    def __init__(self, parser: Parser[Input, Output]):
+        super().__init__()
+        self.parser = parser
+        parserdef = repr(parser)
+        self.name_cb = lambda: f"anything until {parserdef}"
+        self.length = len(repr(parser))
+
+    def consume(self, reader: Reader[Input]):
+        result = self.parser.consume(reader)
+        value = ""
+        if not isinstance(result, Continue):
+            position = reader.position
+            while position < len(reader.source):
+                tmp = reader.source[position:]
+                tmp_reader = StringReader(tmp)
+                status = self.parser.consume(tmp_reader)
+                if isinstance(status, Continue):
+                    break
+                else:
+                    value += reader.source[position]
+                    position += 1
+                    reader = reader.drop(1)
+        return Continue(reader, value)
+
+    def __repr__(self):
+        return self.name_or_nothing() + "until({})".format(repr(self.parser))
+
+
+def until(parser: Parser[Input, Output]) -> UntilParser:
+    """Match anything until it matches the provided parser
+
+    This matches all text until text that is matched by the provided parser is encountered.
+
+    Args:
+        :param parser: a parser that matches terms that you don't want to capture
+    """
+    if isinstance(parser, str):
+        parser = lit(parser)
+    return UntilParser(parser)
+
+
 class AnyParser(Generic[Input], Parser[Input, Input]):
     """Match any single element.
 

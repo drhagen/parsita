@@ -1,6 +1,7 @@
 import pytest
 
 from parsita import *
+from parsita.parsers import until
 
 
 def test_literals():
@@ -466,3 +467,24 @@ def test_disallow_instatiation():
 
     with pytest.raises(TypeError):
         _ = TestParsers()
+
+
+def test_until_parser():
+    block_start = "Ambiguous Content:"
+    block_stop = ":End Ambiguous Content"
+
+    class TestParser(TextParsers):
+        ambigous_block_start = lit(block_start)
+        ambigous_block_end = lit(block_stop)
+        ambiguous_conent = until(ambigous_block_end)
+        ambiguous_block = ambigous_block_start >> ambiguous_conent << ambigous_block_end
+
+    ambiguous_content = """I'm an ambiguous block of Ambiguous Content: that has a bunch of :End Ambiguous Conten
+    t problematic stuff in it"""
+    content = f"""{block_start}{ambiguous_content}{block_stop}"""
+    result = TestParser.ambiguous_block.parse(content)
+    assert result == Success(ambiguous_content)
+
+    empty_content = f"""{block_start}{block_stop}"""
+    result_2 = TestParser.ambiguous_block.parse(empty_content)
+    assert result_2 == Success("")
