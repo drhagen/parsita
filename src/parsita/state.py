@@ -16,17 +16,19 @@ class Reader(Generic[Input]):
 
     Attributes:
         first (Input): The element at the current position.
-        rest (Sequence[Input]): A ``Reader`` at the next position.
+        rest (Reader[Input]): A ``Reader`` at the next position.
         position (int): How many characters into the source the parsing has
             gone.
         finished (bool): Indicates if the source is at the end. It is an error
             to access ``first`` or ``rest`` if ``finished`` is ``True``.
+        source (Sequence[Input]): The full source being read.
     """
 
     first: Input
     rest: Reader[Input]
     position: int
     finished: bool
+    source: Sequence[Input]
 
     def next_token(self):
         return self.first

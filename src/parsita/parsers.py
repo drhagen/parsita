@@ -914,42 +914,37 @@ def failure(expected: str = ""):
     return FailureParser(expected)
 
 
-class UntilParser(Generic[Input, Output], Parser[Input, Input]):
-    def __init__(self, parser: Parser[Input, Output]):
+class UntilParser(Generic[Input], Parser[Input, Input]):
+    def __init__(self, parser: Parser[Input, Any]):
         super().__init__()
         self.parser = parser
-        parserdef = repr(parser)
-        self.name_cb = lambda: f"anything until {parserdef}"
-        self.length = len(repr(parser))
 
     def consume(self, reader: Reader[Input]):
-        result = self.parser.consume(reader)
-        value = ""
-        if not isinstance(result, Continue):
-            position = reader.position
-            while position < len(reader.source):
-                tmp = reader.source[position:]
-                tmp_reader = StringReader(tmp)
-                status = self.parser.consume(tmp_reader)
-                if isinstance(status, Continue):
-                    break
-                else:
-                    value += reader.source[position]
-                    position += 1
-                    reader = reader.drop(1)
-        return Continue(reader, value)
+        start_position = reader.position
+        while True:
+            status = self.parser.consume(reader)
+
+            if isinstance(status, Continue):
+                break
+            elif reader.finished:
+                return status
+            else:
+                reader = reader.rest
+
+        return Continue(reader, reader.source[start_position : reader.position])
 
     def __repr__(self):
-        return self.name_or_nothing() + "until({})".format(repr(self.parser))
+        return self.name_or_nothing() + f"until({self.parser.name_or_repr()})"
 
 
 def until(parser: Parser[Input, Output]) -> UntilParser:
-    """Match anything until it matches the provided parser
+    """Match everything until it matches the provided parser.
 
-    This matches all text until text that is matched by the provided parser is encountered.
+    This parser matches all input until it encounters a position in the input
+    where the given ``parser`` succeeds.
 
     Args:
-        :param parser: a parser that matches terms that you don't want to capture
+        parser: Parser or literal
     """
     if isinstance(parser, str):
         parser = lit(parser)
@@ -1017,6 +1012,8 @@ __all__ = [
     "failure",
     "PredicateParser",
     "pred",
+    "UntilParser",
+    "until",
     "AnyParser",
     "any1",
     "completely_parse_reader",

@@ -289,6 +289,41 @@ def test_debug_verbose(capsys):
     assert "Result" in captured.out
 
 
+def test_until_parser():
+    block_start = "Ambiguous Content:"
+    block_stop = ":End Content"
+
+    class TestParser(TextParsers):
+        ambiguous_start = lit(block_start)
+        ambiguous_end = lit(block_stop)
+        ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end
+
+    ambiguous_content = """I'm an ambiguous block of Ambiguous Content: that has a bunch of :End Conten
+    t problematic stuff in it"""
+    content = f"""{block_start}{ambiguous_content}{block_stop}"""
+    result = TestParser.ambiguous.parse(content)
+    assert result == Success(ambiguous_content)
+
+    empty_content = f"""{block_start}{block_stop}"""
+    result_2 = TestParser.ambiguous.parse(empty_content)
+    assert result_2 == Success("")
+
+    no_termination_content = f"""{block_start}{ambiguous_content}"""
+    result_3 = TestParser.ambiguous.parse(no_termination_content)
+    assert result_3 == Failure("Expected ':End Content' but found end of source")
+
+    assert str(TestParser.ambiguous) == "ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end"
+
+
+def test_heredoc():
+    class TestParser(TextParsers):
+        heredoc = reg("[A-Za-z]+") >= (lambda token: until(token) << token)
+
+    content = "EOF\nAnything at all\nEOF"
+    result = TestParser.heredoc.parse(content)
+    assert result == Success("Anything at all\n")
+
+
 def test_recursion_literals():
     class TestParsers(TextParsers):
         one = lit("1") > float
