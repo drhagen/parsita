@@ -433,6 +433,27 @@ def test_success_failure_protection():
     assert str(TestParsers.bbb) == "bbb = 'aa' & failure('something else') & 'bb'"
 
 
+def test_until_parser():
+    block_start = "aa"
+    block_stop = "bb"
+
+    class TestParser(GeneralParsers):
+        ambiguous = block_start >> until(block_stop) << block_stop
+
+    ambiguous_content = """ababa"""
+    content = f"""{block_start}{ambiguous_content}{block_stop}"""
+    result = TestParser.ambiguous.parse(content)
+    assert result == Success(ambiguous_content)
+
+    empty_content = f"""{block_start}{block_stop}"""
+    result_2 = TestParser.ambiguous.parse(empty_content)
+    assert result_2 == Success("")
+
+    no_termination_content = f"""{block_start}{ambiguous_content}"""
+    result_3 = TestParser.ambiguous.parse(no_termination_content)
+    assert result_3 == Failure("Expected b but found end of source")
+
+
 def test_any():
     class TestParsers(GeneralParsers):
         any2 = any1 & any1
