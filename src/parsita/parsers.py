@@ -584,7 +584,7 @@ def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], min: int = 0, max: Optional[int] = None):
+    def __init__(self, parser: Parser[Input, Output], *, min: int = 0, max: Optional[int] = None):
         super().__init__()
         self.parser = parser
         self.min = min
@@ -622,7 +622,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         return self.name_or_nothing() + f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: Optional[int] = None) -> RepeatedParser:
+def rep(parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[int] = None) -> RepeatedParser:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -636,7 +636,7 @@ def rep(parser: Union[Parser, Sequence[Input]], min: int = 0, max: Optional[int]
     """
     if isinstance(parser, str):
         parser = lit(parser)
-    return RepeatedParser(parser, min, max)
+    return RepeatedParser(parser, min=min, max=max)
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -809,7 +809,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         result = self.parser.consume(reader)
 
         if self.verbose:
-            print(f"""Result {repr(result)}""")
+            print(f"""Result {result!r}""")
 
         return result
 
@@ -821,7 +821,7 @@ def debug(
     parser: Parser[Input, Output],
     *,
     verbose: bool = False,
-    callback: Optional[Callable[[Parser[Input, Input], Reader[Input]], None]] = None,
+    callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
 ) -> DebugParser:
     """Execute debugging hooks before a parser.
 
