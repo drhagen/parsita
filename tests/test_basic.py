@@ -329,6 +329,17 @@ def test_repeated_separated_nonliteral():
     assert str(TestParsers.cs) == "cs = repsep('c', opt(','))"
 
 
+def test_repeated_separated_with_bounds():
+    assert repsep("b", ",", min=2).parse("b,b,b,b") == Success(["b", "b", "b", "b"])
+    assert repsep("b", ",", max=5).parse("b,b,b,b") == Success(["b", "b", "b", "b"])
+    assert repsep("b", ",", min=3, max=5).parse("b,b,b,b") == Success(["b", "b", "b", "b"])
+    assert repsep("b", ",", min=4, max=4).parse("b,b,b,b") == Success(["b", "b", "b", "b"])
+    assert isinstance(repsep("b", ",", min=4, max=4).parse("b,b,b,b,"), Failure)
+    assert isinstance(repsep("b", ",", min=5).parse("b,b,b,b"), Failure)
+    assert isinstance(repsep("b", ",", max=3).parse("b,b,b,b"), Failure)
+    assert isinstance(repsep("b", ",", min=5).parse("b,b,b,b,"), Failure)
+
+
 @pytest.mark.timeout(2)
 def test_infinite_recursion_protection():
     class TestParsers(GeneralParsers):

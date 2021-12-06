@@ -631,8 +631,10 @@ def rep(parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[i
 
     Args:
         parser: Parser or literal
-        min: Minimum number of entries matched before the parser can succeed
-        max: Maximum number of entries that will be matched
+        min: Nonnegative integer defining the minimum number of entries matched
+            before the parser can succeed
+        max: Nonnegative integer defining the maximum number of entries that
+            will be matched or ``None``, meaning that there is no limit
     """
     if isinstance(parser, str):
         parser = lit(parser)
@@ -697,20 +699,36 @@ def rep1sep(
 
 
 class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
+    def __init__(
+        self,
+        parser: Parser[Input, Output],
+        separator: Parser[Input, Output],
+        *,
+        min: int = 0,
+        max: Optional[int] = None,
+    ):
         super().__init__()
         self.parser = parser
         self.separator = separator
+        self.min = min
+        self.max = max
+
+        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
+        joined = " and ".join([clause for clause in clauses if clause != ""])
+        final_clause = f" {joined} times" if joined != "" else ""
+        name = f"repeated {parser!r}{final_clause} separated by "
+        self._expected = lambda: name
 
     def consume(self, reader: Reader[Input]):
         status = self.parser.consume(reader)
 
         if not isinstance(status, Continue):
-            return Continue(reader, []).merge(status)
+            output = []
+            remainder = reader
         else:
             output = [status.value]
             remainder = status.remainder
-            while True:
+            while self.max is None or len(output) < self.max:
                 # If the separator matches, but the parser does not, the remainder from the last successful parser step
                 # must be used, not the remainder from any separator. That is why the parser starts from the remainder
                 # on the status, but remainder is not updated until after the parser succeeds.
@@ -724,16 +742,30 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                         remainder = status.remainder
                         output.append(status.value)
                     else:
-                        return Continue(remainder, output).merge(status)
+                        break
                 else:
-                    return Continue(remainder, output).merge(status)
+                    break
+
+        if len(output) >= self.min:
+            return Continue(remainder, output).merge(status)
+        else:
+            return Backtrack(remainder, self._expected).merge(status)
 
     def __repr__(self):
-        return self.name_or_nothing() + f"repsep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
+        min_string = f", min={self.min}" if self.min > 0 else ""
+        max_string = f", max={self.max}" if self.max is not None else ""
+        return (
+            self.name_or_nothing()
+            + f"repsep({self.parser.name_or_repr()}, {self.separator.name_or_repr()}{min_string}{max_string})"
+        )
 
 
 def repsep(
-    parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]
+    parser: Union[Parser, Sequence[Input]],
+    separator: Union[Parser, Sequence[Input]],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
 ) -> RepeatedSeparatedParser:
     """Match a parser zero or more times separated by another parser.
 
@@ -745,12 +777,16 @@ def repsep(
     Args:
         parser: Parser or literal
         separator: Parser or literal
+        min: Nonnegative integer defining the minimum number of entries matched
+            before the parser can succeed
+        max: Nonnegative integer defining the maximum number of entries that
+            will be matched or ``None``, meaning that there is no limit
     """
     if isinstance(parser, str):
         parser = lit(parser)
     if isinstance(separator, str):
         separator = lit(separator)
-    return RepeatedSeparatedParser(parser, separator)
+    return RepeatedSeparatedParser(parser, separator, min=min, max=max)
 
 
 class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
