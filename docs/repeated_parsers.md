@@ -1,7 +1,7 @@
 # Repeated parsers
 
-## `rep(parser)` and `rep1(parser)`: repeated parsers
-A repeated parser matches repeated instances of its parser argument. It returns a list with each element being the value of one match. `rep1` only succeeds if at least one match is found. `rep` always succeeds, returning an empty list if no matches are found.
+## `rep(parser, min=0, max=inf)` and `rep1(parser)`: repeated parsers
+A repeated parser matches repeated instances of its parser argument. It returns a list with each element being the value of one match. `rep` only succeeds if it matches at least `min` times and will only consume up to `max` matches. `rep1` is syntactic sugar for `min=1`. If `min=0`, then `rep` always succeeds, returning an empty list if no matches are found.
 
 ```python
 from parsita import *
@@ -13,8 +13,8 @@ class SummationParsers(TextParsers):
 assert SummationParsers.summation.parse('1 + 1 + 2 + 3 + 5') == Success(12)
 ```
 
-## `repsep(parser, separator)` and `rep1sep(parser, separator)`: repeated separated parsers
-A repeated separated parser matches parser separated by separator, returning a list of the values returned by parser and discarding the value of separator. `rep1sep` only succeeds if at least one match is found. `repsep` always succeeds, returning an empty list if no matches are found.
+## `repsep(parser, separator, min=0, max=inf)` and `rep1sep(parser, separator)`: repeated separated parsers
+A repeated separated parser matches parser separated by separator, returning a list of the values returned by parser and discarding the value of separator. `repsep` only succeeds if it matches at least `min` times and will only consume up to `max` matches. `rep1sep` is syntactic sugar for `min=1`. If `min=0`, then `repsep` always succeeds, returning an empty list if no matches are found.
 
 ```python
 from parsita import *

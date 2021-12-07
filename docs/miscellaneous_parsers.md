@@ -15,6 +15,24 @@ assert IntervalParsers.interval.parse('[1, 2]') == Success([1, 2])
 assert IntervalParsers.interval.parse('[2, 1]') != Success([2, 1])
 ```
 
+## `until(parser):`: consume until parser matches
+
+A parser that consumes input until the member parser succeeds. The input matched by the member parser is not consumed. It acts kind of like lookahead. The returned value is all consumed input.
+
+The user should be warned that this parser is kind of slow within `TextParsers`, the typical context for Parsita parsers. This is because, when the member parser fails, it tries again at the next character and the next character until it succeeds. Walking one character at a time can be computationally expensive.
+
+One of the obvious uses of the `until` parser is combining it with the transformation parser in order to implement heredocs.
+
+```python
+from parsita import *
+
+class TestParser(TextParsers):
+    heredoc = reg("[A-Za-z]+") >= (lambda token: until(token) << token)
+
+content = "EOF\nAnything at all\nEOF"
+assert TestParser.heredoc.parse(content) == Success("Anything at all\n")
+```
+
 ## `any1`: any one element
 
 A parser that matches any single input element. This is not a particularly useful parser in the context of parsing text (for which `reg(r'.')` would be more standard). But in the `GeneralParsers` context, this is useful as the first argument to `pred` when one merely wants to run the predicate on a single token. This parser can only fail at the end of the stream. Note that `any1` is not a function—it is a complete parser itself.
@@ -92,4 +110,32 @@ class HostnameParsers(TextParsers, whitespace=None):
 
 assert HostnameParsers.server.parse('drhagen.com:443') == \
     Failure('Expected no other port than 80 but found end of source')
+```
+
+## `debug(parser, *, verbose=False, callback=None)`: debug a parser
+
+This parser does not affect input or output in any way. It merely provides a verbose flag and hook to run a callback. The default for the verbose flag is `False` and the default for the callback is `None`, so by default, `debug` does absolutely nothing. If `verbose` is set to `True`, then the input location is printed before the member parser is invoked and the result is printed after the member parser has returned.
+
+The callback has the signature `(parser: Parser[Input, Output], reader: Reader[Input]) -> None` and will be given the member parser and the reader at the current position.
+
+As the name suggests, this is useful only for debugging purposes. The only place one can reliably put a breakpoint in a parser is in the callback of this parser. The conversion parser can be used to place breakpoints, but only after the member parser has run and only on success, making it not very useful for debugging.
+
+```python
+from decimal import Decimal
+
+from parsita import *
+
+def temp(parser, reader):
+    # Can put a breakpoint here to inspect why the decimal parser is capturing
+    # Spoiler: use `\.` instead of `.` in regexes
+    pass
+
+class NumberParsers(TextParsers):
+    integer = reg(r'[-+]?[0-9]+') > int
+    decimal = debug(reg(r'[-+]?[0-9]+.[0-9]+'), callback=temp) > Decimal
+    scientific = reg(r'[-+]?[0-9]+e[-+]?[0-9]+') > float
+    number = decimal | scientific | integer
+
+# Assertion is broken and needs debugged 
+assert isinstance(NumberParsers.number.parse('1e5').or_die(), float)
 ```
