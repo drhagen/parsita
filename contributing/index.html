@@ -14,7 +14,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.2.2">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.2.3">
     
     
       
@@ -22,10 +22,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.1118c9be.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7f47774.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ba0d045b.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
         
       
     
@@ -433,6 +433,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#making-a-release" class="md-nav__link">
+    Making a release
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -501,6 +508,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#making-a-release" class="md-nav__link">
+    Making a release
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -548,6 +562,37 @@ nox -e lint
 <p>To deploy the current docs to GitHub Pages, Parsita uses the MkDocs <code>gh-deploy</code> command that builds the static site on the <code>gh-pages</code> branch, commits, and pushes to the origin:</p>
 <div class="highlight"><pre><span></span><code>mkdocs gh-deploy
 </code></pre></div>
+<h2 id="making-a-release">Making a release</h2>
+<ol>
+<li>Bump<ol>
+<li>Increment version in <code>pyproject.toml</code></li>
+<li>Commit with message "Bump version number to X.Y.Z"</li>
+<li>Push commit to GitHub</li>
+<li>Check GitHub Actions to ensure all tests pass</li>
+<li>Check that code coverage is 100%</li>
+</ol>
+</li>
+<li>Tag<ol>
+<li>Tag commit with "vX.Y.Z"</li>
+<li>Push commit to GitHub</li>
+<li>Check GitHub Actions for tag</li>
+</ol>
+</li>
+<li>Build<ol>
+<li>Clear <code>dist/</code></li>
+<li>Run <code>poetry build</code></li>
+<li>Verify that sdist (<code>.tar.gz</code>) and bdist (<code>.whl</code>) are in <code>dist/</code></li>
+</ol>
+</li>
+<li>Publish</li>
+<li>Run <code>poetry publish -r test</code></li>
+<li>Check <a href="https://test.pypi.org/project/parsita/">PyPI test server</a> for good upload</li>
+<li>Run <code>poetry publish</code></li>
+<li>Check <a href="https://pypi.org/project/parsita/">PyPI</a> for good upload</li>
+<li>Document</li>
+<li>Create <a href="https://github.com/drhagen/parsita/releases">GitHub release</a> with name "Parsita X.Y.Z" and major changes in body</li>
+<li>If appropriate, deploy updated docs</li>
+</ol>
                 
               
               
@@ -651,7 +696,7 @@ nox -e lint
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.709b4209.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.2b46852b.min.js"></script>
+      <script src="../assets/javascripts/bundle.29db7785.min.js"></script>
       
     
   </body>

@@ -14,7 +14,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.2.2">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.2.3">
     
     
       
@@ -22,10 +22,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.1118c9be.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f7f47774.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ba0d045b.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
         
       
     
@@ -376,6 +376,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#untilparser-consume-until-parser-matches" class="md-nav__link">
+    until(parser):: consume until parser matches
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#any1-any-one-element" class="md-nav__link">
     any1: any one element
   </a>
@@ -406,6 +413,13 @@
         <li class="md-nav__item">
   <a href="#failureexpected-always-fail-with-message" class="md-nav__link">
     failure(expected): always fail with message
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugparser-verbosefalse-callbacknone-debug-a-parser" class="md-nav__link">
+    debug(parser, *, verbose=False, callback=None): debug a parser
   </a>
   
 </li>
@@ -481,6 +495,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#untilparser-consume-until-parser-matches" class="md-nav__link">
+    until(parser):: consume until parser matches
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#any1-any-one-element" class="md-nav__link">
     any1: any one element
   </a>
@@ -515,6 +536,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#debugparser-verbosefalse-callbacknone-debug-a-parser" class="md-nav__link">
+    debug(parser, *, verbose=False, callback=None): debug a parser
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -540,6 +568,18 @@
 
 <span class="k">assert</span> <span class="n">IntervalParsers</span><span class="o">.</span><span class="n">interval</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;[1, 2]&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">IntervalParsers</span><span class="o">.</span><span class="n">interval</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;[2, 1]&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Success</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="untilparser-consume-until-parser-matches"><code>until(parser):</code>: consume until parser matches</h2>
+<p>A parser that consumes input until the member parser succeeds. The input matched by the member parser is not consumed. It acts kind of like lookahead. The returned value is all consumed input.</p>
+<p>The user should be warned that this parser is kind of slow within <code>TextParsers</code>, the typical context for Parsita parsers. This is because, when the member parser fails, it tries again at the next character and the next character until it succeeds. Walking one character at a time can be computationally expensive.</p>
+<p>One of the obvious uses of the <code>until</code> parser is combining it with the transformation parser in order to implement heredocs.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">TestParser</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+    <span class="n">heredoc</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="s2">&quot;[A-Za-z]+&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">token</span><span class="p">:</span> <span class="n">until</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">token</span><span class="p">)</span>
+
+<span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;EOF</span><span class="se">\n</span><span class="s2">Anything at all</span><span class="se">\n</span><span class="s2">EOF&quot;</span>
+<span class="k">assert</span> <span class="n">TestParser</span><span class="o">.</span><span class="n">heredoc</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="s2">&quot;Anything at all</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="any1-any-one-element"><code>any1</code>: any one element</h2>
 <p>A parser that matches any single input element. This is not a particularly useful parser in the context of parsing text (for which <code>reg(r'.')</code> would be more standard). But in the <code>GeneralParsers</code> context, this is useful as the first argument to <code>pred</code> when one merely wants to run the predicate on a single token. This parser can only fail at the end of the stream. Note that <code>any1</code> is not a function—it is a complete parser itself.</p>
@@ -601,6 +641,28 @@
 
 <span class="k">assert</span> <span class="n">HostnameParsers</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;drhagen.com:443&#39;</span><span class="p">)</span> <span class="o">==</span> \
     <span class="n">Failure</span><span class="p">(</span><span class="s1">&#39;Expected no other port than 80 but found end of source&#39;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="debugparser-verbosefalse-callbacknone-debug-a-parser"><code>debug(parser, *, verbose=False, callback=None)</code>: debug a parser</h2>
+<p>This parser does not affect input or output in any way. It merely provides a verbose flag and hook to run a callback. The default for the verbose flag is <code>False</code> and the default for the callback is <code>None</code>, so by default, <code>debug</code> does absolutely nothing. If <code>verbose</code> is set to <code>True</code>, then the input location is printed before the member parser is invoked and the result is printed after the member parser has returned.</p>
+<p>The callback has the signature <code>(parser: Parser[Input, Output], reader: Reader[Input]) -&gt; None</code> and will be given the member parser and the reader at the current position.</p>
+<p>As the name suggests, this is useful only for debugging purposes. The only place one can reliably put a breakpoint in a parser is in the callback of this parser. The conversion parser can be used to place breakpoints, but only after the member parser has run and only on success, making it not very useful for debugging.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+
+<span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">temp</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">reader</span><span class="p">):</span>
+    <span class="c1"># Can put a breakpoint here to inspect why the decimal parser is capturing</span>
+    <span class="c1"># Spoiler: use `\.` instead of `.` in regexes</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+    <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
+    <span class="n">decimal</span> <span class="o">=</span> <span class="n">debug</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+.[0-9]+&#39;</span><span class="p">),</span> <span class="n">callback</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span>
+    <span class="n">scientific</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+e[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">float</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">decimal</span> <span class="o">|</span> <span class="n">scientific</span> <span class="o">|</span> <span class="n">integer</span>
+
+<span class="c1"># Assertion is broken and needs debugged </span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;1e5&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">or_die</span><span class="p">(),</span> <span class="nb">float</span><span class="p">)</span>
 </code></pre></div>
                 
               
@@ -720,7 +782,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.709b4209.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.2b46852b.min.js"></script>
+      <script src="../assets/javascripts/bundle.29db7785.min.js"></script>
       
     
   </body>
