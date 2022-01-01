@@ -41,7 +41,7 @@ It is good to run the tests locally before making a PR, but it is not necessary 
 
 ## Code quality
 
-Parsita uses Black, isort, and Flake8 to do ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
+Parsita uses Black, isort, and Flake8 to ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
 
 ```shell
 nox -e black
