@@ -80,10 +80,10 @@ mkdocs gh-deploy
     2. Run `poetry build`
     3. Verify that sdist (`.tar.gz`) and bdist (`.whl`) are in `dist/`
 4. Publish
-   1. Run `poetry publish -r test`
-   2. Check [PyPI test server](https://test.pypi.org/project/parsita/) for good upload
-   3. Run `poetry publish`
-   4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
+    1. Run `poetry publish -r test`
+    2. Check [PyPI test server](https://test.pypi.org/project/parsita/) for good upload
+    3. Run `poetry publish`
+    4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
 5. Document
-   1. Create [GitHub release](https://github.com/drhagen/parsita/releases) with name "Parsita X.Y.Z" and major changes in body
-   2. If appropriate, deploy updated docs
+    1. Create [GitHub release](https://github.com/drhagen/parsita/releases) with name "Parsita X.Y.Z" and major changes in body
+    2. If appropriate, deploy updated docs
