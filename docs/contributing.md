@@ -62,3 +62,28 @@ To deploy the current docs to GitHub Pages, Parsita uses the MkDocs `gh-deploy` 
 ```shell
 mkdocs gh-deploy
 ```
+
+## Making a release
+
+1. Bump
+    1. Increment version in `pyproject.toml`
+    2. Commit with message "Bump version number to X.Y.Z"
+    3. Push commit to GitHub
+    4. Check GitHub Actions to ensure all tests pass
+    5. Check that code coverage is 100%
+2. Tag
+    1. Tag commit with "vX.Y.Z"
+    2. Push commit to GitHub
+    3. Check GitHub Actions for tag
+3. Build
+    1. Clear `dist/`
+    2. Run `poetry build`
+    3. Verify that sdist (`.tar.gz`) and bdist (`.whl`) are in `dist/`
+4. Publish
+   1. Run `poetry publish -r test`
+   2. Check [PyPI test server](https://test.pypi.org/project/parsita/) for good upload
+   3. Run `poetry publish`
+   4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
+5. Document
+   1. Create [GitHub release](https://github.com/drhagen/parsita/releases) with name "Parsita X.Y.Z" and major changes in body
+   2. If appropriate, deploy updated docs
