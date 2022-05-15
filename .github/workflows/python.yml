@@ -20,7 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install nox_poetry==0.9.0 poetry==1.2.0b1
       - name: Test with nox
-        run: nox -e test-${{ matrix.python-version }}
+        run: nox -s test-${{ matrix.python-version }}
       - name: Store coverage
         uses: actions/upload-artifact@v2
         with:
@@ -45,7 +45,7 @@ jobs:
         with:
           name: coverage
       - name: Combine coverage and generate report
-        run: nox -e coverage
+        run: nox -s coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
   quality:
@@ -62,4 +62,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install nox_poetry==0.9.0 poetry==1.2.0b1
       - name: Run code quality checks
-        run: nox -e black isort lint
+        run: nox -s black isort lint
