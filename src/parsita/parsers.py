@@ -817,7 +817,7 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
         status = self.parser.consume(reader)
 
         if isinstance(status, Continue):
-            return self.transformer(status.value).consume(status.remainder)
+            return self.transformer(status.value).consume(status.remainder).merge(status)
         else:
             return status
 

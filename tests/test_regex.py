@@ -257,6 +257,33 @@ def test_transformation_as_parameterized_parser():
     )
 
 
+def test_transformation_error_propogation():
+    class AssignmentsParser(TextParsers):
+        def assignments_to_map(assignments):
+            names_found = set()
+            output = {}
+            for name, value in assignments:
+                if name in names_found:
+                    return failure(f"{name} to be found only once")
+                names_found.add(name)
+                output[name] = value
+
+            return success(output)
+
+        name = reg(r"[a-z]+")
+        value = reg(r"[0-9]+") > int
+        assignment = name << "=" & value
+        assignments = repsep(assignment, ",") >= assignments_to_map
+
+    assert AssignmentsParser.assignments.parse("a = 5, b = 4") == Success({"a": 5, "b": 4})
+    assert AssignmentsParser.assignments.parse("a = 5, b = 4, a = 3") == Failure(
+        "Expected ',' or a to be found only once but found end of source"
+    )
+    assert AssignmentsParser.assignments.parse("a = 5, b = , c = 8") == Failure(
+        "Expected r'[0-9]+' but found ','\nLine 1, character 12\n\na = 5, b = , c = 8\n           ^      "
+    )
+
+
 def test_debug_callback():
     result = False
 
