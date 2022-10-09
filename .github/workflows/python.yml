@@ -2,6 +2,10 @@ name: python
 
 on: [push]
 
+env:
+  python-version: "3.9"
+  poetry-version: "1.2.1"
+
 jobs:
   test:
     strategy:
@@ -12,7 +16,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Install Poetry
-        run: pipx install poetry==1.2.0
+        run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -34,11 +38,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Install Poetry
-        run: pipx install poetry==1.2.0
+        run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ env.python-version }}
           cache: poetry
       - name: Install environment
         run: poetry install
@@ -56,13 +60,25 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Install Poetry
-        run: pipx install poetry==1.2.0
+        run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ env.python-version }}
           cache: poetry
       - name: Install environment
         run: poetry install
       - name: Run code quality checks
         run: poetry run nox -s black isort lint
+  poetry-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry==${{ env.poetry-version }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Validate Poetry configuration and lockfile freshness
+        run: poetry lock --check
