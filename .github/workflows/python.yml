@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10']
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
           path: .coverage.*
   coverage:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -71,7 +71,7 @@ jobs:
       - name: Run code quality checks
         run: poetry run nox -s black isort lint
   poetry-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
