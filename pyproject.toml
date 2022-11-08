@@ -20,7 +20,7 @@ classifiers = [
 python = "^3.7.0"
 
 [tool.poetry.dev-dependencies]
-nox_poetry = "^1.0.1"
+nox_poetry = "^1.0.2"
 
 # Test
 pytest = "^7.1.1"
