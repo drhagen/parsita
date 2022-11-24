@@ -23,24 +23,25 @@ python = "^3.7.0"
 nox_poetry = "^1.0.2"
 
 # Test
-pytest = "^7.1.1"
-coverage = { version = "^6.3.2", extras = ["toml"] }
-pytest-cov = "^3.0.0"
-pytest-timeout = "^2.1.0"
+pytest = "^7.2"
+coverage = { version = "^6.5", extras = ["toml"] }
+pytest-cov = "*"
+pytest-timeout = "*"
 
 # Black
-black = ">=22.3.0"
+black = ">=22.10"
 
 # Isort
-isort = "^5.9.3"
+isort = "^5.10"
 
 # Lint
-flakehell = "0.9.0"
-flake8 = "3.9.0"  # flakehell breaks on 3.9.1
-pep8-naming = "^0.11.1"
+flake8 = "^3.9"
+pyproject-flake8 = "*"
+pep8-naming = "*"
+flake8-noqa = "*"
 
 # Docs
-mkdocs-material = "^8.2.8"
+mkdocs-material = "^8.5"
 
 
 [tool.coverage.run]
@@ -69,17 +70,13 @@ profile = "black"
 line_length = 120
 
 
-[tool.flakehell]
-max_line_length = 120
-
-[tool.flakehell.plugins]
-# Allow binary operators before line breaks
-# Allow whitespace around `:` because black requires it
-pycodestyle = ["+*", "-W503", "-E203"]
-# Allow glob imports
-pyflakes = ["+*", "-F403", "-F405"]
-# Allow methods whose first argument isn't named `self`
-pep8-naming = ["+*", "-N805"]
+[tool.flake8]
+max-line-length = 120
+noqa-require-code = true
+# F821: undefined-name; Parsita triggers this, but code coverage will catch it
+# E203: whitespace-before-colon; Black formats it this way
+# N805: first-argument-self; Parsita tests and examples define functions in class bodies
+extend-ignore = ["F821", "E203", "N805"]
 
 
 [build-system]

@@ -26,5 +26,5 @@ def isort(session: nox_poetry.Session):
 
 
 @nox_poetry.session(venv_backend="none")
-def lint(session: nox_poetry.Session):
-    session.run("flakehell", "lint", "src", "tests", "examples")
+def flake8(session: nox_poetry.Session):
+    session.run("pflake8", "src", "tests", "examples")

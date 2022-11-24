@@ -1,4 +1,4 @@
-from parsita.util import *
+from parsita.util import constant, splat, unsplat
 
 
 def test_constant():

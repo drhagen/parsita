@@ -1,6 +1,25 @@
 import pytest
 
-from parsita import *
+from parsita import (
+    Failure,
+    GeneralParsers,
+    ParseError,
+    Success,
+    any1,
+    eof,
+    failure,
+    fwd,
+    lit,
+    longest,
+    opt,
+    pred,
+    rep,
+    rep1,
+    rep1sep,
+    repsep,
+    success,
+    until,
+)
 
 
 def test_literals():

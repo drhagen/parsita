@@ -1,7 +1,6 @@
 import re
 
-from parsita import *
-from parsita.state import Backtrack, Continue
+from parsita import Failure, ParseError, SequenceReader, StringReader, Success
 
 
 def test_state_creation():
