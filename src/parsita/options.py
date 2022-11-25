@@ -1,7 +1,9 @@
 import re
 from typing import Any, Sequence
 
-from .state import Input, Output, Result, SequenceReader, StringReader
+from returns.result import Result
+
+from .state import Input, Output, ParseError, SequenceReader, StringReader
 
 # Global mutable state
 
@@ -25,7 +27,7 @@ def wrap_literal(literal: Sequence[Input]):
 handle_literal = default_handle_literal
 
 
-def default_parse_method(self, source: str) -> Result[Output]:
+def default_parse_method(self, source: str) -> Result[Output, ParseError]:
     from .parsers import completely_parse_reader
 
     reader = StringReader(source)
@@ -33,7 +35,7 @@ def default_parse_method(self, source: str) -> Result[Output]:
     return completely_parse_reader(self, reader)
 
 
-def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
+def basic_parse(self, source: Sequence[Input]) -> Result[Output, ParseError]:
     from .parsers import completely_parse_reader
 
     reader = SequenceReader(source)

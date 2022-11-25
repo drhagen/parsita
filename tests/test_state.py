@@ -8,13 +8,11 @@ def test_state_creation():
     succ = Success(40)
     assert succ.value == 40
     assert succ == Success(40)
-    assert str(succ) == "Success(value=40)"
     assert succ != Success("a")
 
     fail = Failure("my message")
     assert fail.message == "my message"
     assert fail == Failure("my message")
-    assert str(fail) == "Failure(message='my message')"
     assert fail != Failure("another message")
 
     assert succ != fail

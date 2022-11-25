@@ -4,8 +4,10 @@ import re
 from types import MethodType
 from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
+from returns.result import Result
+
 from . import options
-from .state import Continue, Convert, Failure, Input, Output, Reader, Result, State, StringReader, Success
+from .state import Continue, Convert, Failure, Input, Output, ParseError, Reader, State, StringReader, Success
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
@@ -102,7 +104,7 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    def parse(self, source: Sequence[Input]) -> Result[Output]:
+    def parse(self, source: Sequence[Input]) -> Result[Output, ParseError]:
         """Abstract method for completely parsing a source.
 
         While ``parse`` is a method on every parser for convenience, it
@@ -198,7 +200,7 @@ class Parser(Generic[Input, Output]):
         return TransformationParser(self, other)
 
 
-def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output]:
+def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output, ParseError]:
     """Consume reader and return Success only on complete consumption.
 
     This is a helper function for ``parse`` methods, which return ``Success``
@@ -210,7 +212,8 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
         reader: The input being consumed
 
     Returns:
-        A parsing ``Result``
+        A Returns ``Result`` containing either the successfully parsed value or
+        an error from the farthest parsed point in the input.
     """
     state = State()
     result = (parser << eof).cached_consume(state, reader)
@@ -225,7 +228,7 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
                 used.add(expected)
                 unique_expected.append(expected)
 
-        return Failure(state.farthest.expected_error(unique_expected))
+        return Failure(ParseError(state.farthest.expected_error(unique_expected)))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):

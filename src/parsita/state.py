@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, NoReturn, Optional, Sequence, Tuple, TypeVar
 
+import returns.result as result
+from deprecated import deprecated
+
 if TYPE_CHECKING:
     from .parsers import Parser
 
@@ -249,8 +252,38 @@ class StringReader(Reader[str]):
             return f"StringReader({self.next_token()}@{self.position})"
 
 
-class Result(Generic[Output]):
+class ParseError(Exception):
+    """Parsing failure converted to an exception.
+
+    Raised when ``or_die`` method on ``Failure`` is called.
+
+    Attributes:
+        message (str): A human-readable error message
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+    def __eq__(self, other):
+        if not isinstance(other, ParseError):
+            return NotImplemented
+        else:
+            return self.message == other.message
+
+    def __str__(self):
+        return self.message
+
+    def __repr__(self):
+        return f"ParseError({self.message!r})"
+
+
+@deprecated("Use returns.result.Result instead.", version="2.0.0")
+class Result(Generic[Output], result.Result[Output, ParseError]):
     """Abstract algebraic base class for ``Success`` and ``Failure``.
+
+    Deprecated: Use returns.result.Result instead. Parsita will exclusively
+    use Returns's Result class in a future release. In fact, parsita.Result is
+    a thin wrapper around returns.result.Result to ease transition.
 
     The class of all values returned from Parser.parse.
     """
@@ -268,9 +301,13 @@ class Result(Generic[Output]):
         raise NotImplementedError()
 
 
-@dataclass(frozen=True)
-class Success(Generic[Output], Result[Output]):
+@deprecated("Use returns.result.Success instead.", version="2.0.0")
+class Success(Generic[Output], Result[Output], result.Success[Output]):
     """Parsing succeeded.
+
+    Deprecated: Use returns.result.Success instead. Parsita will exclusively
+    use Returns's Result class in a future release. In fact, parsita.Success is
+    a thin wrapper around returns.result.Success to ease transition.
 
     Returned from Parser.parse when the parser matched the source entirely.
 
@@ -278,15 +315,23 @@ class Success(Generic[Output], Result[Output]):
         value (Output): The value returned from the parser.
     """
 
-    value: Output
+    @property
+    @deprecated("Use _inner_value or unwrap() instead.", version="2.0.0")
+    def value(self):
+        return self._inner_value
 
+    @deprecated("Use unwrap instead.", version="2.0.0")
     def or_die(self) -> Output:
         return self.value
 
 
-@dataclass(frozen=True)
-class Failure(Result[NoReturn]):
+@deprecated("Use returns.result.Failure instead.", version="2.0.0")
+class Failure(Result[NoReturn], result.Failure[ParseError]):
     """Parsing failed.
+
+    Deprecated: Use returns.result.Failure instead. Parsita will exclusively
+    use Returns's Result class in a future release. In fact, parsita.Failure is
+    a thin wrapper around returns.result.Failure to ease transition.
 
     Returned from ``Parser.parse`` when the parser did not match the source or
     the source was not completely consumed.
@@ -296,29 +341,20 @@ class Failure(Result[NoReturn]):
             during parsing.
     """
 
-    message: str
+    def __init__(self, error: ParseError):
+        if isinstance(error, str):
+            error = ParseError(error)
 
+        super().__init__(error)
+
+    @property
+    @deprecated("Use str on _inner_value.message or unwrap() instead.", version="2.0.0")
+    def message(self) -> str:
+        return str(self._inner_value)
+
+    @deprecated("Use unwrap instead.", version="2.0.0")
     def or_die(self) -> NoReturn:
         raise ParseError(self.message)
-
-
-class ParseError(Exception):
-    """Parsing failure converted to an exception.
-
-    Raised when ``or_die`` method on ``Failure`` is called.
-
-    Attributes:
-        message (str): A human-readable error message
-    """
-
-    def __init__(self, message: str):
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return f"ParseError({self.message!r})"
 
 
 @dataclass(frozen=True)
