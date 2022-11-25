@@ -1,4 +1,4 @@
-from parsita import *
+from parsita import TextParsers, lit, opt, reg, rep
 
 
 class ExpressionParsers(TextParsers):

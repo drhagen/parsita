@@ -1,6 +1,6 @@
 import re
 
-from parsita import *
+from parsita import Failure, ParseError, SequenceReader, StringReader, Success
 from parsita.state import Backtrack, Continue
 
 

@@ -1,7 +1,7 @@
 from collections import OrderedDict, namedtuple
 from ipaddress import IPv4Address, IPv6Address
 
-from parsita import *
+from parsita import TextParsers, lit, opt, reg, rep, rep1, rep1sep, repsep
 from parsita.util import constant, splat
 
 # This covers a typical URL schema, not the crazy one specified by https://tools.ietf.org/html/rfc3986

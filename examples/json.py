@@ -1,4 +1,4 @@
-from parsita import *
+from parsita import TextParsers, lit, reg, rep, repsep
 from parsita.util import constant
 
 # JSON definition according to https://tools.ietf.org/html/rfc7159

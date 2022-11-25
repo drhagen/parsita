@@ -80,7 +80,7 @@ class GeneralParsersMeta(type):
 
         return ParsersDict(old_options)
 
-    def __init__(cls, name, bases, dct, **_):  # noqa: N805
+    def __init__(cls, name, bases, dct, **_):
         old_options = dct.old_options
 
         super().__init__(name, bases, dct)
