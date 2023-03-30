@@ -25,14 +25,15 @@ from parsita import (
 def test_literals():
     class TestParsers(GeneralParsers):
         a = lit("a")
-        bb = lit("bb")
+        ab = lit("ab")
 
     assert TestParsers.a.parse("a") == Success("a")
-    assert TestParsers.bb.parse("bb") == Success("bb")
-    assert TestParsers.bb.parse("bbb") == Failure("Expected end of source but found b at index 2")
-    assert TestParsers.bb.parse("aa") == Failure("Expected b but found a at index 0")
+    assert TestParsers.ab.parse("ab") == Success("ab")
+    assert TestParsers.ab.parse("abb") == Failure("Expected end of source but found b at index 2")
+    assert TestParsers.ab.parse("ca") == Failure("Expected a but found c at index 0")
+    assert TestParsers.ab.parse("ac") == Failure("Expected b but found c at index 1")
     assert str(TestParsers.a) == "a = 'a'"
-    assert str(TestParsers.bb) == "bb = 'bb'"
+    assert str(TestParsers.ab) == "ab = 'ab'"
 
 
 def test_multiple_literals():

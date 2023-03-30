@@ -10,7 +10,7 @@ class ParsersDict(dict):
     def __init__(self, old_options: dict):
         super().__init__()
         self.old_options = old_options  # Holds state of options at start of definition
-        self.forward_declarations = dict()  # Stores forward declarations as they are discovered
+        self.forward_declarations = {}  # Stores forward declarations as they are discovered
 
     def __missing__(self, key):
         frame = inspect.currentframe()  # Should be the frame of __missing__

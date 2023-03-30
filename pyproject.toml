@@ -38,6 +38,9 @@ isort = "^5.10"
 flake8 = "^3.9"
 pep8-naming = "*"
 flake8-noqa = "*"
+flake8-bugbear = "*"
+flake8-broken-line = "*"
+flake8-comprehensions = "*"
 flake8-pyproject = "*"
 
 # Docs

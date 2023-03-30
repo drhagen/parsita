@@ -360,6 +360,57 @@ pycodestyle = ">=2.7.0,<2.8.0"
 pyflakes = ">=2.3.0,<2.4.0"
 
 [[package]]
+name = "flake8-broken-line"
+version = "0.6.0"
+description = "Flake8 plugin to forbid backslashes for line breaks"
+category = "dev"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "flake8-broken-line-0.6.0.tar.gz", hash = "sha256:a02268f11a18837c83c59013a36cc00fee9e17a042745cc0c9895f1c9f6acc16"},
+    {file = "flake8_broken_line-0.6.0-py3-none-any.whl", hash = "sha256:c0ab336ff7de228dbffbe56d67b3615bb21fb15f3ed0604fa7bdf9feb72d7d88"},
+]
+
+[package.dependencies]
+flake8 = ">=3.5,<6"
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
+
+[[package]]
+name = "flake8-bugbear"
+version = "23.3.12"
+description = "A plugin for flake8 finding likely bugs and design problems in your program. Contains warnings that don't belong in pyflakes and pycodestyle."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "flake8-bugbear-23.3.12.tar.gz", hash = "sha256:e3e7f74c8a49ad3794a7183353026dabd68c74030d5f46571f84c1fb0eb79363"},
+    {file = "flake8_bugbear-23.3.12-py3-none-any.whl", hash = "sha256:beb5c7efcd7ccc2039ef66a77bb8db925e7be3531ff1cb4d0b7030d0e2113d72"},
+]
+
+[package.dependencies]
+attrs = ">=19.2.0"
+flake8 = ">=3.0.0"
+
+[package.extras]
+dev = ["coverage", "hypothesis", "hypothesmith (>=0.2)", "pre-commit", "pytest", "tox"]
+
+[[package]]
+name = "flake8-comprehensions"
+version = "3.11.1"
+description = "A flake8 plugin to help you write better list/set/dict comprehensions."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "flake8_comprehensions-3.11.1-py3-none-any.whl", hash = "sha256:d1e27f4099900c61fb156cbb7461e0e49702385fd388326e1a892d04b069c48e"},
+    {file = "flake8_comprehensions-3.11.1.tar.gz", hash = "sha256:31d6386c125e325d7c84290d71f5354295dbbf5a8d47259708fa349aa0969523"},
+]
+
+[package.dependencies]
+flake8 = ">=3.0,<3.2.0 || >3.2.0"
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
+
+[[package]]
 name = "flake8-noqa"
 version = "1.3.1"
 description = "Flake8 noqa comment validation"
@@ -1187,4 +1238,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.0"
-content-hash = "9d0d55dd1ef0b110271ed712405ba0ba8d83238e0738c1cb204f50a364a2cc13"
+content-hash = "fa0ef8bb74dcfb9f8e177f4a593ad5e7a7a54a6f9a2c6ac83ad65a6513207b5a"

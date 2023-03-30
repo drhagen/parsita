@@ -371,7 +371,7 @@ class Backtrack(Generic[Input], Status[Input, None]):
         self.expected = (expected,)
 
     def __repr__(self):
-        return f"Backtrack({self.farthest!r}, {list(map(lambda x: x(), self.expected))})"
+        return f"Backtrack({self.farthest!r}, {[x() for x in self.expected]})"
 
 
 __all__ = [
