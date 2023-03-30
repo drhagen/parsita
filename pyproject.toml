@@ -36,9 +36,9 @@ isort = "^5.10"
 
 # Lint
 flake8 = "^3.9"
-pyproject-flake8 = "*"
 pep8-naming = "*"
 flake8-noqa = "*"
+flake8-pyproject = "*"
 
 # Docs
 mkdocs-material = "^8.5"
