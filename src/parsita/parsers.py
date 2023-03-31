@@ -196,11 +196,11 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
-                return Backtrack(remainder, lambda: str(elem))
+                return Backtrack(remainder, lambda: str(elem))  # noqa: B023
             elif elem == remainder.first:
                 remainder = remainder.rest
             else:
-                return Backtrack(remainder, lambda: str(elem))
+                return Backtrack(remainder, lambda: str(elem))  # noqa: B023
 
         return Continue(remainder, self.pattern)
 
