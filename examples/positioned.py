@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Generic
 
 from parsita import Parser, TextParsers, reg
-from parsita.state import Continue, Input, Output, Reader, Status
+from parsita.state import Continue, Input, Output, Reader, State
 from parsita.util import splat
 
 
@@ -46,13 +46,13 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, Output]:
+    def consume(self, state: State, reader: Reader[Input]):
         start = reader.position
-        status = self.parser.consume(reader)
+        status = self.parser.cached_consume(state, reader)
 
         if isinstance(status, Continue):
             end = status.remainder.position
-            return Continue(status.remainder, status.value.set_position(start, end - start)).merge(status)
+            return Continue(status.remainder, status.value.set_position(start, end - start))
         else:
             return status
 

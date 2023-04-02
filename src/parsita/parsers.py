@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import re
 from types import MethodType
-from typing import Any, Callable, Generic, List, Optional, Sequence, Union
+from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
 from . import options
-from .state import Backtrack, Continue, Convert, Failure, Input, Output, Reader, Result, Status, StringReader, Success
+from .state import Continue, Convert, Failure, Input, Output, Reader, Result, State, StringReader, Success
+
+# Singleton indicating that no result is yet in the memo
+missing = object()
 
 
 class Parser(Generic[Input, Output]):
@@ -45,19 +48,57 @@ class Parser(Generic[Input, Output]):
     def __init__(self):
         self.parse = MethodType(options.parse_method, self)
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, Output]:
-        """Abstract method for matching this parser at the current location.
+    def cached_consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+        """Match this parser at the given location.
 
-        This is the critical method of every parser combinator.
+        This is a concrete wrapper around ``consume``. This method implements
+        the left-recursive packrat algorithm:
+
+        1. Check the memo if this parser has already operated at this location
+            a. Return the result immediately if it is there
+        2. Put a ``None`` in the memo for this parser at this position
+        3. Invoke ``consume``
+        4. Put the result in the memo for this parser at this position
+        5. Return the result
+
+        Individual parsers need to implement ``consume``, but not
+        ``cached_consume``. But all combinations should invoke
+        ``cached_consume`` instead of ``consume`` on their member parsers.
 
         Args:
-            reader: The current state of the parser.
+            state: The mutable state of the parse
+            reader: The current state of the input
 
         Returns:
             If the pattern matches, a ``Continue`` is returned. If the pattern
-            does not match, a ``Failure`` is returned. In either case, if
-            multiple branches are explored, the error from the farthest point is
-            merged with the returned status.
+            does not match, a ``None`` is returned.
+        """
+        key = (self, reader.position)
+        value = state.memo.get(key, missing)
+
+        if value is not missing:
+            return value
+
+        state.memo[key] = None
+
+        result = self.consume(state, reader)
+
+        state.memo[key] = result
+
+        return result
+
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+        """Abstract method for matching this parser at the given location.
+
+        This is the central method of every parser combinator.
+
+        Args:
+            state: The mutable state of the parse
+            reader: The current state of the input
+
+        Returns:
+            If the pattern matches, a ``Continue`` is returned. If the pattern
+            does not match, a ``None`` is returned.
         """
         raise NotImplementedError()
 
@@ -171,20 +212,20 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
     Returns:
         A parsing ``Result``
     """
-    result = (parser << eof).consume(reader)
+    state = State()
+    result = (parser << eof).cached_consume(state, reader)
 
     if isinstance(result, Continue):
         return Success(result.value)
     else:
         used = set()
         unique_expected = []
-        for expected_lambda in result.expected:
-            expected = expected_lambda()
+        for expected in state.expected:
             if expected not in used:
                 used.add(expected)
                 unique_expected.append(expected)
 
-        return Failure(result.farthest.expected_error(" or ".join(unique_expected)))
+        return Failure(state.farthest.expected_error(unique_expected))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):
@@ -192,15 +233,17 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         super().__init__()
         self.pattern = pattern
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
-                return Backtrack(remainder, lambda: str(elem))  # noqa: B023
+                state.register_failure(str(elem), remainder)
+                return None
             elif elem == remainder.first:
                 remainder = remainder.rest
             else:
-                return Backtrack(remainder, lambda: str(elem))  # noqa: B023
+                state.register_failure(str(elem), remainder)
+                return None
 
         return Continue(remainder, self.pattern)
 
@@ -214,27 +257,28 @@ class LiteralStringParser(Parser[str, str]):
         self.whitespace = whitespace
         self.pattern = pattern
 
-    def consume(self, reader: StringReader):
+    def consume(self, state: State, reader: StringReader):
         if self.whitespace is not None:
-            status = self.whitespace.consume(reader)
+            status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder
 
         if reader.source.startswith(self.pattern, reader.position):
             reader = reader.drop(len(self.pattern))
 
             if self.whitespace is not None:
-                status = self.whitespace.consume(reader)
+                status = self.whitespace.cached_consume(state, reader)
                 reader = status.remainder
 
             return Continue(reader, self.pattern)
         else:
-            return Backtrack(reader, lambda: repr(self.pattern))
+            state.register_failure(repr(self.pattern), reader)
+            return None
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.pattern)
 
 
-def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser:
+def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[str, str]:
     """Match a literal sequence.
 
     In the `TextParsers`` context, this matches the literal string
@@ -266,14 +310,15 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.predicate = predicate
         self.description = description
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         remainder = reader
-        status = self.parser.consume(remainder)
+        status = self.parser.cached_consume(state, remainder)
         if isinstance(status, Continue):
             if self.predicate(status.value):
                 return status
             else:
-                return Backtrack(remainder, lambda: self.description)
+                state.register_failure(self.description, reader)
+                return None
         else:
             return status
 
@@ -304,21 +349,22 @@ class RegexParser(Parser[str, str]):
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
 
-    def consume(self, reader: StringReader):
+    def consume(self, state: State, reader: StringReader):
         if self.whitespace is not None:
-            status = self.whitespace.consume(reader)
+            status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder
 
         match = self.pattern.match(reader.source, reader.position)
 
         if match is None:
-            return Backtrack(reader, lambda: f"r'{self.pattern.pattern}'")
+            state.register_failure(f"r'{self.pattern.pattern}'", reader)
+            return None
         else:
             value = reader.source[match.start() : match.end()]
             reader = reader.drop(len(value))
 
             if self.whitespace is not None:
-                status = self.whitespace.consume(reader)
+                status = self.whitespace.cached_consume(state, reader)
                 reader = status.remainder
 
             return Continue(reader, value)
@@ -347,19 +393,19 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, Sequence[Output]]:
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status = self.parser.cached_consume(state, reader)
 
         if isinstance(status, Continue):
-            return Continue(status.remainder, [status.value]).merge(status)
+            return Continue(status.remainder, [status.value])
         else:
-            return Continue(reader, []).merge(status)
+            return Continue(reader, [])
 
     def __repr__(self):
         return self.name_or_nothing() + f"opt({self.parser.name_or_repr()})"
 
 
-def opt(parser: Union[Parser, Sequence[Input]]) -> OptionalParser:
+def opt(parser: Union[Parser[Input, Output], Sequence[Input]]) -> OptionalParser[Input, Output]:
     """Optionally match a parser.
 
     An ``OptionalParser`` attempts to match ``parser``. If it succeeds, it
@@ -379,16 +425,13 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, reader: Reader[Input]):
-        best_failure = None
+    def consume(self, state: State, reader: Reader[Input]):
         for parser in self.parsers:
-            status = parser.consume(reader)
+            status = parser.cached_consume(state, reader)
             if isinstance(status, Continue):
-                return status.merge(best_failure)
-            else:
-                best_failure = status.merge(best_failure)
+                return status
 
-        return best_failure
+        return None
 
     def __repr__(self):
         names = []
@@ -398,7 +441,9 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + " | ".join(names)
 
 
-def first(parser: Union[Parser, Sequence[Input]], *parsers: Union[Parser, Sequence[Input]]):
+def first(
+    parser: Union[Parser[Input, Output], Sequence[Input]], *parsers: Union[Parser[Input, Output], Sequence[Input]]
+) -> AlternativeParser[Input, Output]:
     """Match the first of several alternative parsers.
 
     A ``AlternativeParser`` attempts to match each supplied parser. If a parser
@@ -422,28 +467,15 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, reader: Reader[Input]):
-        statuses: List[Status] = []
+    def consume(self, state: State, reader: Reader[Input]):
         longest_success: Optional[Continue] = None
         for parser in self.parsers:
-            status = parser.consume(reader)
-            statuses.append(status)
+            status = parser.cached_consume(state, reader)
             if isinstance(status, Continue):
                 if longest_success is None or status.remainder.position > longest_success.remainder.position:
                     longest_success = status
 
-        if longest_success is not None:
-            # Run backwards because of the way merge works
-            for status in reversed(statuses):
-                longest_success = longest_success.merge(status)
-            return longest_success
-        else:
-            # All statuses are failures
-            # Run backwards because of the way merge works
-            best_failure: Optional[Backtrack] = statuses[-1]
-            for status in reversed(statuses[:-1]):
-                best_failure = best_failure.merge(status)
-            return best_failure
+        return longest_success
 
     def __repr__(self):
         names = []
@@ -453,7 +485,9 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + f"longest({', '.join(names)})"
 
 
-def longest(parser: Union[Parser, Sequence[Input]], *parsers: Union[Parser, Sequence[Input]]):
+def longest(
+    parser: Union[Parser[Input, Output], Sequence[Input]], *parsers: Union[Parser[Input, Output], Sequence[Input]]
+) -> LongestAlternativeParser[Input, Output]:
     """Match the longest of several alternative parsers.
 
     A ``LongestAlternativeParser`` attempts to match all supplied parsers. If
@@ -478,20 +512,19 @@ class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of thi
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         output = []
-        status = None
         remainder = reader
 
         for parser in self.parsers:
-            status = parser.consume(remainder).merge(status)
+            status = parser.cached_consume(state, remainder)
             if isinstance(status, Continue):
                 output.append(status.value)
                 remainder = status.remainder
             else:
-                return status
+                return None
 
-        return Continue(remainder, output).merge(status)
+        return Continue(remainder, output)
 
     def __repr__(self):
         names = []
@@ -507,12 +540,12 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, reader: Reader[Input]):
-        status = self.left.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status = self.left.cached_consume(state, reader)
         if isinstance(status, Continue):
-            return self.right.consume(status.remainder).merge(status)
+            return self.right.cached_consume(state, status.remainder)
         else:
-            return status
+            return None
 
     def __repr__(self):
         return self.name_or_nothing() + f"{self.left.name_or_repr()} >> {self.right.name_or_repr()}"
@@ -524,16 +557,16 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, reader: Reader[Input]):
-        status1 = self.left.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status1 = self.left.cached_consume(state, reader)
         if isinstance(status1, Continue):
-            status2 = self.right.consume(status1.remainder).merge(status1)
+            status2 = self.right.cached_consume(state, status1.remainder)
             if isinstance(status2, Continue):
-                return Continue(status2.remainder, status1.value).merge(status2)
+                return Continue(status2.remainder, status1.value)
             else:
-                return status2
+                return None
         else:
-            return status1
+            return None
 
     def __repr__(self):
         return self.name_or_nothing() + f"{self.left.name_or_repr()} << {self.right.name_or_repr()}"
@@ -544,16 +577,16 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         super().__init__()
         self.parser = parser
 
-    def consume(self, reader: Reader[Input]):
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status = self.parser.cached_consume(state, reader)
 
-        if not isinstance(status, Continue):
-            return status
+        if status is None:
+            return None
         else:
             output = [status.value]
             remainder = status.remainder
             while True:
-                status = self.parser.consume(remainder).merge(status)
+                status = self.parser.cached_consume(state, remainder)
                 if isinstance(status, Continue):
                     if remainder.position == status.remainder.position:
                         raise RuntimeError(remainder.recursion_error(str(self)))
@@ -561,13 +594,13 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                     remainder = status.remainder
                     output.append(status.value)
                 else:
-                    return Continue(remainder, output).merge(status)
+                    return Continue(remainder, output)
 
     def __repr__(self):
         return self.name_or_nothing() + f"rep1({self.parser.name_or_repr()})"
 
 
-def rep1(parser: Union[Parser, Sequence[Input]]) -> RepeatedOnceParser:
+def rep1(parser: Union[Parser[Input, Output], Sequence[Input]]) -> RepeatedOnceParser[Input, Output]:
     """Match a parser one or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. If it matches as least
@@ -589,19 +622,13 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.parser = parser
         self.min = min
         self.max = max
-        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
-        joined = " and ".join([clause for clause in clauses if clause != ""])
-        final_clause = f" {joined} times" if joined != "" else ""
-        name = f"repeated {parser!r}{final_clause}"
-        self._expected = lambda: name
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         output = []
-        status = None
         remainder = reader
 
         while self.max is None or len(output) < self.max:
-            status = self.parser.consume(remainder).merge(status)
+            status = self.parser.cached_consume(state, remainder)
             if isinstance(status, Continue):
                 if remainder.position == status.remainder.position:
                     raise RuntimeError(remainder.recursion_error(str(self)))
@@ -612,9 +639,9 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
                 break
 
         if len(output) >= self.min:
-            return Continue(remainder, output).merge(status)
+            return Continue(remainder, output)
         else:
-            return Backtrack(remainder, self._expected).merge(status)
+            return None
 
     def __repr__(self):
         min_string = f", min={self.min}" if self.min > 0 else ""
@@ -622,7 +649,9 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         return self.name_or_nothing() + f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
 
 
-def rep(parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[int] = None) -> RepeatedParser:
+def rep(
+    parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[int] = None
+) -> RepeatedParser[Input, Output]:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned
@@ -642,16 +671,16 @@ def rep(parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[i
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Output]):
+    def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Any]):
         super().__init__()
         self.parser = parser
         self.separator = separator
 
-    def consume(self, reader: Reader[Input]):
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status = self.parser.cached_consume(state, reader)
 
-        if not isinstance(status, Continue):
-            return status
+        if status is None:
+            return None
         else:
             output = [status.value]
             remainder = status.remainder
@@ -659,9 +688,9 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                 # If the separator matches, but the parser does not, the remainder from the last successful parser step
                 # must be used, not the remainder from any separator. That is why the parser starts from the remainder
                 # on the status, but remainder is not updated until after the parser succeeds.
-                status = self.separator.consume(remainder).merge(status)
+                status = self.separator.cached_consume(state, remainder)
                 if isinstance(status, Continue):
-                    status = self.parser.consume(status.remainder).merge(status)
+                    status = self.parser.cached_consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
                             raise RuntimeError(remainder.recursion_error(str(self)))
@@ -669,17 +698,17 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                         remainder = status.remainder
                         output.append(status.value)
                     else:
-                        return Continue(remainder, output).merge(status)
+                        return Continue(remainder, output)
                 else:
-                    return Continue(remainder, output).merge(status)
+                    return Continue(remainder, output)
 
     def __repr__(self):
         return self.name_or_nothing() + f"rep1sep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
 
 
 def rep1sep(
-    parser: Union[Parser, Sequence[Input]], separator: Union[Parser, Sequence[Input]]
-) -> RepeatedOnceSeparatedParser:
+    parser: Union[Parser[Input, Output], Sequence[Input]], separator: Union[Parser[Input, Any], Sequence[Input]]
+) -> RepeatedOnceSeparatedParser[Input, Output]:
     """Match a parser one or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``.
@@ -702,7 +731,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
     def __init__(
         self,
         parser: Parser[Input, Output],
-        separator: Parser[Input, Output],
+        separator: Parser[Input, Any],
         *,
         min: int = 0,
         max: Optional[int] = None,
@@ -713,14 +742,8 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         self.min = min
         self.max = max
 
-        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
-        joined = " and ".join([clause for clause in clauses if clause != ""])
-        final_clause = f" {joined} times" if joined != "" else ""
-        name = f"repeated {parser!r}{final_clause} separated by "
-        self._expected = lambda: name
-
-    def consume(self, reader: Reader[Input]):
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]):
+        status = self.parser.cached_consume(state, reader)
 
         if not isinstance(status, Continue):
             output = []
@@ -732,9 +755,9 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                 # If the separator matches, but the parser does not, the remainder from the last successful parser step
                 # must be used, not the remainder from any separator. That is why the parser starts from the remainder
                 # on the status, but remainder is not updated until after the parser succeeds.
-                status = self.separator.consume(remainder).merge(status)
+                status = self.separator.cached_consume(state, remainder)
                 if isinstance(status, Continue):
-                    status = self.parser.consume(status.remainder).merge(status)
+                    status = self.parser.cached_consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
                             raise RuntimeError(remainder.recursion_error(str(self)))
@@ -747,9 +770,9 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                     break
 
         if len(output) >= self.min:
-            return Continue(remainder, output).merge(status)
+            return Continue(remainder, output)
         else:
-            return Backtrack(remainder, self._expected).merge(status)
+            return None
 
     def __repr__(self):
         min_string = f", min={self.min}" if self.min > 0 else ""
@@ -761,12 +784,12 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
 
 
 def repsep(
-    parser: Union[Parser, Sequence[Input]],
-    separator: Union[Parser, Sequence[Input]],
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    separator: Union[Parser[Input, Any], Sequence[Input]],
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedSeparatedParser:
+) -> RepeatedSeparatedParser[Input, Output]:
     """Match a parser zero or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``. A
@@ -795,13 +818,13 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         self.parser = parser
         self.converter = converter
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, Convert]:
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Convert]]:
+        status = self.parser.cached_consume(state, reader)
 
         if isinstance(status, Continue):
-            return Continue(status.remainder, self.converter(status.value)).merge(status)
+            return Continue(status.remainder, self.converter(status.value))
         else:
-            return status
+            return None
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.parser)
@@ -813,11 +836,11 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
         self.parser = parser
         self.transformer = transformer
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, Convert]:
-        status = self.parser.consume(reader)
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Convert]]:
+        status = self.parser.cached_consume(state, reader)
 
         if isinstance(status, Continue):
-            return self.transformer(status.value).consume(status.remainder).merge(status)
+            return self.transformer(status.value).cached_consume(state, status.remainder)
         else:
             return status
 
@@ -835,14 +858,14 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
         if self.callback:
             self.callback(self.parser, reader)
 
-        result = self.parser.consume(reader)
+        result = self.parser.cached_consume(state, reader)
 
         if self.verbose:
             print(f"""Result {result!r}""")
@@ -886,11 +909,12 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
     def __init__(self):
         super().__init__()
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, None]]:
         if reader.finished:
             return Continue(reader, None)
         else:
-            return Backtrack(reader, lambda: "end of source")
+            state.register_failure("end of source", reader)
+            return None
 
     def __repr__(self):
         return self.name_or_nothing() + "eof"
@@ -899,19 +923,19 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
 eof = EndOfSourceParser()
 
 
-class SuccessParser(Generic[Input, Output], Parser[Input, Output]):
+class SuccessParser(Generic[Output], Parser[Any, Output]):
     def __init__(self, value: Output):
         super().__init__()
         self.value = value
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+    def consume(self, state: State, reader: Reader[Input]) -> Continue[Input, None]:
         return Continue(reader, self.value)
 
     def __repr__(self):
         return self.name_or_nothing() + f"success({self.value!r})"
 
 
-def success(value: Any):
+def success(value: Output) -> SuccessParser[Input, Output]:
     """Always succeed in matching and return a value.
 
     This parser always succeeds and returns the given ``value``. No input is
@@ -924,19 +948,20 @@ def success(value: Any):
     return SuccessParser(value)
 
 
-class FailureParser(Generic[Input, Output], Parser[Input, Output]):
+class FailureParser(Generic[Input], Parser[Input, NoReturn]):
     def __init__(self, expected: str):
         super().__init__()
         self.expected = expected
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
-        return Backtrack(reader, lambda: self.expected)
+    def consume(self, state: State, reader: Reader[Input]) -> None:
+        state.register_failure(self.expected, reader)
+        return None
 
     def __repr__(self):
         return self.name_or_nothing() + f"failure({self.expected!r})"
 
 
-def failure(expected: str = ""):
+def failure(expected: str = "") -> FailureParser[Input]:
     """Always fail in matching with a given message.
 
     This parser always backtracks with a message that it is expecting the
@@ -955,10 +980,10 @@ class UntilParser(Generic[Input], Parser[Input, Input]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, reader: Reader[Input]):
+    def consume(self, state: State, reader: Reader[Input]):
         start_position = reader.position
         while True:
-            status = self.parser.consume(reader)
+            status = self.parser.cached_consume(state, reader)
 
             if isinstance(status, Continue):
                 break
@@ -999,9 +1024,10 @@ class AnyParser(Generic[Input], Parser[Input, Input]):
     def __init__(self):
         super().__init__()
 
-    def consume(self, reader: Reader[Input]) -> Status[Input, None]:
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Input]]:
         if reader.finished:
-            return Backtrack(reader, lambda: "anything")
+            state.register_failure("anything", reader)
+            return None
         else:
             return Continue(reader.rest, reader.first)
 
