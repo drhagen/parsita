@@ -458,6 +458,16 @@ def test_protection():
     assert str(TestParsers.end_aa) == "end_aa = 'aa' << eof"
 
 
+def test_failures_with_duplicate_tokens():
+    # If two alternatives have the same starting token, the failure message should not contain duplicates.
+    class ParallelParsers(TextParsers):
+        plus_one = lit("+") >> lit("1")
+        plus_two = lit("+") >> lit("2")
+        alt = plus_one | plus_two
+
+    assert ParallelParsers.alt.parse("-1") == Failure("Expected '+' but found '-'\nLine 1, character 1\n\n-1\n^ ")
+
+
 def test_nested_class():
     class TestOuter(TextParsers, whitespace="[ ]*"):
         start = "%%"

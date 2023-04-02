@@ -622,11 +622,6 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.parser = parser
         self.min = min
         self.max = max
-        clauses = [f"at least {min}" if min > 0 else "", f"no more than {max}" if max is not None else ""]
-        joined = " and ".join([clause for clause in clauses if clause != ""])
-        final_clause = f" {joined} times" if joined != "" else ""
-        name = f"repeated {parser!r}{final_clause}"
-        self._expected = lambda: name
 
     def consume(self, state: State, reader: Reader[Input]):
         output = []
