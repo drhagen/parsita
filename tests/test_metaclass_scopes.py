@@ -1,7 +1,6 @@
 import pytest
-from returns.result import Success
 
-from parsita import TextParsers, lit
+from parsita import Success, TextParsers, lit
 
 
 def convert(value: str):

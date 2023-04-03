@@ -4,10 +4,8 @@ import re
 from types import MethodType
 from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
-from returns.result import Failure, Result, Success
-
 from . import options
-from .state import Continue, Convert, Input, Output, ParseError, Reader, State, StringReader
+from .state import Continue, Convert, Failure, Input, Output, ParseError, Reader, Result, State, StringReader, Success
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
@@ -104,7 +102,7 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    def parse(self, source: Sequence[Input]) -> Result[Output, ParseError]:
+    def parse(self, source: Sequence[Input]) -> Result[Output]:
         """Abstract method for completely parsing a source.
 
         While ``parse`` is a method on every parser for convenience, it
@@ -200,7 +198,7 @@ class Parser(Generic[Input, Output]):
         return TransformationParser(self, other)
 
 
-def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output, ParseError]:
+def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output]:
     """Consume reader and return Success only on complete consumption.
 
     This is a helper function for ``parse`` methods, which return ``Success``

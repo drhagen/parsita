@@ -1,6 +1,6 @@
 import re
 
-from parsita import ParseError, SequenceReader, StringReader
+from parsita import Failure, ParseError, Result, SequenceReader, StringReader, Success
 from parsita.state import Continue, State
 
 
@@ -54,6 +54,15 @@ def test_register_failure_tied():
     state.register_failure("egg", StringReader("bar baz", 4))
     assert state.expected == ["foo", "egg"]
     assert state.farthest.position == 4
+
+
+def test_isinstance():
+    success = Success(1)
+    failure = Failure(ParseError("foo"))
+    assert isinstance(success, Success)
+    assert isinstance(failure, Failure)
+    assert isinstance(success, Result)
+    assert isinstance(failure, Result)
 
 
 def test_current_line():

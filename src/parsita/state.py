@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
 
+from returns import result
+
 if TYPE_CHECKING:
     from .parsers import Parser
 
@@ -249,6 +251,12 @@ class StringReader(Reader[str]):
             return f"StringReader({self.next_token()}@{self.position})"
 
 
+@dataclass(frozen=True)
+class Continue(Generic[Input, Output]):
+    remainder: Reader[Input]
+    value: Output
+
+
 class ParseError(Exception):
     """Parsing failure.
 
@@ -274,10 +282,14 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
-@dataclass(frozen=True)
-class Continue(Generic[Input, Output]):
-    remainder: Reader[Input]
-    value: Output
+# Reexport Returns Result types
+Result = result.Result
+Success = result.Success
+Failure = result.Failure
+if TYPE_CHECKING:
+    # These objects fail in isinstance
+    Result = result.Result[Output, ParseError]
+    Failure = result.Failure[ParseError]
 
 
 __all__ = [
@@ -290,4 +302,7 @@ __all__ = [
     "StringReader",
     "ParseError",
     "Continue",
+    "Result",
+    "Success",
+    "Failure",
 ]
