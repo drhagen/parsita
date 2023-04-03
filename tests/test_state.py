@@ -1,7 +1,7 @@
 import re
 
 import pytest
-from returns.result import UnwrapFailedError
+from returns import result
 
 from parsita import Failure, ParseError, SequenceReader, StringReader, Success
 from parsita.state import Backtrack, Continue
@@ -49,8 +49,17 @@ def test_state_creation():
 
 def test_unwrap():
     assert Success(40).unwrap() == 40
-    with pytest.raises(UnwrapFailedError):
+    with pytest.raises(result.UnwrapFailedError):
         Failure("my message").unwrap()
+
+
+def test_equal_to_returns_result():
+    assert Success(40) == result.Success(40)
+    assert result.Success(40) == Success(40)
+    assert Success(40) != result.Success(41)
+    assert Failure("my message") == result.Failure(ParseError("my message"))
+    assert result.Failure(ParseError("my message")) == Failure("my message")
+    assert Failure("my message") != result.Failure(ParseError("another message"))
 
 
 def test_current_line():

@@ -308,6 +308,8 @@ class Success(Generic[Output], Result[Output], result.Success[Output]):
     def __eq__(self, other):
         if isinstance(other, Success):
             return self.value == other.value
+        elif isinstance(other, result.Success):
+            return self._inner_value == other._inner_value
         else:
             return NotImplemented
 
@@ -351,6 +353,8 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
     def __eq__(self, other):
         if isinstance(other, Failure):
             return self.message == other.message
+        elif isinstance(other, result.Failure):
+            return self._inner_value == other._inner_value
         else:
             return NotImplemented
 
