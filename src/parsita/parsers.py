@@ -4,10 +4,10 @@ import re
 from types import MethodType
 from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
-from returns.result import Result
+from returns.result import Failure, Result, Success
 
 from . import options
-from .state import Continue, Convert, Failure, Input, Output, ParseError, Reader, State, StringReader, Success
+from .state import Continue, Convert, Input, Output, ParseError, Reader, State, StringReader
 
 # Singleton indicating that no result is yet in the memo
 missing = object()

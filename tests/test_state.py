@@ -1,20 +1,10 @@
 import re
 
-from parsita import Failure, ParseError, SequenceReader, StringReader, Success
+from parsita import ParseError, SequenceReader, StringReader
 from parsita.state import Continue, State
 
 
 def test_state_creation():
-    succ = Success(40)
-    assert succ == Success(40)
-    assert succ != Success("a")
-
-    fail = Failure(ParseError("my message"))
-    assert fail == Failure(ParseError("my message"))
-    assert fail != Failure(ParseError("another message"))
-
-    assert succ != fail
-
     read = SequenceReader([1, 2, 3])
     assert read.first == 1
     assert read.rest.first == 2

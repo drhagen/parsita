@@ -1,10 +1,9 @@
 import pytest
+from returns.result import Failure, Success
 
 from parsita import (
-    Failure,
     GeneralParsers,
     ParseError,
-    Success,
     any1,
     eof,
     failure,

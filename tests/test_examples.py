@@ -1,4 +1,4 @@
-from parsita import Success
+from returns.result import Success
 
 
 def test_expressions():

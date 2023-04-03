@@ -3,10 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from io import StringIO
-from typing import TYPE_CHECKING, Any, Dict, Generic, List, NoReturn, Optional, Sequence, Tuple, TypeVar
-
-import returns.result as result
-from deprecated import deprecated
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
 
 if TYPE_CHECKING:
     from .parsers import Parser
@@ -277,43 +274,6 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
-@deprecated("Use returns.result.Result instead.", version="2.0.0")
-class Result(Generic[Output], result.Result[Output, ParseError]):
-    """Abstract algebraic base class for ``Success`` and ``Failure``.
-
-    Deprecated: Use returns.result.Result instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Result is
-    a thin wrapper around returns.result.Result to ease transition.
-
-    The class of all values returned from Parser.parse.
-    """
-
-
-@deprecated("Use returns.result.Success instead.", version="2.0.0")
-class Success(Generic[Output], Result[Output], result.Success[Output]):
-    """Parsing succeeded.
-
-    Deprecated: Use returns.result.Success instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Success is
-    a thin wrapper around returns.result.Success to ease transition.
-
-    Returned from Parser.parse when the parser matched the source entirely.
-    """
-
-
-@deprecated("Use returns.result.Failure instead.", version="2.0.0")
-class Failure(Result[NoReturn], result.Failure[ParseError]):
-    """Parsing failed.
-
-    Deprecated: Use returns.result.Failure instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Failure is
-    a thin wrapper around returns.result.Failure to ease transition.
-
-    Returned from ``Parser.parse`` when the parser did not match the source or
-    the source was not completely consumed.
-    """
-
-
 @dataclass(frozen=True)
 class Continue(Generic[Input, Output]):
     remainder: Reader[Input]
@@ -328,9 +288,6 @@ __all__ = [
     "Reader",
     "SequenceReader",
     "StringReader",
-    "Result",
-    "Success",
-    "Failure",
     "ParseError",
     "Continue",
 ]
