@@ -21,9 +21,12 @@ Pretty much every function in Parsita returns an object with type `Parser`. Vari
 
 ### `Parser.parse`
 
-The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. The standard way to test if a result is a `Success` or `Failure` is to use `isinstance(result, Success)`. If `Success`, the parsed value can be obtained with `result.unwrap()`. If `Failure`, the error message can be obtained with `result.failure()`.
+The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. Note that in v2.0, these classes are not defined in Parsita, but are imported from `returns.result`.
+
+The standard way to test if a result is a `Success` or `Failure` is to use `is_successful` from `returns.pipeline`:
 
 ```python
+from returns.pipeline import is_successful
 from parsita import *
 
 class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
@@ -31,21 +34,26 @@ class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
 
 result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
 
-if isinstance(result, Success):
+if is_successful(result):
     python_list = result.unwrap()
 else:
     raise result.failure()
 ```
 
-### `Result.or_die`
-
-Alternatively, `result.or_die()` returns the value if it is a `Success` and raises a `ParseError` exception with the message if it is a `Failure`. It is common to apply this immediately after the call to `parse` when an exception on failure is desired.
+In on Python 3.10 or later, an even better solution is to use the `match` statement:
 
 ```python
+from returns.result import Success, Failure
 from parsita import *
 
 class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
     integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
 
-python_list = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]').or_die()
+result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
+
+match result:
+    case Success(value):
+        python_list = value
+    case Failure(error):
+        raise result.failure()
 ```
