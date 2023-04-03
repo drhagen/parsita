@@ -9,9 +9,9 @@ def test_state_creation():
     assert succ == Success(40)
     assert succ != Success("a")
 
-    fail = Failure("my message")
-    assert fail == Failure("my message")
-    assert fail != Failure("another message")
+    fail = Failure(ParseError("my message"))
+    assert fail == Failure(ParseError("my message"))
+    assert fail != Failure(ParseError("another message"))
 
     assert succ != fail
 

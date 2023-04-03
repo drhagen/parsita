@@ -313,12 +313,6 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
     the source was not completely consumed.
     """
 
-    def __init__(self, error: ParseError):
-        if isinstance(error, str):
-            error = ParseError(error)
-
-        super().__init__(error)
-
 
 @dataclass(frozen=True)
 class Continue(Generic[Input, Output]):
