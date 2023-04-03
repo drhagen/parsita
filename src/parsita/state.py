@@ -270,10 +270,9 @@ class ParseError(Exception):
         self.message = message
 
     def __eq__(self, other):
-        if not isinstance(other, ParseError):
-            return NotImplemented
-        else:
+        if isinstance(other, ParseError):
             return self.message == other.message
+        return NotImplemented
 
     def __str__(self):
         return self.message

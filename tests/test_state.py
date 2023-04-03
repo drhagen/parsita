@@ -28,6 +28,13 @@ def test_state_creation():
     assert repr(error) == "ParseError('Expected a but found b at index 0')"
 
 
+def test_parse_error_equality():
+    error = ParseError("foo")
+    assert error == ParseError("foo")
+    assert error != ParseError("bar")
+    assert error != "foo"
+
+
 def test_register_failure_first():
     state = State()
     state.register_failure("foo", StringReader("bar baz", 0))
