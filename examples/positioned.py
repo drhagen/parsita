@@ -102,4 +102,4 @@ class PlusParsers(TextParsers):
 
 
 if __name__ == "__main__":
-    print(PlusParsers.plus.parse("abc + xyz").or_die())
+    print(PlusParsers.plus.parse("abc + xyz").unwrap())

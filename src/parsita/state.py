@@ -253,9 +253,9 @@ class StringReader(Reader[str]):
 
 
 class ParseError(Exception):
-    """Parsing failure converted to an exception.
+    """Parsing failure.
 
-    Raised when ``or_die`` method on ``Failure`` is called.
+    The container for the error of failed parsing.
 
     Attributes:
         message (str): A human-readable error message
@@ -288,18 +288,6 @@ class Result(Generic[Output], result.Result[Output, ParseError]):
     The class of all values returned from Parser.parse.
     """
 
-    def or_die(self) -> Output:
-        """Return value if Success, raise exception if Failure.
-
-        Returns:
-            If Success, the parsed value
-
-        Raises:
-        ParseError
-            If Failure, with appropriate message
-        """
-        raise NotImplementedError()
-
 
 @deprecated("Use returns.result.Success instead.", version="2.0.0")
 class Success(Generic[Output], Result[Output], result.Success[Output]):
@@ -319,10 +307,6 @@ class Success(Generic[Output], Result[Output], result.Success[Output]):
     @deprecated("Use _inner_value or unwrap() instead.", version="2.0.0")
     def value(self):
         return self._inner_value
-
-    @deprecated("Use unwrap instead.", version="2.0.0")
-    def or_die(self) -> Output:
-        return self.value
 
 
 @deprecated("Use returns.result.Failure instead.", version="2.0.0")
@@ -351,10 +335,6 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
     @deprecated("Use str on _inner_value.message or unwrap() instead.", version="2.0.0")
     def message(self) -> str:
         return str(self._inner_value)
-
-    @deprecated("Use unwrap instead.", version="2.0.0")
-    def or_die(self) -> NoReturn:
-        raise ParseError(self.message)
 
 
 @dataclass(frozen=True)

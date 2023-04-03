@@ -44,16 +44,6 @@ def test_multiple_literals():
     assert TestParsers.ab.parse("b") == Success("b")
 
 
-def test_or_die():
-    class TestParsers(GeneralParsers):
-        a = lit("a")
-        bb = lit("bb")
-
-    assert TestParsers.a.parse("a").or_die() == "a"
-    with pytest.raises(ParseError, match="Expected b but found a at index 0"):
-        TestParsers.bb.parse("aa").or_die()
-
-
 def test_predicate():
     class TestParsers(GeneralParsers):
         a = pred(any1, lambda x: x in ("A", "a"), "letter A")

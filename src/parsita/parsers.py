@@ -216,10 +216,10 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
         an error from the farthest parsed point in the input.
     """
     state = State()
-    result = (parser << eof).cached_consume(state, reader)
+    status = (parser << eof).cached_consume(state, reader)
 
-    if isinstance(result, Continue):
-        return Success(result.value)
+    if isinstance(status, Continue):
+        return Success(status.value)
     else:
         used = set()
         unique_expected = []

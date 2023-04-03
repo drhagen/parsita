@@ -25,11 +25,11 @@ class HelloWorldParsers(TextParsers, whitespace=r'[ ]*'):
     hello_world = lit('Hello') >> ',' >> reg(r'[A-Z][a-z]*') << '!'
 
 # A successful parse produces the parsed value
-name = HelloWorldParsers.hello_world.parse('Hello, David!').or_die()
+name = HelloWorldParsers.hello_world.parse('Hello, David!').unwrap()
 assert name == 'David'
 
 # A parsing failure produces a useful error message
-name = HelloWorldParsers.hello_world.parse('Hello David!').or_die()
+name = HelloWorldParsers.hello_world.parse('Hello David!').unwrap()
 # parsita.state.ParseError: Expected ',' but found 'David'
 # Line 1, character 7
 #
