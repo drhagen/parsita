@@ -283,12 +283,12 @@ class ParseError(Exception):
 
 
 # Reexport Returns Result types
-Result = result.Result
+Result = result.Result[Output, ParseError]
 Success = result.Success
 Failure = result.Failure
 if TYPE_CHECKING:
-    # These objects fail in isinstance
-    Result = result.Result[Output, ParseError]
+    # This object fails in isinstance
+    # Result does too, but that cannot be fixed without breaking eager type annotations
     Failure = result.Failure[ParseError]
 
 

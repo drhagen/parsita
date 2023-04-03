@@ -1,5 +1,7 @@
 import re
 
+import pytest
+
 from parsita import Failure, ParseError, Result, SequenceReader, StringReader, Success
 from parsita.state import Continue, State
 
@@ -61,8 +63,21 @@ def test_isinstance():
     failure = Failure(ParseError("foo"))
     assert isinstance(success, Success)
     assert isinstance(failure, Failure)
+
+
+@pytest.mark.xfail(reason="Result is type alias and importing the concrete type this would break eager annotations")
+def test_isinstance_result():
+    success = Success(1)
+    failure = Failure(ParseError("foo"))
     assert isinstance(success, Result)
     assert isinstance(failure, Result)
+
+
+def test_result_annotation():
+    def foo() -> Result[int]:
+        return Success(1)
+
+    assert foo() == Success(1)
 
 
 def test_current_line():
