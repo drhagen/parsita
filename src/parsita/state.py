@@ -298,15 +298,7 @@ class Success(Generic[Output], Result[Output], result.Success[Output]):
     a thin wrapper around returns.result.Success to ease transition.
 
     Returned from Parser.parse when the parser matched the source entirely.
-
-    Attributes:
-        value (Output): The value returned from the parser.
     """
-
-    @property
-    @deprecated("Use _inner_value or unwrap() instead.", version="2.0.0")
-    def value(self):
-        return self._inner_value
 
 
 @deprecated("Use returns.result.Failure instead.", version="2.0.0")
@@ -319,10 +311,6 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
 
     Returned from ``Parser.parse`` when the parser did not match the source or
     the source was not completely consumed.
-
-    Attributes:
-        message (str): A human-readable error from the farthest point reached
-            during parsing.
     """
 
     def __init__(self, error: ParseError):
@@ -330,11 +318,6 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
             error = ParseError(error)
 
         super().__init__(error)
-
-    @property
-    @deprecated("Use str on _inner_value.message or unwrap() instead.", version="2.0.0")
-    def message(self) -> str:
-        return str(self._inner_value)
 
 
 @dataclass(frozen=True)

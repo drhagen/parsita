@@ -6,12 +6,10 @@ from parsita.state import Continue, State
 
 def test_state_creation():
     succ = Success(40)
-    assert succ.value == 40
     assert succ == Success(40)
     assert succ != Success("a")
 
     fail = Failure("my message")
-    assert fail.message == "my message"
     assert fail == Failure("my message")
     assert fail != Failure("another message")
 

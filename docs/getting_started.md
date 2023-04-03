@@ -21,7 +21,7 @@ Pretty much every function in Parsita returns an object with type `Parser`. Vari
 
 ### `Parser.parse`
 
-The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. The standard way to test if a result is a `Success` or `Failure` is to use `isinstance(result, Success)`. If `Success`, the parsed value can be obtained with `result.value`. If `Failure`, the error message can be obtained with `result.message`.
+The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. The standard way to test if a result is a `Success` or `Failure` is to use `isinstance(result, Success)`. If `Success`, the parsed value can be obtained with `result.unwrap()`. If `Failure`, the error message can be obtained with `result.failure()`.
 
 ```python
 from parsita import *
@@ -32,9 +32,9 @@ class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
 result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
 
 if isinstance(result, Success):
-    python_list = result.value
+    python_list = result.unwrap()
 else:
-    raise RuntimeError(result.message)
+    raise result.failure()
 ```
 
 ### `Result.or_die`
