@@ -1,5 +1,8 @@
 import re
 
+import pytest
+from returns.result import UnwrapFailedError
+
 from parsita import Failure, ParseError, SequenceReader, StringReader, Success
 from parsita.state import Backtrack, Continue
 
@@ -42,6 +45,12 @@ def test_state_creation():
     error = ParseError("Expected a but found b at index 0")
     assert str(error) == "Expected a but found b at index 0"
     assert repr(error) == "ParseError('Expected a but found b at index 0')"
+
+
+def test_unwrap():
+    assert Success(40).unwrap() == 40
+    with pytest.raises(UnwrapFailedError):
+        Failure("my message").unwrap()
 
 
 def test_current_line():
