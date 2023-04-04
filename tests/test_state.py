@@ -72,7 +72,7 @@ def test_isinstance():
     assert isinstance(failure, Failure)
 
 
-@pytest.mark.xfail(reason="Result is type alias and importing the concrete type this would break eager annotations")
+@pytest.mark.xfail(reason="Result is a type alias and importing the concrete type would break eager annotations")
 def test_isinstance_result():
     success = Success(1)
     failure = Failure(ParseError("foo"))
