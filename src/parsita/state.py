@@ -3,7 +3,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from io import StringIO
-from typing import TYPE_CHECKING, Any, Dict, Generic, List, NoReturn, Optional, Sequence, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
+
+from returns import result
 
 if TYPE_CHECKING:
     from .parsers import Parser
@@ -249,63 +251,16 @@ class StringReader(Reader[str]):
             return f"StringReader({self.next_token()}@{self.position})"
 
 
-class Result(Generic[Output]):
-    """Abstract algebraic base class for ``Success`` and ``Failure``.
-
-    The class of all values returned from Parser.parse.
-    """
-
-    def or_die(self) -> Output:
-        """Return value if Success, raise exception if Failure.
-
-        Returns:
-            If Success, the parsed value
-
-        Raises:
-        ParseError
-            If Failure, with appropriate message
-        """
-        raise NotImplementedError()
-
-
 @dataclass(frozen=True)
-class Success(Generic[Output], Result[Output]):
-    """Parsing succeeded.
-
-    Returned from Parser.parse when the parser matched the source entirely.
-
-    Attributes:
-        value (Output): The value returned from the parser.
-    """
-
+class Continue(Generic[Input, Output]):
+    remainder: Reader[Input]
     value: Output
-
-    def or_die(self) -> Output:
-        return self.value
-
-
-@dataclass(frozen=True)
-class Failure(Result[NoReturn]):
-    """Parsing failed.
-
-    Returned from ``Parser.parse`` when the parser did not match the source or
-    the source was not completely consumed.
-
-    Attributes:
-        message (str): A human-readable error from the farthest point reached
-            during parsing.
-    """
-
-    message: str
-
-    def or_die(self) -> NoReturn:
-        raise ParseError(self.message)
 
 
 class ParseError(Exception):
-    """Parsing failure converted to an exception.
+    """Parsing failure.
 
-    Raised when ``or_die`` method on ``Failure`` is called.
+    The container for the error of failed parsing.
 
     Attributes:
         message (str): A human-readable error message
@@ -314,6 +269,11 @@ class ParseError(Exception):
     def __init__(self, message: str):
         self.message = message
 
+    def __eq__(self, other):
+        if isinstance(other, ParseError):
+            return self.message == other.message
+        return NotImplemented
+
     def __str__(self):
         return self.message
 
@@ -321,10 +281,14 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
-@dataclass(frozen=True)
-class Continue(Generic[Input, Output]):
-    remainder: Reader[Input]
-    value: Output
+# Reexport Returns Result types
+Result = result.Result[Output, ParseError]
+Success = result.Success
+Failure = result.Failure
+if TYPE_CHECKING:
+    # This object fails in isinstance
+    # Result does too, but that cannot be fixed without breaking eager type annotations
+    Failure = result.Failure[ParseError]
 
 
 __all__ = [
@@ -335,9 +299,9 @@ __all__ = [
     "Reader",
     "SequenceReader",
     "StringReader",
+    "ParseError",
+    "Continue",
     "Result",
     "Success",
     "Failure",
-    "ParseError",
-    "Continue",
 ]

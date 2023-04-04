@@ -137,5 +137,5 @@ class NumberParsers(TextParsers):
     number = decimal | scientific | integer
 
 # Assertion is broken and needs debugged 
-assert isinstance(NumberParsers.number.parse('1e5').or_die(), float)
+assert isinstance(NumberParsers.number.parse('1e5').unwrap(), float)
 ```

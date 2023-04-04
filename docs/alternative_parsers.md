@@ -31,12 +31,12 @@ class ExpressionParsers(TextParsers):
     expression = first(keyword, function, name)
 
 assert ExpressionParsers.expression.parse('f(x)') == Success(['f', 'x'])
-assert ExpressionParsers.expression.parse('pi(x)') == Failure(
+assert ExpressionParsers.expression.parse('pi(x)') == Failure(ParseError(
     "Expected end of source but found '('\n"
     "Line 1, character 3\n\n"
     "pi(x)\n"
     "  ^  "
-)
+))
 # Note how the above fails because `keyword` is matched by `first` so that
 # `function`, which would have matched the input, was not tried.
 ```

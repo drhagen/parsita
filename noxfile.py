@@ -12,7 +12,7 @@ def test(session: nox_poetry.Session):
 def coverage(session: nox_poetry.Session):
     session.run("coverage", "combine")
     session.run("coverage", "html")
-    session.run("coverage", "xml")
+    session.run("coverage", "xml", "--fail-under=100")
 
 
 @nox_poetry.session(venv_backend="none")

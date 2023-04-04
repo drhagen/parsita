@@ -1,24 +1,12 @@
 import re
 
-from parsita import Failure, ParseError, SequenceReader, StringReader, Success
+import pytest
+
+from parsita import Failure, ParseError, Result, SequenceReader, StringReader, Success
 from parsita.state import Continue, State
 
 
 def test_state_creation():
-    succ = Success(40)
-    assert succ.value == 40
-    assert succ == Success(40)
-    assert str(succ) == "Success(value=40)"
-    assert succ != Success("a")
-
-    fail = Failure("my message")
-    assert fail.message == "my message"
-    assert fail == Failure("my message")
-    assert str(fail) == "Failure(message='my message')"
-    assert fail != Failure("another message")
-
-    assert succ != fail
-
     read = SequenceReader([1, 2, 3])
     assert read.first == 1
     assert read.rest.first == 2
@@ -38,6 +26,13 @@ def test_state_creation():
     error = ParseError("Expected a but found b at index 0")
     assert str(error) == "Expected a but found b at index 0"
     assert repr(error) == "ParseError('Expected a but found b at index 0')"
+
+
+def test_parse_error_equality():
+    error = ParseError("foo")
+    assert error == ParseError("foo")
+    assert error != ParseError("bar")
+    assert error != "foo"
 
 
 def test_register_failure_first():
@@ -68,6 +63,28 @@ def test_register_failure_tied():
     state.register_failure("egg", StringReader("bar baz", 4))
     assert state.expected == ["foo", "egg"]
     assert state.farthest.position == 4
+
+
+def test_isinstance():
+    success = Success(1)
+    failure = Failure(ParseError("foo"))
+    assert isinstance(success, Success)
+    assert isinstance(failure, Failure)
+
+
+@pytest.mark.xfail(reason="Result is a type alias and importing the concrete type would break eager annotations")
+def test_isinstance_result():
+    success = Success(1)
+    failure = Failure(ParseError("foo"))
+    assert isinstance(success, Result)
+    assert isinstance(failure, Result)
+
+
+def test_result_annotation():
+    def foo() -> Result[int]:
+        return Success(1)
+
+    assert foo() == Success(1)
 
 
 def test_current_line():

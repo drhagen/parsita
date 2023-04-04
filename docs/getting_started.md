@@ -21,7 +21,26 @@ Pretty much every function in Parsita returns an object with type `Parser`. Vari
 
 ### `Parser.parse`
 
-The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. The standard way to test if a result is a `Success` or `Failure` is to use `isinstance(result, Success)`. If `Success`, the parsed value can be obtained with `result.value`. If `Failure`, the error message can be obtained with `result.message`.
+The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as input and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. Note that in v2.0, these classes are reexported by Parsita, but are defined by the popular Returns package in [`returns.result`](https://returns.readthedocs.io/en/latest/pages/result.html). By using the `Result` class from Returns, Parsita's error handling can be composed with that of other libraries that use Returns. 
+
+Instances of `Result` work especially well with pattern matching in the `match` statement introduced in Python 3.10:
+
+```python
+from parsita import *
+
+class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
+    integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
+
+result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
+
+match result:
+    case Success(value):
+        python_list = value
+    case Failure(error):
+        raise error
+```
+
+If working in a version of Python prior to 3.10, you can use `isinstance` directly:
 
 ```python
 from parsita import *
@@ -32,20 +51,9 @@ class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
 result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
 
 if isinstance(result, Success):
-    python_list = result.value
-else:
-    raise RuntimeError(result.message)
+    python_list = result.unwrap()
+elif isinstance(result, Failure):
+    raise result.failure()
 ```
 
-### `Result.or_die`
-
-Alternatively, `result.or_die()` returns the value if it is a `Success` and raises a `ParseError` exception with the message if it is a `Failure`. It is common to apply this immediately after the call to `parse` when an exception on failure is desired.
-
-```python
-from parsita import *
-
-class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
-    integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
-
-python_list = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]').or_die()
-```
+Returns has lots of features related to the `Result` class not covered here. One of the useful features that is not a method on `Result` is `returns.pipeline.is_successful`, which may be useful for those on Python versions without pattern matching.

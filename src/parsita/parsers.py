@@ -5,7 +5,7 @@ from types import MethodType
 from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
 from . import options
-from .state import Continue, Convert, Failure, Input, Output, Reader, Result, State, StringReader, Success
+from .state import Continue, Convert, Failure, Input, Output, ParseError, Reader, Result, State, StringReader, Success
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
@@ -210,13 +210,14 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
         reader: The input being consumed
 
     Returns:
-        A parsing ``Result``
+        A Returns ``Result`` containing either the successfully parsed value or
+        an error from the farthest parsed point in the input.
     """
     state = State()
-    result = (parser << eof).cached_consume(state, reader)
+    status = (parser << eof).cached_consume(state, reader)
 
-    if isinstance(result, Continue):
-        return Success(result.value)
+    if isinstance(status, Continue):
+        return Success(status.value)
     else:
         used = set()
         unique_expected = []
@@ -225,7 +226,7 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
                 used.add(expected)
                 unique_expected.append(expected)
 
-        return Failure(state.farthest.expected_error(unique_expected))
+        return Failure(ParseError(state.farthest.expected_error(unique_expected)))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):
