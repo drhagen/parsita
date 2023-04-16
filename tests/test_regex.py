@@ -4,6 +4,8 @@ from parsita import (
     Failure,
     GeneralParsers,
     ParseError,
+    RecursionError,
+    StringReader,
     Success,
     TextParsers,
     debug,
@@ -436,24 +438,29 @@ def test_infinite_recursion_protection():
 
     # Recursion happens in middle of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
-            "empty string was matched and will be matched forever\n"
-            "Line 1, character 13\n\nfoo foo foo bar",
-        ):
-            parser.parse("foo foo foo bar\nfoo foo foo")
+        text = "foo foo foo bar\nfoo foo foo"
+        with pytest.raises(RecursionError) as actual:
+            parser.parse(text)
+        assert actual.value == RecursionError(parser, StringReader(text, 12))
+        assert str(actual.value) == (
+            f"Infinite recursion detected in {parser!r}; "
+            f"empty string was matched and will be matched forever\n"
+            "Line 1, character 13\n"
+            "\n"
+            "foo foo foo bar\n"
+            "            ^   "
+        )
 
     # Recursion happens at end of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('foo'\)(, opt\(','\))?\).*; "
-            "empty string was matched and will be matched forever at end of source",
-        ):
-            parser.parse("foo foo foo\nfoo foo foo")
+        text = "foo foo foo\nfoo foo foo"
+        with pytest.raises(RecursionError) as actual:
+            parser.parse(text)
+        assert actual.value == RecursionError(parser, StringReader(text, 23))
+        assert str(actual.value) == (
+            f"Infinite recursion detected in {parser!r}; "
+            f"empty string was matched and will be matched forever at end of source"
+        )
 
 
 def test_protection():
