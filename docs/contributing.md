@@ -28,13 +28,13 @@ poetry install
 Parsita uses pytest to run the tests in the `tests/` directory. The test command is encapsulated with Nox:
 
 ```shell
-nox -e test
+poetry run nox -e test
 ```
 
-This will try to test with all compatible versions that `nox` can find. To run the tests with only a particular version, run something like this:
+This will try to test with all compatible Python versions that `nox` can find. To run the tests with only a particular version, run something like this:
 
 ```shell
-nox -e test-3.9
+poetry run nox -e test-3.9
 ```
 
 It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway. 
@@ -44,9 +44,9 @@ It is good to run the tests locally before making a PR, but it is not necessary 
 Parsita uses Black, isort, and Flake8 to ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
 
 ```shell
-nox -e black
-nox -e isort
-nox -e lint
+poetry run nox -e black
+poetry run nox -e isort
+poetry run nox -e flake8
 ```
 
 ## Generating the docs
@@ -54,13 +54,13 @@ nox -e lint
 Parsita uses MkDocs to generate HTML docs from Markdown. For development purposes, they can be served locally without needing to build them first:
 
 ```shell
-mkdocs serve
+poetry run mkdocs serve
 ```
 
 To deploy the current docs to GitHub Pages, Parsita uses the MkDocs `gh-deploy` command that builds the static site on the `gh-pages` branch, commits, and pushes to the origin:
 
 ```shell
-mkdocs gh-deploy
+poetry run mkdocs gh-deploy
 ```
 
 ## Making a release
