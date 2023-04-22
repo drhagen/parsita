@@ -72,7 +72,7 @@ poetry run mkdocs gh-deploy
     4. Check GitHub Actions to ensure all tests pass
 2. Tag
     1. Tag commit with "vX.Y.Z"
-    2. Push commit to GitHub
+    2. Push tag to GitHub
     3. Check GitHub Actions for tag
 3. Build
     1. Clear `dist/`
