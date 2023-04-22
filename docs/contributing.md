@@ -70,7 +70,6 @@ poetry run mkdocs gh-deploy
     2. Commit with message "Bump version number to X.Y.Z"
     3. Push commit to GitHub
     4. Check GitHub Actions to ensure all tests pass
-    5. Check that code coverage is 100%
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push commit to GitHub
