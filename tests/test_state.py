@@ -10,18 +10,13 @@ def test_state_creation():
     read = SequenceReader([1, 2, 3])
     assert read.first == 1
     assert read.rest.first == 2
-    assert str(read) == "Reader(1@0)"
-    assert str(read.rest.rest.rest) == "Reader(finished)"
 
     read = StringReader("a b")
     assert read.first == "a"
     assert read.rest.first == " "
-    assert str(read) == "StringReader(a@0)"
-    assert str(read.rest.rest.rest) == "StringReader(finished)"
 
     cont = Continue(read, 40)
     assert cont.value == 40
-    assert str(cont) == "Continue(remainder=StringReader(a@0), value=40)"
 
     error = ParseError("Expected a but found b at index 0")
     assert str(error) == "Expected a but found b at index 0"

@@ -4,6 +4,8 @@ from parsita import (
     Failure,
     GeneralParsers,
     ParseError,
+    RecursionError,
+    SequenceReader,
     Success,
     any1,
     eof,
@@ -360,23 +362,23 @@ def test_infinite_recursion_protection():
 
     # Recursion happens in middle of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
-            "empty string was matched and will be matched forever at index 2 before b",
-        ):
+        with pytest.raises(RecursionError) as actual:
             parser.parse("aab")
+        assert actual.value == RecursionError(parser, SequenceReader("aab", 2))
+        assert str(actual.value) == (
+            f"Infinite recursion detected in {parser!r}; "
+            f"empty string was matched and will be matched forever at index 2 before b"
+        )
 
     # Recursion happens at end of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
-        with pytest.raises(
-            RuntimeError,
-            match="Infinite recursion detected in "
-            r"bad_rep1?(sep)? = rep1?(sep)?\(opt\('a'\)(, opt\(':'\))?\); "
-            "empty string was matched and will be matched forever at end of source",
-        ):
+        with pytest.raises(RecursionError) as actual:
             parser.parse("aa")
+        assert actual.value == RecursionError(parser, SequenceReader("aa", 2))
+        assert str(actual.value) == (
+            f"Infinite recursion detected in {parser!r}; "
+            f"empty string was matched and will be matched forever at end of source"
+        )
 
 
 def test_conversion():

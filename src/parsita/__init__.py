@@ -18,4 +18,13 @@ from .parsers import (  # noqa: F401
     success,
     until,
 )
-from .state import Failure, ParseError, Reader, Result, SequenceReader, StringReader, Success  # noqa: F401
+from .state import (  # noqa: F401
+    Failure,
+    ParseError,
+    Reader,
+    RecursionError,
+    Result,
+    SequenceReader,
+    StringReader,
+    Success,
+)

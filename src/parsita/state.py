@@ -100,13 +100,8 @@ class Reader(Generic[Input]):
                 f"forever at index {self.position} before {self.next_token()}"
             )
 
-    def __repr__(self):
-        if self.finished:
-            return "Reader(finished)"
-        else:
-            return f"Reader({self.first}@{self.position})"
 
-
+@dataclass(frozen=True)
 class SequenceReader(Reader[Input]):
     """A reader for sequences that should not be sliced.
 
@@ -116,12 +111,12 @@ class SequenceReader(Reader[Input]):
     should read from.
 
     Attributes:
-        source (Sequence[Input]): What will be parsed.
+        source (Sequence[Input]): What will be parsed
+        position (int): Current position in the source
     """
 
-    def __init__(self, source: Sequence[Input], position: int = 0):
-        self.source = source
-        self.position = position
+    source: Sequence[Input]
+    position: int = 0
 
     @property
     def first(self) -> Input:
@@ -137,6 +132,7 @@ class SequenceReader(Reader[Input]):
 
 
 # Python lacks character type, so "str" will be used for both the sequence and the elements
+@dataclass(frozen=True)
 class StringReader(Reader[str]):
     """A reader for strings.
 
@@ -146,12 +142,12 @@ class StringReader(Reader[str]):
     directly on the source using the position to determine where to start.
 
     Attributes:
-        source (str): What will be parsed.
+        source (str): What will be parsed
+        position (int): Current position in the source
     """
 
-    def __init__(self, source: str, position: int = 0):
-        self.source = source
-        self.position = position
+    source: str
+    position: int = 0
 
     @property
     def first(self) -> str:
@@ -244,12 +240,6 @@ class StringReader(Reader[str]):
                 f"forever\nLine {line_index}, character {character_index}\n\n{line}{pointer}"
             )
 
-    def __repr__(self):
-        if self.finished:
-            return "StringReader(finished)"
-        else:
-            return f"StringReader({self.next_token()}@{self.position})"
-
 
 @dataclass(frozen=True)
 class Continue(Generic[Input, Output]):
@@ -281,6 +271,20 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
+@dataclass(frozen=True)
+class RecursionError(Exception):
+    """Recursion failure.
+
+    Error for when repeated parsers fail to consume input.
+    """
+
+    parser: Parser[Any, Any]
+    context: Reader[Any]
+
+    def __str__(self):
+        return self.context.recursion_error(repr(self.parser))
+
+
 # Reexport Returns Result types
 Result = result.Result[Output, ParseError]
 Success = result.Success
@@ -300,6 +304,7 @@ __all__ = [
     "SequenceReader",
     "StringReader",
     "ParseError",
+    "RecursionError",
     "Continue",
     "Result",
     "Success",

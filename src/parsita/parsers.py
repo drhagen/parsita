@@ -5,7 +5,20 @@ from types import MethodType
 from typing import Any, Callable, Generic, List, NoReturn, Optional, Sequence, Union
 
 from . import options
-from .state import Continue, Convert, Failure, Input, Output, ParseError, Reader, Result, State, StringReader, Success
+from .state import (
+    Continue,
+    Convert,
+    Failure,
+    Input,
+    Output,
+    ParseError,
+    Reader,
+    RecursionError,
+    Result,
+    State,
+    StringReader,
+    Success,
+)
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
@@ -590,7 +603,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                 status = self.parser.cached_consume(state, remainder)
                 if isinstance(status, Continue):
                     if remainder.position == status.remainder.position:
-                        raise RuntimeError(remainder.recursion_error(str(self)))
+                        raise RecursionError(self, remainder)
 
                     remainder = status.remainder
                     output.append(status.value)
@@ -632,7 +645,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
             status = self.parser.cached_consume(state, remainder)
             if isinstance(status, Continue):
                 if remainder.position == status.remainder.position:
-                    raise RuntimeError(remainder.recursion_error(str(self)))
+                    raise RecursionError(self, remainder)
 
                 remainder = status.remainder
                 output.append(status.value)
@@ -694,7 +707,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                     status = self.parser.cached_consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
-                            raise RuntimeError(remainder.recursion_error(str(self)))
+                            raise RecursionError(self, remainder)
 
                         remainder = status.remainder
                         output.append(status.value)
@@ -761,7 +774,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                     status = self.parser.cached_consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
-                            raise RuntimeError(remainder.recursion_error(str(self)))
+                            raise RecursionError(self, remainder)
 
                         remainder = status.remainder
                         output.append(status.value)
