@@ -18,16 +18,25 @@ def test_state_creation():
     cont = Continue(read, 40)
     assert cont.value == 40
 
-    error = ParseError("Expected a but found b at index 0")
-    assert str(error) == "Expected a but found b at index 0"
-    assert repr(error) == "ParseError('Expected a but found b at index 0')"
+
+def test_parse_error_str_sequence_reader():
+    err = ParseError(SequenceReader("a a", 2), ["b", "c"])
+    assert str(err) == "Expected b or c but found a at index 2"
 
 
-def test_parse_error_equality():
-    error = ParseError("foo")
-    assert error == ParseError("foo")
-    assert error != ParseError("bar")
-    assert error != "foo"
+def test_parse_error_str_sequence_reader_end_of_source():
+    err = ParseError(SequenceReader("a a", 3), ["b"])
+    assert str(err) == "Expected b but found end of source"
+
+
+def test_parse_error_str_string_reader():
+    err = ParseError(StringReader("a a", 2), ["'b'", "'c'"])
+    assert str(err) == "Expected 'b' or 'c' but found 'a'\nLine 1, character 3\n\na a\n  ^"
+
+
+def test_parse_error_str_string_reader_end_of_source():
+    err = ParseError(StringReader("a a", 3), ["'b'"])
+    assert str(err) == "Expected 'b' but found end of source"
 
 
 def test_register_failure_first():
@@ -62,7 +71,7 @@ def test_register_failure_tied():
 
 def test_isinstance():
     success = Success(1)
-    failure = Failure(ParseError("foo"))
+    failure = Failure(ParseError(StringReader("bar baz", 4), ["foo"]))
     assert isinstance(success, Success)
     assert isinstance(failure, Failure)
 
@@ -70,7 +79,7 @@ def test_isinstance():
 @pytest.mark.xfail(reason="Result is a type alias and importing the concrete type would break eager annotations")
 def test_isinstance_result():
     success = Success(1)
-    failure = Failure(ParseError("foo"))
+    failure = Failure(ParseError(StringReader("bar baz", 4), ["foo"]))
     assert isinstance(success, Result)
     assert isinstance(failure, Result)
 
