@@ -247,28 +247,18 @@ class Continue(Generic[Input, Output]):
     value: Output
 
 
+@dataclass(frozen=True)
 class ParseError(Exception):
     """Parsing failure.
 
     The container for the error of failed parsing.
-
-    Attributes:
-        message (str): A human-readable error message
     """
 
-    def __init__(self, message: str):
-        self.message = message
-
-    def __eq__(self, other):
-        if isinstance(other, ParseError):
-            return self.message == other.message
-        return NotImplemented
+    farthest: Reader[Any]
+    expected: List[str]
 
     def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return f"ParseError({self.message!r})"
+        return self.farthest.expected_error(self.expected)
 
 
 @dataclass(frozen=True)
