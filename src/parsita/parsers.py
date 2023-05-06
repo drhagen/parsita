@@ -239,7 +239,7 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
                 used.add(expected)
                 unique_expected.append(expected)
 
-        return Failure(ParseError(state.farthest.expected_error(unique_expected)))
+        return Failure(ParseError(state.farthest, unique_expected))
 
 
 class LiteralParser(Generic[Input], Parser[Input, Input]):
