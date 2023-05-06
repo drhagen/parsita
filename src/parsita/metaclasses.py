@@ -1,3 +1,5 @@
+__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]
+
 import builtins
 import inspect
 import re
@@ -153,6 +155,3 @@ class TextParsers(metaclass=TextParsersMeta):
     r"\s*".
     """
     pass
-
-
-__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]
