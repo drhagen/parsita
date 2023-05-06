@@ -1,5 +1,21 @@
 from __future__ import annotations
 
+__all__ = [
+    "Input",
+    "Output",
+    "Convert",
+    "State",
+    "Reader",
+    "SequenceReader",
+    "StringReader",
+    "ParseError",
+    "RecursionError",
+    "Continue",
+    "Result",
+    "Success",
+    "Failure",
+]
+
 import re
 from dataclasses import dataclass
 from io import StringIO
@@ -283,20 +299,3 @@ if TYPE_CHECKING:
     # This object fails in isinstance
     # Result does too, but that cannot be fixed without breaking eager type annotations
     Failure = result.Failure[ParseError]
-
-
-__all__ = [
-    "Input",
-    "Output",
-    "Convert",
-    "State",
-    "Reader",
-    "SequenceReader",
-    "StringReader",
-    "ParseError",
-    "RecursionError",
-    "Continue",
-    "Result",
-    "Success",
-    "Failure",
-]

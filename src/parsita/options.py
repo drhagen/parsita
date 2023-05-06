@@ -1,3 +1,13 @@
+__all__ = [
+    "default_whitespace",
+    "whitespace",
+    "default_handle_literal",
+    "wrap_literal",
+    "handle_literal",
+    "default_parse_method",
+    "basic_parse",
+    "parse_method",
+]
 import re
 from typing import Any, Sequence
 
@@ -42,14 +52,3 @@ def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
 
 
 parse_method = default_parse_method
-
-__all__ = [
-    "default_whitespace",
-    "whitespace",
-    "default_handle_literal",
-    "wrap_literal",
-    "handle_literal",
-    "default_parse_method",
-    "basic_parse",
-    "parse_method",
-]
