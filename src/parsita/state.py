@@ -3,7 +3,6 @@ from __future__ import annotations
 __all__ = [
     "Input",
     "Output",
-    "Convert",
     "State",
     "Reader",
     "SequenceReader",
@@ -28,7 +27,6 @@ if TYPE_CHECKING:
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")
-Convert = TypeVar("Convert")
 
 
 class State:
