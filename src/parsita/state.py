@@ -255,15 +255,13 @@ class ParseError(Exception):
         return f"ParseError({self.message!r})"
 
 
-@deprecated("Use returns.result.Result instead.", version="1.8.0")
 class Result(Generic[Output], result.Result[Output, ParseError]):
     """Abstract algebraic base class for ``Success`` and ``Failure``.
 
-    Deprecated: Use returns.result.Result instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Result is
-    a thin wrapper around returns.result.Result to ease transition.
-
     The class of all values returned from Parser.parse.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Result.
     """
 
     def or_die(self) -> Output:
@@ -281,15 +279,13 @@ class Result(Generic[Output], result.Result[Output, ParseError]):
         raise NotImplementedError()
 
 
-@deprecated("Use returns.result.Success instead.", version="1.8.0")
 class Success(Generic[Output], Result[Output], result.Success[Output]):
     """Parsing succeeded.
 
-    Deprecated: Use returns.result.Success instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Success is
-    a thin wrapper around returns.result.Success to ease transition.
-
     Returned from Parser.parse when the parser matched the source entirely.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Success.
     """
 
     @property
@@ -317,16 +313,14 @@ class Success(Generic[Output], Result[Output], result.Success[Output]):
         return f"Success({self.value!r})"
 
 
-@deprecated("Use returns.result.Failure instead.", version="1.8.0")
 class Failure(Result[NoReturn], result.Failure[ParseError]):
     """Parsing failed.
 
-    Deprecated: Use returns.result.Failure instead. Parsita will exclusively
-    use Returns's Result class in a future release. In fact, parsita.Failure is
-    a thin wrapper around returns.result.Failure to ease transition.
-
     Returned from Parser.parse when the parser did not match the source or the
     source was not completely consumed.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Failure.
     """
 
     def __init__(self, error: Union[ParseError, str]):
