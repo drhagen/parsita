@@ -82,6 +82,8 @@ noqa-require-code = true
 # E203: whitespace-before-colon; Black formats it this way
 # N805: first-argument-self; Parsita tests and examples define functions in class bodies
 extend-ignore = ["F821", "E203", "N805"]
+# F401: Allow unused imports in __init__.py files
+per-file-ignores = ["__init__.py:F401"]
 
 
 [build-system]
