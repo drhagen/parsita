@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import re
 from io import StringIO
-from typing import Callable, Generic, Optional, Sequence, Tuple, TypeVar
+from typing import Callable, Generic, NoReturn, Optional, Sequence, Tuple, TypeVar, Union
+
+import returns.result as result
+from deprecated import deprecated
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")
@@ -227,77 +230,6 @@ class StringReader(Reader[str]):
             return f"StringReader({self.next_token()}@{self.position})"
 
 
-class Result(Generic[Output]):
-    """Abstract algebraic base class for ``Success`` and ``Failure``.
-
-    The class of all values returned from Parser.parse.
-    """
-
-    def or_die(self) -> Output:
-        """Return value if Success, raise exception if Failure.
-
-        Returns:
-            If Success, the parsed value
-
-        Raises:
-        ParseError
-            If Failure, with appropriate message
-        """
-        raise NotImplementedError()
-
-
-class Success(Generic[Output], Result[Output]):
-    """Parsing succeeded.
-
-    Returned from Parser.parse when the parser matched the source entirely.
-
-    Attributes:
-        value (Output): The value returned from the parser.
-    """
-
-    def __init__(self, value: Output):
-        self.value = value
-
-    def or_die(self) -> Output:
-        return self.value
-
-    def __eq__(self, other):
-        if isinstance(other, Success):
-            return self.value == other.value
-        else:
-            return NotImplemented
-
-    def __repr__(self):
-        return f"Success({self.value!r})"
-
-
-class Failure(Generic[Output], Result[Output]):
-    """Parsing failed.
-
-    Returned from Parser.parse when the parser did not match the source or the
-    source was not completely consumed.
-
-    Attributes:
-        message (str): A human-readable error from the farthest point reached
-            during parsing.
-    """
-
-    def __init__(self, message: str):
-        self.message = message
-
-    def or_die(self) -> Output:
-        raise ParseError(self.message)
-
-    def __eq__(self, other):
-        if isinstance(other, Failure):
-            return self.message == other.message
-        else:
-            return NotImplemented
-
-    def __repr__(self):
-        return f"Failure({self.message!r})"
-
-
 class ParseError(Exception):
     """Parsing failure converted to an exception.
 
@@ -310,11 +242,118 @@ class ParseError(Exception):
     def __init__(self, message: str):
         self.message = message
 
+    def __eq__(self, other):
+        if not isinstance(other, ParseError):
+            return NotImplemented
+        else:
+            return self.message == other.message
+
     def __str__(self):
         return self.message
 
     def __repr__(self):
         return f"ParseError({self.message!r})"
+
+
+class Result(Generic[Output], result.Result[Output, ParseError]):
+    """Abstract algebraic base class for ``Success`` and ``Failure``.
+
+    The class of all values returned from Parser.parse.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Result.
+    """
+
+    def or_die(self) -> Output:
+        """Return value if Success, raise exception if Failure.
+
+        Deprecated: Use self.unwrap() instead.
+
+        Returns:
+            If Success, the parsed value
+
+        Raises:
+        ParseError
+            If Failure, with appropriate message
+        """
+        raise NotImplementedError()
+
+
+class Success(Generic[Output], Result[Output], result.Success[Output]):
+    """Parsing succeeded.
+
+    Returned from Parser.parse when the parser matched the source entirely.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Success.
+    """
+
+    @property
+    @deprecated("Use unwrap() instead.", version="1.8.0")
+    def value(self) -> Output:
+        """The value returned from the parser.
+
+        Deprecated: Use self.unwrap() instead.
+        """
+        return self._inner_value
+
+    @deprecated("Use unwrap() instead.", version="1.8.0")
+    def or_die(self) -> Output:
+        return self.value
+
+    def __eq__(self, other):
+        if isinstance(other, Success):
+            return self.value == other.value
+        elif isinstance(other, result.Success):
+            return self._inner_value == other._inner_value
+        else:
+            return NotImplemented
+
+    def __repr__(self):
+        return f"Success({self.value!r})"
+
+
+class Failure(Result[NoReturn], result.Failure[ParseError]):
+    """Parsing failed.
+
+    Returned from Parser.parse when the parser did not match the source or the
+    source was not completely consumed.
+
+    In Parsita 2.0, this will become an unmodified reexport of
+    returns.result.Failure.
+    """
+
+    def __init__(self, error: Union[ParseError, str]):
+        if isinstance(error, str):
+            error = ParseError(error)
+
+        super().__init__(error)
+
+    @property
+    @deprecated("Use failure().message instead.", version="2.0.0")
+    def message(self) -> str:
+        """A human-readable error message.
+
+        Deprecated: Use self.failure().message instead.
+
+        From the farthest point reached during parsing.
+        """
+        return str(self._inner_value)
+
+    @deprecated("Use unwrap() instead.", version="1.8.0")
+    def or_die(self) -> Output:
+        raise ParseError(self.message)
+
+    def __eq__(self, other):
+        if isinstance(other, Failure):
+            return self.message == other.message
+        elif isinstance(other, result.Failure):
+            return self._inner_value == other._inner_value
+        else:
+            return NotImplemented
+
+    def __repr__(self):
+        return f"Failure({self.message!r})"
 
 
 class Status(Generic[Input, Output]):
