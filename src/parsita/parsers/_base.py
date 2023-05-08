@@ -6,7 +6,10 @@ from types import MethodType
 from typing import Any, Generic, Optional, Sequence
 
 from .. import options
-from ..state import Continue, Failure, Input, Output, ParseError, Reader, Result, State, Success
+from ..exceptions import ParseError
+from ..reader import Reader
+from ..result import Failure, Result, Success
+from ..state import Continue, Input, Output, State
 
 # Singleton indicating that no result is yet in the memo
 missing = object()

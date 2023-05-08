@@ -2,7 +2,8 @@ __all__ = ["AlternativeParser", "first", "LongestAlternativeParser", "longest"]
 
 from typing import Generic, Optional, Sequence, Union
 
-from ..state import Continue, Input, Output, Reader, State
+from ..reader import Reader
+from ..state import Continue, Input, Output, State
 from ._base import Parser
 from ._literal import lit
 

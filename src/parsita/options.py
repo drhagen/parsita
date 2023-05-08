@@ -11,7 +11,9 @@ __all__ = [
 import re
 from typing import Any, Sequence
 
-from .state import Input, Output, Result, SequenceReader, StringReader
+from .reader import SequenceReader, StringReader
+from .result import Result
+from .state import Input, Output
 
 # Global mutable state
 

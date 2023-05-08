@@ -2,7 +2,8 @@ __all__ = ["SequentialParser", "DiscardLeftParser", "DiscardRightParser"]
 
 from typing import Any, Generic, List
 
-from ..state import Continue, Input, Output, Reader, State
+from ..reader import Reader
+from ..state import Continue, Input, Output, State
 from ._base import Parser
 
 

@@ -2,7 +2,8 @@ __all__ = ["ConversionParser", "TransformationParser"]
 
 from typing import Callable, Generic, Optional, TypeVar
 
-from ..state import Continue, Input, Output, Reader, State
+from ..reader import Reader
+from ..state import Continue, Input, Output, State
 from ._base import Parser
 
 Convert = TypeVar("Convert")

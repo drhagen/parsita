@@ -3,7 +3,8 @@ __all__ = ["LiteralParser", "LiteralStringParser", "lit"]
 from typing import Generic, Optional, Sequence
 
 from .. import options
-from ..state import Continue, Input, Reader, State, StringReader
+from ..reader import Reader, StringReader
+from ..state import Continue, Input, State
 from ._base import Parser
 
 
