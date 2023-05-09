@@ -2,8 +2,7 @@ __all__ = ["DebugParser", "debug"]
 
 from typing import Callable, Generic, Optional
 
-from ..reader import Reader
-from ..state import Input, Output, State
+from ..state import Input, Output, Reader, State
 from ._base import Parser
 from ._literal import lit
 

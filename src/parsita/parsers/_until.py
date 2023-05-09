@@ -2,8 +2,7 @@ __all__ = ["UntilParser", "until"]
 
 from typing import Any, Generic
 
-from ..reader import Reader
-from ..state import Continue, Input, Output, State
+from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser
 from ._literal import lit
 

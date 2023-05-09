@@ -19,5 +19,5 @@ from .parsers import (
     success,
     until,
 )
-from .reader import Reader, SequenceReader, StringReader
 from .result import Failure, Result, Success
+from .state import Reader, SequenceReader, StringReader

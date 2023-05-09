@@ -5,7 +5,7 @@ __all__ = ["ParseError", "RecursionError"]
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List
 
-from .reader import Reader
+from .state import Reader
 
 if TYPE_CHECKING:
     from .parsers import Parser

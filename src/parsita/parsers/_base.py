@@ -7,9 +7,8 @@ from typing import Any, Generic, Optional, Sequence
 
 from .. import options
 from ..exceptions import ParseError
-from ..reader import Reader
 from ..result import Failure, Result, Success
-from ..state import Continue, Input, Output, State
+from ..state import Continue, Input, Output, Reader, State
 
 # Singleton indicating that no result is yet in the memo
 missing = object()

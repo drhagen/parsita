@@ -2,8 +2,7 @@ __all__ = ["SuccessParser", "success", "FailureParser", "failure"]
 
 from typing import Any, Generic, NoReturn
 
-from ..reader import Reader
-from ..state import Continue, Input, Output, State
+from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser
 
 

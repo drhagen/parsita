@@ -4,8 +4,7 @@ import re
 from typing import Optional
 
 from .. import options
-from ..reader import StringReader
-from ..state import Continue, State
+from ..state import Continue, State, StringReader
 from ._base import Parser
 
 

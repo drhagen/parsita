@@ -2,8 +2,7 @@ __all__ = ["EndOfSourceParser", "eof"]
 
 from typing import Generic, Optional
 
-from ..reader import Reader
-from ..state import Continue, Input, State
+from ..state import Continue, Input, Reader, State
 from ._base import Parser
 
 
