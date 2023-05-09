@@ -2,7 +2,8 @@ __all__ = ["RepeatedSeparatedParser", "repsep", "RepeatedOnceSeparatedParser", "
 
 from typing import Any, Generic, Optional, Sequence, Union
 
-from ..state import Continue, Input, Output, Reader, RecursionError, State
+from ..exceptions import RecursionError
+from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser
 from ._literal import lit
 

@@ -1,47 +1,17 @@
 from __future__ import annotations
 
-__all__ = [
-    "Input",
-    "Output",
-    "State",
-    "Reader",
-    "SequenceReader",
-    "StringReader",
-    "ParseError",
-    "RecursionError",
-    "Continue",
-    "Result",
-    "Success",
-    "Failure",
-]
+__all__ = ["Input", "Output", "Reader", "SequenceReader", "StringReader", "State", "Continue"]
 
 import re
 from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
 
-from returns import result
-
 if TYPE_CHECKING:
     from .parsers import Parser
 
 Input = TypeVar("Input")
 Output = TypeVar("Output")
-
-
-class State:
-    def __init__(self):
-        self.farthest: Optional[Reader[Any]] = None
-        self.expected: List[str] = []
-        self.memo: Dict[Tuple[Parser[Any, Any], int], Optional[Continue[Any, Any]]] = {}
-
-    def register_failure(self, expected: str, reader: Reader[Any]):
-        if self.farthest is None or self.farthest.position < reader.position:
-            self.expected.clear()
-            self.expected.append(expected)
-            self.farthest = reader
-        elif self.farthest.position == reader.position:
-            self.expected.append(expected)
 
 
 class Reader(Generic[Input]):
@@ -255,45 +225,22 @@ class StringReader(Reader[str]):
             )
 
 
+class State:
+    def __init__(self):
+        self.farthest: Optional[Reader[Any]] = None
+        self.expected: List[str] = []
+        self.memo: Dict[Tuple[Parser[Any, Any], int], Optional[Continue[Any, Any]]] = {}
+
+    def register_failure(self, expected: str, reader: Reader[Any]):
+        if self.farthest is None or self.farthest.position < reader.position:
+            self.expected.clear()
+            self.expected.append(expected)
+            self.farthest = reader
+        elif self.farthest.position == reader.position:
+            self.expected.append(expected)
+
+
 @dataclass(frozen=True)
 class Continue(Generic[Input, Output]):
     remainder: Reader[Input]
     value: Output
-
-
-@dataclass(frozen=True)
-class ParseError(Exception):
-    """Parsing failure.
-
-    The container for the error of failed parsing.
-    """
-
-    farthest: Reader[Any]
-    expected: List[str]
-
-    def __str__(self):
-        return self.farthest.expected_error(self.expected)
-
-
-@dataclass(frozen=True)
-class RecursionError(Exception):
-    """Recursion failure.
-
-    Error for when repeated parsers fail to consume input.
-    """
-
-    parser: Parser[Any, Any]
-    context: Reader[Any]
-
-    def __str__(self):
-        return self.context.recursion_error(repr(self.parser))
-
-
-# Reexport Returns Result types
-Result = result.Result[Output, ParseError]
-Success = result.Success
-Failure = result.Failure
-if TYPE_CHECKING:
-    # This object fails in isinstance
-    # Result does too, but that cannot be fixed without breaking eager type annotations
-    Failure = result.Failure[ParseError]

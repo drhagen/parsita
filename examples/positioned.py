@@ -10,8 +10,8 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Generic
 
-from parsita import Parser, TextParsers, reg
-from parsita.state import Continue, Input, Output, Reader, State
+from parsita import Parser, Reader, TextParsers, reg
+from parsita.state import Continue, Input, Output, State
 from parsita.util import splat
 
 
