@@ -1,11 +1,12 @@
 __all__ = ["Result", "Success", "Failure"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 from returns import result
 
-from .exceptions import ParseError
-from .state import Output
+from ._exceptions import ParseError
+
+Output = TypeVar("Output")
 
 # Reexport Returns Result types
 Result = result.Result[Output, ParseError]
