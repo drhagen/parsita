@@ -1,11 +1,26 @@
 from __future__ import annotations
 
-__all__ = ["Input", "Output", "Reader", "SequenceReader", "StringReader", "State", "Continue"]
+__all__ = [
+    "Input",
+    "Output",
+    "Reader",
+    "SequenceReader",
+    "StringReader",
+    "State",
+    "Continue",
+    "ParseError",
+    "RecursionError",
+    "Result",
+    "Success",
+    "Failure",
+]
 
 import re
 from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
+
+from returns import result
 
 if TYPE_CHECKING:
     from .parsers import Parser
@@ -244,3 +259,41 @@ class State:
 class Continue(Generic[Input, Output]):
     remainder: Reader[Input]
     value: Output
+
+
+@dataclass(frozen=True)
+class ParseError(Exception):
+    """Parsing failure.
+
+    The container for the error of failed parsing.
+    """
+
+    farthest: Reader[Any]
+    expected: List[str]
+
+    def __str__(self):
+        return self.farthest.expected_error(self.expected)
+
+
+@dataclass(frozen=True)
+class RecursionError(Exception):
+    """Recursion failure.
+
+    Error for when repeated parsers fail to consume input.
+    """
+
+    parser: Parser[Any, Any]
+    context: Reader[Any]
+
+    def __str__(self):
+        return self.context.recursion_error(repr(self.parser))
+
+
+# Reexport Returns Result types
+Result = result.Result[Output, ParseError]
+Success = result.Success
+Failure = result.Failure
+if TYPE_CHECKING:
+    # This object fails in isinstance
+    # Result does too, but that cannot be fixed without breaking eager type annotations
+    Failure = result.Failure[ParseError]
