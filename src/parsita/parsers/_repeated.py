@@ -1,6 +1,6 @@
 __all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
 
-from typing import Generic, Optional, Sequence, Union
+from typing import Generic, List, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser
@@ -12,7 +12,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status = self.parser.cached_consume(state, reader)
 
         if status is None:
@@ -58,8 +58,8 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.min = min
         self.max = max
 
-    def consume(self, state: State, reader: Reader[Input]):
-        output = []
+    def consume(self, state: State[Input], reader: Reader[Input]):
+        output: List[Output] = []
         remainder = reader
 
         while self.max is None or len(output) < self.max:

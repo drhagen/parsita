@@ -12,7 +12,7 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status = self.parser.cached_consume(state, reader)
 
         if isinstance(status, Continue):

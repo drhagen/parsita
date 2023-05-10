@@ -11,7 +11,7 @@ class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of thi
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         output = []
         remainder = reader
 
@@ -39,7 +39,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status = self.left.cached_consume(state, reader)
         if isinstance(status, Continue):
             return self.right.cached_consume(state, status.remainder)
@@ -56,7 +56,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status1 = self.left.cached_consume(state, reader)
         if isinstance(status1, Continue):
             status2 = self.right.cached_consume(state, status1.remainder)

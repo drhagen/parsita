@@ -12,7 +12,7 @@ class UntilParser(Generic[Input], Parser[Input, Input]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         start_position = reader.position
         while True:
             status = self.parser.cached_consume(state, reader)

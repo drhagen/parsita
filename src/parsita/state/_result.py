@@ -11,8 +11,9 @@ Output = TypeVar("Output")
 # Reexport Returns Result types
 Result = result.Result[Output, ParseError]
 Success = result.Success
-Failure = result.Failure
 if TYPE_CHECKING:
     # This object fails in isinstance
     # Result does too, but that cannot be fixed without breaking eager type annotations
     Failure = result.Failure[ParseError]
+else:
+    Failure = result.Failure
