@@ -12,7 +12,7 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         for parser in self.parsers:
             status = parser.cached_consume(state, reader)
             if isinstance(status, Continue):
@@ -54,7 +54,7 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser,) + tuple(parsers)
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         longest_success: Optional[Continue] = None
         for parser in self.parsers:
             status = parser.cached_consume(state, reader)

@@ -25,6 +25,8 @@ class Reader(Generic[Input]):
         source (Sequence[Input]): The full source being read.
     """
 
+    # Despite what mypy says, these cannot be converted to properties because
+    # they will break the dataclass attributes of the subclasses.
     first: Input
     rest: Reader[Input]
     position: int

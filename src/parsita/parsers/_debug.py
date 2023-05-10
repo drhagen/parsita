@@ -20,7 +20,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 

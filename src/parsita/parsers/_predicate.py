@@ -13,7 +13,7 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.predicate = predicate
         self.description = description
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         remainder = reader
         status = self.parser.cached_consume(state, remainder)
         if isinstance(status, Continue):

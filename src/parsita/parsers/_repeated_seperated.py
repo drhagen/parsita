@@ -22,7 +22,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         self.min = min
         self.max = max
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status = self.parser.cached_consume(state, reader)
 
         if not isinstance(status, Continue):
@@ -98,7 +98,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
         self.parser = parser
         self.separator = separator
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         status = self.parser.cached_consume(state, reader)
 
         if status is None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["Parser", "completely_parse_reader"]
 
 from types import MethodType
-from typing import Any, Generic, Optional, Sequence
+from typing import Any, Generic, List, Optional, Sequence
 
 from .. import options
 from ..state import Continue, Failure, Input, Output, ParseError, Reader, Result, State, Success
@@ -49,7 +49,7 @@ class Parser(Generic[Input, Output]):
     def __init__(self):
         self.parse = MethodType(options.parse_method, self)
 
-    def cached_consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def cached_consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
 
         This is a concrete wrapper around ``consume``. This method implements
@@ -88,7 +88,7 @@ class Parser(Generic[Input, Output]):
 
         return result
 
-    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         """Abstract method for matching this parser at the given location.
 
         This is the central method of every parser combinator.
@@ -152,7 +152,7 @@ class Parser(Generic[Input, Output]):
         from ._alternative import AlternativeParser
 
         other = self.handle_other(other)
-        parsers = []
+        parsers: List[Parser] = []
         if isinstance(self, AlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
         else:
@@ -228,7 +228,7 @@ def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]
     """
     from ._end_of_source import eof
 
-    state = State()
+    state: State[Input] = State()
     status = (parser << eof).cached_consume(state, reader)
 
     if isinstance(status, Continue):

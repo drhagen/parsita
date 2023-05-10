@@ -12,7 +12,7 @@ class LiteralParser(Generic[Input], Parser[Input, Input]):
         super().__init__()
         self.pattern = pattern
 
-    def consume(self, state: State, reader: Reader[Input]):
+    def consume(self, state: State[Input], reader: Reader[Input]):
         remainder = reader
         for elem in self.pattern:
             if remainder.finished:
@@ -36,7 +36,7 @@ class LiteralStringParser(Parser[str, str]):
         self.whitespace = whitespace
         self.pattern = pattern
 
-    def consume(self, state: State, reader: StringReader):
+    def consume(self, state: State[str], reader: StringReader):
         if self.whitespace is not None:
             status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder

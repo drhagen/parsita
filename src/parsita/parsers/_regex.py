@@ -15,7 +15,7 @@ class RegexParser(Parser[str, str]):
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
 
-    def consume(self, state: State, reader: StringReader):
+    def consume(self, state: State[str], reader: StringReader):
         if self.whitespace is not None:
             status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder

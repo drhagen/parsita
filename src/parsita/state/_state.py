@@ -14,11 +14,11 @@ Input = TypeVar("Input")
 Output = TypeVar("Output")
 
 
-class State:
+class State(Generic[Input]):
     def __init__(self):
         self.farthest: Optional[Reader[Any]] = None
         self.expected: List[str] = []
-        self.memo: Dict[Tuple[Parser[Any, Any], int], Optional[Continue[Any, Any]]] = {}
+        self.memo: Dict[Tuple[Parser[Input, Any], int], Optional[Continue[Input, Any]]] = {}
 
     def register_failure(self, expected: str, reader: Reader[Any]):
         if self.farthest is None or self.farthest.position < reader.position:
