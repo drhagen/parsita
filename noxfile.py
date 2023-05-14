@@ -1,30 +1,30 @@
-import nox_poetry
+import nox
+from nox_poetry import Session, session
+
+nox.options.sessions = ["test", "coverage", "lint"]
 
 
-@nox_poetry.session(python=["3.7", "3.8", "3.9", "3.10", "3.11"])
-def test(session: nox_poetry.Session):
-    session.install(".", "pytest", "pytest-cov", "pytest-timeout")
-    session.env["COVERAGE_FILE"] = f".coverage.{session.python}"
-    session.run("python", "-m", "pytest", "--cov", "parsita")
+@session(python=["3.7", "3.8", "3.9", "3.10", "3.11"])
+def test(s: Session):
+    s.install(".", "pytest", "pytest-cov", "pytest-timeout")
+    s.env["COVERAGE_FILE"] = f".coverage.{s.python}"
+    s.run("python", "-m", "pytest", "--cov", "parsita")
 
 
-@nox_poetry.session(venv_backend="none")
-def coverage(session: nox_poetry.Session):
-    session.run("coverage", "combine")
-    session.run("coverage", "html")
-    session.run("coverage", "xml", "--fail-under=100")
+@session(venv_backend="none")
+def coverage(s: Session):
+    s.run("coverage", "combine")
+    s.run("coverage", "html")
+    s.run("coverage", "xml", "--fail-under=100")
 
 
-@nox_poetry.session(venv_backend="none")
-def black(session: nox_poetry.Session):
-    session.run("black", "--check", ".")
+@session(venv_backend="none")
+def fmt(s: Session) -> None:
+    s.run("ruff", "check", ".", "--select", "I", "--fix")
+    s.run("black", ".")
 
 
-@nox_poetry.session(venv_backend="none")
-def isort(session: nox_poetry.Session):
-    session.run("isort", "--check", ".")
-
-
-@nox_poetry.session(venv_backend="none")
-def flake8(session: nox_poetry.Session):
-    session.run("flake8p", "src", "tests", "examples")
+@session(venv_backend="none")
+def lint(s: Session) -> None:
+    s.run("black", "--check", ".")
+    s.run("ruff", "check", ".")

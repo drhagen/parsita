@@ -32,17 +32,8 @@ pytest-timeout = "*"
 # Black
 black = ">=22.10"
 
-# Isort
-isort = "^5.10"
-
 # Lint
-flake8 = "^3.9"
-pep8-naming = "*"
-flake8-noqa = "*"
-flake8-bugbear = "*"
-flake8-broken-line = "*"
-flake8-comprehensions = "*"
-flake8-pyproject = "*"
+ruff = ">=0.0.265"
 
 # Docs
 mkdocs-material = "^8.5"
@@ -70,20 +61,27 @@ source = [
 line-length = 120
 
 
-[tool.isort]
-profile = "black"
-line_length = 120
-
-
-[tool.flake8]
-max-line-length = 120
-noqa-require-code = true
+[tool.ruff]
+src = ["src"]
+line-length = 120
+extend-select = [
+    "I", # isort
+    "N", # pep8-naming
+    "RUF", # ruff
+    "B", # flake8-bugbear
+    "N", # flake8-broken-line
+    "C", # flake8-comprehensions
+]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
-# E203: whitespace-before-colon; Black formats it this way
 # N805: first-argument-self; Parsita tests and examples define functions in class bodies
-extend-ignore = ["F821", "E203", "N805"]
+extend-ignore = ["F821", "N805"]
+
+[tool.ruff.per-file-ignores]
 # F401: module-imported-but-unused; Allow unused imports in __init__.py files
-per-file-ignores = ["__init__.py:F401"]
+"__init__.py" = ["F401"]
+
+[tool.ruff.isort]
+known-first-party = ["parsita"]
 
 
 [build-system]
