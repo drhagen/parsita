@@ -1,4 +1,4 @@
-__all__ = ["AlternativeParser", "first", "LongestAlternativeParser", "longest"]
+__all__ = ["FirstAlternativeParser", "first", "LongestAlternativeParser", "longest"]
 
 from typing import Generic, Optional, Sequence, Union
 
@@ -7,7 +7,7 @@ from ._base import Parser
 from ._literal import lit
 
 
-class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
+class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser, *parsers)
@@ -25,12 +25,12 @@ class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + " | ".join(names)
+        return self.name_or_nothing() + f"first({', '.join(names)})"
 
 
 def first(
     parser: Union[Parser[Input, Output], Sequence[Input]], *parsers: Union[Parser[Input, Output], Sequence[Input]]
-) -> AlternativeParser[Input, Output]:
+) -> FirstAlternativeParser[Input, Output]:
     """Match the first of several alternative parsers.
 
     A ``AlternativeParser`` attempts to match each supplied parser. If a parser
@@ -46,7 +46,7 @@ def first(
         *parsers: Non-empty list of ``Parser``s or literals to try
     """
     cleaned_parsers = [lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]]
-    return AlternativeParser(*cleaned_parsers)
+    return FirstAlternativeParser(*cleaned_parsers)
 
 
 class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
@@ -69,7 +69,7 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         for parser in self.parsers:
             names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + f"longest({', '.join(names)})"
+        return self.name_or_nothing() + " | ".join(names)
 
 
 def longest(

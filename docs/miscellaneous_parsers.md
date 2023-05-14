@@ -108,8 +108,9 @@ class HostnameParsers(TextParsers, whitespace=None):
     host = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*'), '.')
     server = host << ':' & port
 
-assert HostnameParsers.server.parse('drhagen.com:443') == \
-    Failure('Expected no other port than 80 but found end of source')
+assert str(HostnameParsers.server.parse('drhagen.com:443').failure()) == (
+    'Expected no other port than 80 but found end of source'
+)
 ```
 
 ## `debug(parser, *, verbose=False, callback=None)`: debug a parser

@@ -10,9 +10,9 @@ from parsita import (
     any1,
     eof,
     failure,
+    first,
     fwd,
     lit,
-    longest,
     opt,
     pred,
     rep,
@@ -201,12 +201,12 @@ def test_multiple_messages_duplicate():
     assert TestParsers.either.parse("cc") == Failure(ParseError(SequenceReader("cc", 0), ["a"]))
 
 
-def test_longest():
+def test_first():
     class TestParsers(GeneralParsers):
         a = lit("a")
-        either = longest(a, "b")
+        either = first(a, "b")
 
-    assert str(TestParsers.either) == "either = longest(a, 'b')"
+    assert str(TestParsers.either) == "either = first(a, 'b')"
 
 
 def test_sequential():
