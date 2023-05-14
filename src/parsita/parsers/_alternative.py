@@ -10,7 +10,7 @@ from ._literal import lit
 class AlternativeParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
-        self.parsers = (parser,) + tuple(parsers)
+        self.parsers = (parser, *parsers)
 
     def consume(self, state: State[Input], reader: Reader[Input]):
         for parser in self.parsers:
@@ -52,7 +52,7 @@ def first(
 class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
-        self.parsers = (parser,) + tuple(parsers)
+        self.parsers = (parser, *parsers)
 
     def consume(self, state: State[Input], reader: Reader[Input]):
         longest_success: Optional[Continue] = None

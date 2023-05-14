@@ -9,7 +9,7 @@ from ._base import Parser
 class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
     def __init__(self, parser: Parser[Input, Any], *parsers: Parser[Input, Any]):
         super().__init__()
-        self.parsers = (parser,) + tuple(parsers)
+        self.parsers = (parser, *parsers)
 
     def consume(self, state: State[Input], reader: Reader[Input]):
         output = []
