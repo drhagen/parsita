@@ -56,7 +56,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
-  quality:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
@@ -71,7 +71,7 @@ jobs:
       - name: Install environment
         run: poetry install
       - name: Run code quality checks
-        run: poetry run nox -s black isort flake8
+        run: poetry run nox -s lint
   poetry-check:
     runs-on: ubuntu-22.04
     steps:
