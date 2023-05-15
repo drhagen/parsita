@@ -77,8 +77,8 @@ def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[str, str
         arguments are provided.
     """
     if len(literals) > 0:
-        from ._alternative import AlternativeParser
+        from ._alternative import LongestAlternativeParser
 
-        return AlternativeParser(options.handle_literal(literal), *map(options.handle_literal, literals))
+        return LongestAlternativeParser(options.handle_literal(literal), *map(options.handle_literal, literals))
     else:
         return options.handle_literal(literal)

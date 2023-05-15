@@ -149,19 +149,19 @@ class Parser(Generic[Input, Output]):
             return options.handle_literal(obj)
 
     def __or__(self, other) -> Parser:
-        from ._alternative import AlternativeParser
+        from ._alternative import LongestAlternativeParser
 
         other = self.handle_other(other)
         parsers: List[Parser] = []
-        if isinstance(self, AlternativeParser) and not self.protected:
+        if isinstance(self, LongestAlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
         else:
             parsers.append(self)
-        if isinstance(other, AlternativeParser) and not other.protected:
+        if isinstance(other, LongestAlternativeParser) and not other.protected:
             parsers.extend(other.parsers)
         else:
             parsers.append(other)
-        return AlternativeParser(*parsers)
+        return LongestAlternativeParser(*parsers)
 
     def __ror__(self, other) -> Parser:
         other = self.handle_other(other)

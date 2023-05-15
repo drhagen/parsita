@@ -1,4 +1,4 @@
-from ._alternative import AlternativeParser, LongestAlternativeParser, first, longest
+from ._alternative import FirstAlternativeParser, LongestAlternativeParser, first, longest
 from ._any import AnyParser, any1
 from ._base import Parser, completely_parse_reader
 from ._conversion import ConversionParser, TransformationParser

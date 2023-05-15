@@ -48,6 +48,13 @@ def test_literal_no_whitespace():
     assert str(TestParsers.hundred) == "hundred = '100'"
 
 
+def test_literal_multiple():
+    class TestParsers(TextParsers):
+        keyword = lit("in", "int")
+
+    assert TestParsers.keyword.parse("int") == Success("int")
+
+
 def test_interval():
     class TestParsers(TextParsers):
         number = reg(r"\d+") > int
@@ -121,6 +128,19 @@ def test_multiple_messages():
     assert TestParsers.any.parse("func[var") == Failure(ParseError(StringReader("func[var", 8), ["']'"]))
 
 
+def test_alternative_longest():
+    class TestParsers(TextParsers):
+        name = reg("[a-z]+")
+        function = name & "(" >> name << ")"
+        index = name & "[" >> name << "]"
+        any = name | function | index
+
+    assert TestParsers.any.parse("var(arg)") == Success(["var", "arg"])
+    assert TestParsers.any.parse("func{var}") == Failure(
+        ParseError(StringReader("func{var}", 4), ["'('", "'['", "end of source"])
+    )
+
+
 def test_first_function():
     class TestParsers(TextParsers):
         name = reg("[a-z]+")
@@ -128,7 +148,9 @@ def test_first_function():
         index = name & "[" >> name << "]"
         any = first(name, function, index)
 
+    assert TestParsers.any.parse("var") == Success("var")
     assert TestParsers.any.parse("var(arg)") == Failure(ParseError(StringReader("var(arg)", 3), ["end of source"]))
+    assert TestParsers.any.parse("") == Failure(ParseError(StringReader("", 0), ["r'[a-z]+'"]))
 
 
 def test_longest_function():
