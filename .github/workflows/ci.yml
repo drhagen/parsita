@@ -1,6 +1,10 @@
-name: python
+name: ci
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 
 env:
   python-version: "3.9"
