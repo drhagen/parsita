@@ -18,14 +18,14 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
-returns = "^0.19.0"
+returns = "^0.20.0"
 
 [tool.poetry.dev-dependencies]
 nox_poetry = "^1.0.2"
 
 # Test
 pytest = "^7.2"
-coverage = { version = "^6.5", extras = ["toml"] }
+coverage = { version = "^7", extras = ["toml"] }
 pytest-cov = "*"
 pytest-timeout = "*"
 
@@ -34,7 +34,7 @@ black = ">=22.10"
 ruff = ">=0.0.265"
 
 # Docs
-mkdocs-material = "^8.5"
+mkdocs-material = "^9"
 
 
 [tool.coverage.run]
