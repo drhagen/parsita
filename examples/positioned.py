@@ -38,7 +38,6 @@ class PositionAware(Generic[Output]):
             start: The index of the first character consumed by the parser
             length: The number of characters consumed by the parser
         """
-        pass
 
 
 class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
