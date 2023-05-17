@@ -25,7 +25,6 @@ nox_poetry = "^1.0.2"
 
 # Test
 pytest = "^7.2"
-coverage = { version = "^7", extras = ["toml"] }
 pytest-cov = "*"
 pytest-timeout = "*"
 
