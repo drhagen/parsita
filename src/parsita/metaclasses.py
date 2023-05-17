@@ -113,8 +113,6 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
     class.
     """
 
-    pass
-
 
 class TextParsersMeta(GeneralParsersMeta):
     @classmethod
@@ -154,4 +152,3 @@ class TextParsers(metaclass=TextParsersMeta):
     regular expression defining the whitespace to be ignored. The default is
     r"\s*".
     """
-    pass
