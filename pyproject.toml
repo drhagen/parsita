@@ -68,18 +68,19 @@ extend-select = [
     "RUF", # ruff
     "B", # flake8-bugbear
     "N", # flake8-broken-line
-    "C", # flake8-comprehensions
+    "C4", # flake8-comprehensions
+    "PIE", # flake8-pie
+    "PT", # flake8-pytest-style
+    "PTH", # flake8-use-pathlib
+    "ERA", # flake8-eradicate
 ]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
-# N805: first-argument-self; Parsita tests and examples define functions in class bodies
+# N805: invalid-first-argument-name-for-method; Parsita tests and examples define functions in class bodies
 extend-ignore = ["F821", "N805"]
 
 [tool.ruff.per-file-ignores]
-# F401: module-imported-but-unused; Allow unused imports in __init__.py files
+# F401: unused-import; Allow unused imports in __init__.py files
 "__init__.py" = ["F401"]
-
-[tool.ruff.isort]
-known-first-party = ["parsita"]
 
 
 [build-system]
