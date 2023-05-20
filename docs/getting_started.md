@@ -12,7 +12,7 @@ The metaclass of `TextParsers` takes a `whitespace` named argument, which is a r
 from parsita import *
 
 class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
-    integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
+    integer_list = '[' >> repsep(reg('[+-]?[0-9]+') > int, ',') << ']'
 ```
 
 Pretty much every function in Parsita returns an object with type `Parser`. Various operators, like `&` and `|`, are defined so that `Parser`s can be combined to make new, more complex, parsers, hence the name "parser combinators".
@@ -29,7 +29,7 @@ Instances of `Result` work especially well with pattern matching in the `match` 
 from parsita import *
 
 class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
-    integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
+    integer_list = '[' >> repsep(reg('[+-]?[0-9]+') > int, ',') << ']'
 
 result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
 
@@ -46,7 +46,7 @@ If working in a version of Python prior to 3.10, you can use `isinstance` direct
 from parsita import *
 
 class NumericListParsers(TextParsers, whitespace=r'[ ]*'):
-    integer_list = '[' >> repsep(reg('(+-)?[0-9]+') > int, ',') << ']'
+    integer_list = '[' >> repsep(reg('[+-]?[0-9]+') > int, ',') << ']'
 
 result = NumericListParsers.integer_list.parse('[1, 1, 2, 3, 5]')
 
