@@ -111,6 +111,9 @@ class SequenceReader(Reader[Input]):
     @property
     def finished(self) -> bool:
         return self.position >= len(self.source)
+    
+    def drop(self, count: int) -> StringReader:
+        return SequenceReader(self.source, self.position + count)
 
 
 # Python lacks character type, so "str" will be used for both the sequence and the elements
