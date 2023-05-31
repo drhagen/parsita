@@ -1,4 +1,4 @@
-__all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
+__all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep", "rep_n"]
 
 from typing import Generic, List, Optional, Sequence, Union
 
@@ -103,3 +103,13 @@ def rep(
     if isinstance(parser, str):
         parser = lit(parser)
     return RepeatedParser(parser, min=min, max=max)
+
+
+def rep_n(parser: Union[Parser, Sequence[Input]], *, n: int):
+    """
+    match a parser precisely n times (synonym for rep(parser, min=n, max=n))
+     Args:
+        parser: Parser or literal
+        n: Nonnegative integer defining the exact number of entries to be matched
+    """
+    return rep(parser, min=n, max=n)

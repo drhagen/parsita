@@ -9,9 +9,9 @@ __all__ = [
     "parse_method",
 ]
 import re
-from typing import Any, Sequence
+from typing import Any, Sequence, Union
 
-from .state import Input, Output, Result, SequenceReader, StringReader
+from .state import Input, Output, Reader, Result, SequenceReader, StringReader
 
 # Global mutable state
 
@@ -43,10 +43,17 @@ def default_parse_method(self, source: str) -> Result[Output]:
     return completely_parse_reader(self, reader)
 
 
-def basic_parse(self, source: Sequence[Input]) -> Result[Output]:
+def basic_parse(self, source: Union[Sequence[Input], Reader, bytes]) -> Result[Output]:
     from .parsers import completely_parse_reader
 
-    reader = SequenceReader(source)
+    if isinstance(source, Reader):
+        reader = source
+    elif isinstance(source, bytes):
+        from parsita.state import BytesReader
+
+        reader = BytesReader(source)
+    else:
+        reader = SequenceReader(source)
 
     return completely_parse_reader(self, reader)
 
