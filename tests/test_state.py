@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import re
+from dataclasses import dataclass
 
 import pytest
 from returns import result
 
 from parsita import Failure, ParseError, SequenceReader, StringReader, Success
-from parsita.state import Backtrack, Continue
+from parsita.state import Backtrack, Continue, Reader
 
 
 def test_state_creation():
@@ -81,3 +84,29 @@ def test_reader_with_defective_next_token_regex():
 
     bad_position = DefectiveReader("foo_foo", 3)
     assert bad_position.next_token() == "_"
+
+
+def test_reader_drop():
+    # Neither StringReader nor SequenceReader use the base implementation of
+    # drop, so this test is for that in case someone extends Reader.
+
+    @dataclass(frozen=True)
+    class BytesReader(Reader):
+        source: bytes
+        position: int = 0
+
+        @property
+        def first(self) -> int:
+            return self.source[self.position]
+
+        @property
+        def rest(self) -> BytesReader:
+            return BytesReader(self.source, self.position + 1)
+
+        @property
+        def finished(self) -> bool:
+            return self.position >= len(self.source)
+
+    assert BytesReader(b"foo").drop(0) == BytesReader(b"foo", 0)
+    assert BytesReader(b"foo").drop(2) == BytesReader(b"foo", 2)
+    assert BytesReader(b"foo").drop(1).drop(2) == BytesReader(b"foo", 3)

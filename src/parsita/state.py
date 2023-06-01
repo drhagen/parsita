@@ -33,6 +33,17 @@ class Reader(Generic[Input]):
     finished: bool
     source: Sequence[Input]
 
+    def drop(self, count: int) -> Reader[Input]:
+        """Advance the reader by a ``count`` elements.
+
+        Both ``SequenceReader`` and ``StringReader`` override this method with a
+        more efficient implementation.
+        """
+        rest = self
+        for _ in range(count):
+            rest = rest.rest
+        return rest
+
     def next_token(self):
         return self.first
 
@@ -114,6 +125,9 @@ class SequenceReader(Reader[Input]):
     @property
     def finished(self) -> bool:
         return self.position >= len(self.source)
+
+    def drop(self, count: int) -> SequenceReader[Input]:
+        return SequenceReader(self.source, self.position + count)
 
 
 # Python lacks character type, so "str" will be used for both the sequence and the elements
