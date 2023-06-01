@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from types import MethodType
-from typing import Any, Callable, Generic, List, Optional, Sequence, Union
+from typing import Any, Callable, Generic, List, Optional, Sequence, TypeVar, Union
 
 from . import options
 from .state import Backtrack, Continue, Convert, Failure, Input, Output, Reader, Result, Status, StringReader, Success
@@ -297,14 +297,17 @@ def pred(
     return PredicateParser(parser, predicate, description)
 
 
-class RegexParser(Parser[str, str]):
+StringType = TypeVar("StringType", str, bytes)
+
+
+class RegexParser(Generic[StringType], Parser[StringType, StringType]):
     # Python lacks type of compiled regex so use str
-    def __init__(self, pattern: str, whitespace: Optional[Parser[str, None]] = None):
+    def __init__(self, pattern: StringType, whitespace: Optional[Parser[StringType, None]] = None):
         super().__init__()
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
 
-    def consume(self, reader: StringReader):
+    def consume(self, reader: Reader[StringType]):
         if self.whitespace is not None:
             status = self.whitespace.consume(reader)
             reader = status.remainder
@@ -327,17 +330,15 @@ class RegexParser(Parser[str, str]):
         return self.name_or_nothing() + f"reg(r'{self.pattern.pattern}')"
 
 
-def reg(pattern: str) -> RegexParser:
+def reg(pattern: StringType) -> RegexParser[StringType]:
     """Match with a regular expression.
 
     This matches the text with a regular expression. The regular expressions is
     treated as greedy. Backtracking in the parser combinators does not flow into
-    regular expression backtracking. This is only valid in the ``TextParsers``
-    context and not in the ``GeneralParsers`` context because regular
-    expressions only operate on text.
+    regular expression backtracking.
 
     Args:
-        pattern: str or python regular expression.
+        pattern: str, bytes, or python regular expression.
     """
     return RegexParser(pattern, options.whitespace)
 

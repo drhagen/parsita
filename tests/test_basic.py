@@ -13,6 +13,7 @@ from parsita import (
     longest,
     opt,
     pred,
+    reg,
     rep,
     rep1,
     rep1sep,
@@ -34,6 +35,15 @@ def test_literals():
     assert TestParsers.ab.parse("ac") == Failure("Expected b but found c at index 1")
     assert str(TestParsers.a) == "a = 'a'"
     assert str(TestParsers.ab) == "ab = 'ab'"
+
+
+def test_regex():
+    class TestParsers(GeneralParsers):
+        status_code = reg(rb"\d+")
+        status = reg(rb"[^\n]*")
+        http_response = status_code << lit(b" ") & status
+
+    assert TestParsers.http_response.parse(b"404 Not Found") == Success([b"404", b"Not Found"])
 
 
 def test_multiple_literals():
