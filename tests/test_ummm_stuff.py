@@ -2,8 +2,7 @@ import struct
 
 import pytest
 
-from parsita import Failure, GeneralParsers, Success, eof, pred, reg, rep, success, until, Parser
-
+from parsita import Failure, GeneralParsers, Parser, Success, eof, pred, reg, rep, success, until
 from parsita.parsers import rep_n
 
 # Not sure where these tests are supposed to go (if anywhere)
