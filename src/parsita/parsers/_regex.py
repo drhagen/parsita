@@ -1,21 +1,23 @@
 __all__ = ["RegexParser", "reg"]
 
 import re
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 from .. import options
-from ..state import Continue, State, StringReader
+from ..state import Continue, Reader, State
 from ._base import Parser
 
+StringType = TypeVar("StringType", str, bytes)
 
-class RegexParser(Parser[str, str]):
+
+class RegexParser(Generic[StringType], Parser[StringType, StringType]):
     # Python lacks type of compiled regex so use str
-    def __init__(self, pattern: str, whitespace: Optional[Parser[str, None]] = None):
+    def __init__(self, pattern: StringType, whitespace: Optional[Parser[StringType, None]] = None):
         super().__init__()
         self.whitespace = whitespace
         self.pattern = re.compile(pattern)
 
-    def consume(self, state: State[str], reader: StringReader):
+    def consume(self, state: State[StringType], reader: Reader[StringType]):
         if self.whitespace is not None:
             status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder
@@ -39,7 +41,7 @@ class RegexParser(Parser[str, str]):
         return self.name_or_nothing() + f"reg(r'{self.pattern.pattern}')"
 
 
-def reg(pattern: str) -> RegexParser:
+def reg(pattern: StringType) -> RegexParser[StringType]:
     """Match with a regular expression.
 
     This matches the text with a regular expression. The regular expressions is
