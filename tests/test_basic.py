@@ -41,8 +41,8 @@ def test_literals():
 
 def test_regex():
     class TestParsers(GeneralParsers):
-        status_code = reg(b"\d+")
-        status = reg(b"[^\n]*")
+        status_code = reg(rb"\d+")
+        status = reg(rb"[^\n]*")
         http_response = status_code << lit(b" ") & status
 
     assert TestParsers.http_response.parse(b"404 Not Found") == Success([b"404", b"Not Found"])

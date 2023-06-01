@@ -46,11 +46,9 @@ def reg(pattern: StringType) -> RegexParser[StringType]:
 
     This matches the text with a regular expression. The regular expressions is
     treated as greedy. Backtracking in the parser combinators does not flow into
-    regular expression backtracking. This is only valid in the ``TextParsers``
-    context and not in the ``GeneralParsers`` context because regular
-    expressions only operate on text.
+    regular expression backtracking.
 
     Args:
-        pattern: str or python regular expression.
+        pattern: str, bytes, or python regular expression.
     """
     return RegexParser(pattern, options.whitespace)

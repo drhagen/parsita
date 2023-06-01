@@ -62,6 +62,7 @@ line-length = 120
 src = ["src"]
 line-length = 120
 extend-select = [
+    "W", # pycodestyle
     "I", # isort
     "N", # pep8-naming
     "RUF", # ruff
