@@ -1,6 +1,6 @@
 from ._alternative import FirstAlternativeParser, LongestAlternativeParser, first, longest
 from ._any import AnyParser, any1
-from ._base import Parser, completely_parse_reader
+from ._base import Parser
 from ._conversion import ConversionParser, TransformationParser
 from ._debug import DebugParser, debug
 from ._end_of_source import EndOfSourceParser, eof

@@ -74,11 +74,9 @@ class GeneralParsersMeta(type):
     def __prepare__(mcs, name, bases, **_):  # noqa: N804
         old_options = {
             "handle_literal": options.handle_literal,
-            "parse_method": options.parse_method,
         }
 
         options.handle_literal = options.wrap_literal
-        options.parse_method = options.basic_parse
 
         return ParsersDict(old_options)
 
@@ -120,7 +118,6 @@ class TextParsersMeta(GeneralParsersMeta):
         old_options = {
             "whitespace": options.whitespace,
             "handle_literal": options.handle_literal,
-            "parse_method": options.parse_method,
         }
 
         # Store whitespace in global location so regex parsers can see it
@@ -133,7 +130,6 @@ class TextParsersMeta(GeneralParsersMeta):
             options.whitespace = RegexParser(whitespace)
 
         options.handle_literal = options.default_handle_literal
-        options.parse_method = options.default_parse_method
 
         return ParsersDict(old_options)
 
