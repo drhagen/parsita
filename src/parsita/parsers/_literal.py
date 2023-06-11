@@ -1,6 +1,6 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from .. import options
 from ..state import Continue, Input, Reader, State, StringReader
@@ -8,7 +8,7 @@ from ._base import Parser
 
 
 class LiteralParser(Parser[Input, Input]):
-    def __init__(self, pattern: Sequence[Input], whitespace: Optional[Parser[Input, None]] = None):
+    def __init__(self, pattern: Sequence[Input], whitespace: Optional[Parser[Input, Any]] = None):
         super().__init__()
         self.pattern = pattern
         self.whitespace = whitespace

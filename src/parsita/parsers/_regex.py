@@ -1,7 +1,7 @@
 __all__ = ["RegexParser", "reg"]
 
 import re
-from typing import Generic, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar, Union
 
 from .. import options
 from ..state import Continue, Reader, State
@@ -11,7 +11,7 @@ StringType = TypeVar("StringType", str, bytes)
 
 
 class RegexParser(Generic[StringType], Parser[StringType, StringType]):
-    def __init__(self, pattern: re.Pattern, whitespace: Optional[Parser[StringType, None]] = None):
+    def __init__(self, pattern: re.Pattern, whitespace: Optional[Parser[StringType, Any]] = None):
         super().__init__()
         self.pattern = pattern
         self.whitespace = whitespace

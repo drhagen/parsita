@@ -84,7 +84,7 @@ class GeneralParsersMeta(type):
         if whitespace is missing:
             whitespace = mcs.default_whitespace
 
-        if isinstance(whitespace, str):
+        if isinstance(whitespace, (str, bytes)):
             whitespace = re.compile(whitespace)
 
         if isinstance(whitespace, Pattern):
