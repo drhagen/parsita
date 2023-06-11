@@ -3,9 +3,14 @@ __all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]
 import builtins
 import inspect
 import re
+from re import Pattern
+from typing import Any, Union
 
 from . import options
-from .parsers import Parser, RegexParser
+from .parsers import LiteralParser, Parser, RegexParser
+from .state import Input
+
+missing = object()
 
 
 class ParsersDict(dict):
@@ -70,14 +75,27 @@ def fwd() -> ForwardDeclaration:
 
 
 class GeneralParsersMeta(type):
+    default_whitespace: Union[Parser[Input, Any], Pattern, str, None] = None
+
     @classmethod
-    def __prepare__(mcs, name, bases, **_):  # noqa: N804
+    def __prepare__(
+        mcs, name, bases, *, whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing  # noqa: N804
+    ):
+        if whitespace is missing:
+            whitespace = mcs.default_whitespace
+
+        if isinstance(whitespace, str):
+            whitespace = re.compile(whitespace)
+
+        if isinstance(whitespace, Pattern):
+            whitespace = RegexParser(whitespace)
+
         old_options = {
-            "handle_literal": options.handle_literal,
+            "whitespace": options.whitespace,
         }
 
-        options.handle_literal = options.wrap_literal
-
+        # Store whitespace in global location
+        options.whitespace = whitespace
         return ParsersDict(old_options)
 
     def __init__(cls, name, bases, dct, **_):
@@ -89,7 +107,7 @@ class GeneralParsersMeta(type):
         for name, forward_declaration in dct.forward_declarations.items():
             obj = dct[name]
             if not isinstance(obj, Parser):
-                obj = options.handle_literal(obj)
+                obj = LiteralParser(obj)
             forward_declaration._definition = obj
 
         # Reset global variables
@@ -113,25 +131,7 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
 
 
 class TextParsersMeta(GeneralParsersMeta):
-    @classmethod
-    def __prepare__(mcs, name, bases, whitespace: str = options.default_whitespace):  # noqa: N804
-        old_options = {
-            "whitespace": options.whitespace,
-            "handle_literal": options.handle_literal,
-        }
-
-        # Store whitespace in global location so regex parsers can see it
-        if isinstance(whitespace, str):
-            whitespace = re.compile(whitespace)
-
-        if whitespace is None:
-            options.whitespace = None
-        else:
-            options.whitespace = RegexParser(whitespace)
-
-        options.handle_literal = options.default_handle_literal
-
-        return ParsersDict(old_options)
+    default_whitespace: Union[Parser[Input, Any], Pattern, str, None] = RegexParser(re.compile(r"\s*"))
 
     def __new__(mcs, name, bases, dct, **_):  # noqa: N804
         return super().__new__(mcs, name, bases, dct)

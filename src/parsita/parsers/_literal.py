@@ -1,68 +1,55 @@
-__all__ = ["LiteralParser", "LiteralStringParser", "lit"]
+__all__ = ["LiteralParser", "lit"]
 
-from typing import Generic, Optional, Sequence
+from typing import Optional, Sequence
 
 from .. import options
 from ..state import Continue, Input, Reader, State, StringReader
 from ._base import Parser
 
 
-class LiteralParser(Generic[Input], Parser[Input, Input]):
-    def __init__(self, pattern: Sequence[Input]):
+class LiteralParser(Parser[Input, Input]):
+    def __init__(self, pattern: Sequence[Input], whitespace: Optional[Parser[Input, None]] = None):
         super().__init__()
         self.pattern = pattern
+        self.whitespace = whitespace
 
     def consume(self, state: State[Input], reader: Reader[Input]):
-        remainder = reader
-        for elem in self.pattern:
-            if remainder.finished:
-                state.register_failure(str(elem), remainder)
-                return None
-            elif elem == remainder.first:
-                remainder = remainder.rest
-            else:
-                state.register_failure(str(elem), remainder)
-                return None
-
-        return Continue(remainder, self.pattern)
-
-    def __repr__(self):
-        return self.name_or_nothing() + repr(self.pattern)
-
-
-class LiteralStringParser(Parser[str, str]):
-    def __init__(self, pattern: str, whitespace: Optional[Parser[str, None]] = None):
-        super().__init__()
-        self.whitespace = whitespace
-        self.pattern = pattern
-
-    def consume(self, state: State[str], reader: StringReader):
         if self.whitespace is not None:
             status = self.whitespace.cached_consume(state, reader)
             reader = status.remainder
 
-        if reader.source.startswith(self.pattern, reader.position):
-            reader = reader.drop(len(self.pattern))
-
-            if self.whitespace is not None:
-                status = self.whitespace.cached_consume(state, reader)
-                reader = status.remainder
-
-            return Continue(reader, self.pattern)
+        if isinstance(reader, StringReader):
+            if reader.source.startswith(self.pattern, reader.position):
+                reader = reader.drop(len(self.pattern))
+            else:
+                state.register_failure(repr(self.pattern), reader)
+                return None
         else:
-            state.register_failure(repr(self.pattern), reader)
-            return None
+            for elem in self.pattern:
+                if reader.finished:
+                    state.register_failure(str(elem), reader)
+                    return None
+                elif elem == reader.first:
+                    reader = reader.rest
+                else:
+                    state.register_failure(str(elem), reader)
+                    return None
+
+        if self.whitespace is not None:
+            status = self.whitespace.cached_consume(state, reader)
+            reader = status.remainder
+
+        return Continue(reader, self.pattern)
 
     def __repr__(self):
         return self.name_or_nothing() + repr(self.pattern)
 
 
-def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[str, str]:
+def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[Input, Input]:
     """Match a literal sequence.
 
-    In the `TextParsers`` context, this matches the literal string
-    provided. In the ``GeneralParsers`` context, this matches a sequence of
-    input.
+    This parser returns successfully if the subsequence of the parsing input
+    matches the literal sequence provided.
 
     If multiple literals are provided, they are treated as alternatives. e.g.
     ``lit('+', '-')`` is the same as ``lit('+') | lit('-')``.
@@ -72,13 +59,15 @@ def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[str, str
         *literals: Alternative literals to match
 
     Returns:
-        A ``LiteralParser`` in the ``GeneralContext``, a ``LiteralStringParser``
-        in the ``TextParsers`` context, and an ``AlternativeParser`` if multiple
-        arguments are provided.
+        A ``LiteralParser`` if a single argument is provided, and an
+        ``AlternativeParser`` if multiple arguments are provided.
     """
     if len(literals) > 0:
         from ._alternative import LongestAlternativeParser
 
-        return LongestAlternativeParser(options.handle_literal(literal), *map(options.handle_literal, literals))
+        return LongestAlternativeParser(
+            LiteralParser(literal, options.whitespace),
+            *(LiteralParser(literal_i, options.whitespace) for literal_i in literals)
+        )
     else:
-        return options.handle_literal(literal)
+        return LiteralParser(literal, options.whitespace)

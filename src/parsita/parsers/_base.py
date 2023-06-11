@@ -172,10 +172,12 @@ class Parser(Generic[Input, Output]):
 
     @staticmethod
     def handle_other(obj: Any) -> Parser:
+        from ._literal import LiteralParser
+
         if isinstance(obj, Parser):
             return obj
         else:
-            return options.handle_literal(obj)
+            return LiteralParser(obj, options.whitespace)
 
     def __or__(self, other) -> Parser:
         from ._alternative import LongestAlternativeParser
