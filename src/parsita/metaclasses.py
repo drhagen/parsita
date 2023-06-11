@@ -107,7 +107,7 @@ class GeneralParsersMeta(type):
         for name, forward_declaration in dct.forward_declarations.items():
             obj = dct[name]
             if not isinstance(obj, Parser):
-                obj = LiteralParser(obj)
+                obj = LiteralParser(obj, options.whitespace)
             forward_declaration._definition = obj
 
         # Reset global variables
