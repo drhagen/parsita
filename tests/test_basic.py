@@ -6,6 +6,7 @@ from parsita import (
     ParseError,
     RecursionError,
     SequenceReader,
+    StringReader,
     Success,
     any1,
     eof,
@@ -32,9 +33,9 @@ def test_literals():
 
     assert TestParsers.a.parse("a") == Success("a")
     assert TestParsers.ab.parse("ab") == Success("ab")
-    assert TestParsers.ab.parse("abb") == Failure(ParseError(SequenceReader("abb", 2), ["end of source"]))
-    assert TestParsers.ab.parse("ca") == Failure(ParseError(SequenceReader("ca", 0), ["a"]))
-    assert TestParsers.ab.parse("ac") == Failure(ParseError(SequenceReader("ac", 1), ["b"]))
+    assert TestParsers.ab.parse("abb") == Failure(ParseError(StringReader("abb", 2), ["end of source"]))
+    assert TestParsers.ab.parse("ca") == Failure(ParseError(StringReader("ca", 0), ["a"]))
+    assert TestParsers.ab.parse("ac") == Failure(ParseError(StringReader("ac", 1), ["b"]))
     assert str(TestParsers.a) == "a = 'a'"
     assert str(TestParsers.ab) == "ab = 'ab'"
 
@@ -64,8 +65,8 @@ def test_predicate():
     assert TestParsers.a.parse("a") == Success("a")
     assert TestParsers.a.parse("A") == Success("A")
     assert TestParsers.d.parse("2") == Success("2")
-    assert TestParsers.d.parse("23") == Failure(ParseError(SequenceReader("23", 1), ["end of source"]))
-    assert TestParsers.d.parse("a") == Failure(ParseError(SequenceReader("a", 0), ["digit"]))
+    assert TestParsers.d.parse("23") == Failure(ParseError(StringReader("23", 1), ["end of source"]))
+    assert TestParsers.d.parse("a") == Failure(ParseError(StringReader("a", 0), ["digit"]))
     assert str(TestParsers.a) == "a = pred(any1, letter A)"
 
 
@@ -75,7 +76,7 @@ def test_forward_declaration():
         b = lit("b")
 
     assert TestParsers.a.parse("b") == Success("b")
-    assert TestParsers.a.parse("ab") == Failure(ParseError(SequenceReader("ab", 0), ["b"]))
+    assert TestParsers.a.parse("ab") == Failure(ParseError(StringReader("ab", 0), ["b"]))
 
 
 def test_forward_expression():
@@ -134,7 +135,7 @@ def test_optional():
         b = opt(a)
 
     assert TestParsers.b.parse("a") == Success(["a"])
-    assert TestParsers.b.parse("c") == Failure(ParseError(SequenceReader("c", 0), ["a", "end of source"]))
+    assert TestParsers.b.parse("c") == Failure(ParseError(StringReader("c", 0), ["a", "end of source"]))
     assert str(TestParsers.b) == "b = opt(a)"
 
 
@@ -144,7 +145,7 @@ def test_optional_longer():
         b = opt(a)
 
     assert TestParsers.b.parse("ab") == Success(["ab"])
-    assert TestParsers.b.parse("ac") == Failure(ParseError(SequenceReader("ac", 1), ["b"]))
+    assert TestParsers.b.parse("ac") == Failure(ParseError(StringReader("ac", 1), ["b"]))
     assert str(TestParsers.b) == "b = opt(a)"
 
 
@@ -153,7 +154,7 @@ def test_optional_literal():
         b = opt("ab")
 
     assert TestParsers.b.parse("ab") == Success(["ab"])
-    assert TestParsers.b.parse("ac") == Failure(ParseError(SequenceReader("ac", 1), ["b"]))
+    assert TestParsers.b.parse("ac") == Failure(ParseError(StringReader("ac", 1), ["b"]))
     assert str(TestParsers.b) == "b = opt('ab')"
 
 
@@ -167,9 +168,9 @@ def test_alternative():
 
     assert TestParsers.ab.parse("a") == Success("a")
     assert TestParsers.ab.parse("b") == Success("b")
-    assert TestParsers.ab.parse("c") == Failure(ParseError(SequenceReader("c", 0), ["a", "b"]))
+    assert TestParsers.ab.parse("c") == Failure(ParseError(StringReader("c", 0), ["a", "b"]))
     assert TestParsers.bc.parse("cd") == Success("cd")
-    assert TestParsers.bc.parse("ce") == Failure(ParseError(SequenceReader("ce", 1), ["d"]))
+    assert TestParsers.bc.parse("ce") == Failure(ParseError(StringReader("ce", 1), ["d"]))
     assert str(TestParsers.bc) == "bc = b | c"
 
 
@@ -186,8 +187,8 @@ def test_multiple():
     for parser in [TestParsers.back, TestParsers.front, TestParsers.both]:
         assert parser.parse("aaaa") == Success("aaaa")
         assert parser.parse("cc") == Success("cc")
-        assert parser.parse("bbc") == Failure(ParseError(SequenceReader("bbc", 2), ["b"]))
-        assert parser.parse("bbba") == Failure(ParseError(SequenceReader("bbba", 3), ["end of source"]))
+        assert parser.parse("bbc") == Failure(ParseError(StringReader("bbc", 2), ["b"]))
+        assert parser.parse("bbba") == Failure(ParseError(StringReader("bbba", 3), ["end of source"]))
 
     str(TestParsers.back), "back = a | b | c | d"
     str(TestParsers.front), "front = a | b | c | d"
@@ -208,7 +209,7 @@ def test_multiple_messages_duplicate():
         ac = a & "c"
         either = ab | ac
 
-    assert TestParsers.either.parse("cc") == Failure(ParseError(SequenceReader("cc", 0), ["a"]))
+    assert TestParsers.either.parse("cc") == Failure(ParseError(StringReader("cc", 0), ["a"]))
 
 
 def test_first():
@@ -231,8 +232,8 @@ def test_sequential():
     assert TestParsers.ab.parse("ab") == Success(["a", "b"])
     assert TestParsers.bc.parse("bcd") == Success(["b", "cd"])
     assert TestParsers.abc.parse("abcd") == Success(["a", "b", "cd"])
-    assert TestParsers.abc.parse("abc") == Failure(ParseError(SequenceReader("abc", 3), ["d"]))
-    assert TestParsers.abc.parse("abf") == Failure(ParseError(SequenceReader("abf", 2), ["c"]))
+    assert TestParsers.abc.parse("abc") == Failure(ParseError(StringReader("abc", 3), ["d"]))
+    assert TestParsers.abc.parse("abf") == Failure(ParseError(StringReader("abf", 2), ["c"]))
     assert str(TestParsers.abc) == "abc = a & b & c"
 
 
@@ -259,7 +260,7 @@ def test_discard_right():
 
     assert TestParsers.ab.parse("ab") == Success("a")
     assert TestParsers.ac.parse("ac") == Success("a")
-    assert TestParsers.ac.parse("aa") == Failure(ParseError(SequenceReader("aa", 1), ["c"]))
+    assert TestParsers.ac.parse("aa") == Failure(ParseError(StringReader("aa", 1), ["c"]))
     assert str(TestParsers.ac) == "ac = a << c"
 
 
@@ -285,12 +286,12 @@ def test_repeated():
 
     assert TestParsers.bs.parse("bbbb") == Success(["b", "b", "b", "b"])
     assert TestParsers.bs.parse("b") == Success(["b"])
-    assert TestParsers.bs.parse("") == Failure(ParseError(SequenceReader("", 0), ["b"]))
-    assert TestParsers.bs.parse("bbbc") == Failure(ParseError(SequenceReader("bbbc", 3), ["b", "end of source"]))
+    assert TestParsers.bs.parse("") == Failure(ParseError(StringReader("", 0), ["b"]))
+    assert TestParsers.bs.parse("bbbc") == Failure(ParseError(StringReader("bbbc", 3), ["b", "end of source"]))
     assert TestParsers.cs.parse("ccc") == Success(["c", "c", "c"])
     assert TestParsers.cs.parse("c") == Success(["c"])
     assert TestParsers.cs.parse("") == Success([])
-    assert TestParsers.cs.parse("cccb") == Failure(ParseError(SequenceReader("cccb", 3), ["c", "end of source"]))
+    assert TestParsers.cs.parse("cccb") == Failure(ParseError(StringReader("cccb", 3), ["c", "end of source"]))
     assert str(TestParsers.bs) == "bs = rep1('b')"
     assert str(TestParsers.cs) == "cs = rep('c')"
 
@@ -311,12 +312,12 @@ def test_repeated_longer():
 
     assert TestParsers.bf.parse("bfbf") == Success(["bf", "bf"])
     assert TestParsers.bf.parse("bf") == Success(["bf"])
-    assert TestParsers.bf.parse("") == Failure(ParseError(SequenceReader("", 0), ["b"]))
-    assert TestParsers.bf.parse("bfbc") == Failure(ParseError(SequenceReader("bfbc", 3), ["f"]))
+    assert TestParsers.bf.parse("") == Failure(ParseError(StringReader("", 0), ["b"]))
+    assert TestParsers.bf.parse("bfbc") == Failure(ParseError(StringReader("bfbc", 3), ["f"]))
     assert TestParsers.cf.parse("cfcfcf") == Success(["cf", "cf", "cf"])
     assert TestParsers.cf.parse("cf") == Success(["cf"])
     assert TestParsers.cf.parse("") == Success([])
-    assert TestParsers.cf.parse("cfcb") == Failure(ParseError(SequenceReader("cfcb", 3), ["f"]))
+    assert TestParsers.cf.parse("cfcb") == Failure(ParseError(StringReader("cfcb", 3), ["f"]))
     assert str(TestParsers.bf) == "bf = rep1('bf')"
     assert str(TestParsers.cf) == "cf = rep('cf')"
 
@@ -328,7 +329,7 @@ def test_repeated_separated():
 
     assert TestParsers.bs.parse("b,b,b") == Success(["b", "b", "b"])
     assert TestParsers.bs.parse("b") == Success(["b"])
-    assert TestParsers.bs.parse("") == Failure(ParseError(SequenceReader("", 0), ["b"]))
+    assert TestParsers.bs.parse("") == Failure(ParseError(StringReader("", 0), ["b"]))
     assert TestParsers.cs.parse("c,c,c") == Success(["c", "c", "c"])
     assert TestParsers.cs.parse("c") == Success(["c"])
     assert TestParsers.cs.parse("") == Success([])
@@ -343,7 +344,7 @@ def test_repeated_separated_nonliteral():
 
     assert TestParsers.bs.parse("b,bb") == Success(["b", "b", "b"])
     assert TestParsers.bs.parse("b") == Success(["b"])
-    assert TestParsers.bs.parse("") == Failure(ParseError(SequenceReader("", 0), ["b"]))
+    assert TestParsers.bs.parse("") == Failure(ParseError(StringReader("", 0), ["b"]))
     assert TestParsers.cs.parse("cc,c") == Success(["c", "c", "c"])
     assert TestParsers.cs.parse("c") == Success(["c"])
     assert TestParsers.cs.parse("") == Success([])
@@ -373,7 +374,7 @@ def test_infinite_recursion_protection():
     # Recursion happens in middle of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
         with pytest.raises(RecursionError) as actual:
-            parser.parse("aab")
+            parser.parse(SequenceReader("aab"))
         assert actual.value == RecursionError(parser, SequenceReader("aab", 2))
         assert str(actual.value) == (
             f"Infinite recursion detected in {parser!r}; "
@@ -383,7 +384,7 @@ def test_infinite_recursion_protection():
     # Recursion happens at end of stream
     for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
         with pytest.raises(RecursionError) as actual:
-            parser.parse("aa")
+            parser.parse(SequenceReader("aa"))
         assert actual.value == RecursionError(parser, SequenceReader("aa", 2))
         assert str(actual.value) == (
             f"Infinite recursion detected in {parser!r}; "
@@ -450,7 +451,7 @@ def test_eof_protection():
 
     assert TestParsers.bba.parse("bba") == Success(["b", "b", "a"])
     assert TestParsers.bba.parse("a") == Success(["a"])
-    assert TestParsers.bba.parse("ab") == Failure(ParseError(SequenceReader("ab", 1), ["end of source"]))
+    assert TestParsers.bba.parse("ab") == Failure(ParseError(StringReader("ab", 1), ["end of source"]))
     assert str(TestParsers.end_a) == "end_a = 'a' << eof"
 
 
@@ -461,7 +462,7 @@ def test_success_failure_protection():
 
     assert TestParsers.aaa.parse("aabb") == Success([["a", "a"], 1, ["b", "b"]])
     assert TestParsers.aaa.parse("") == Success([[], 1, []])
-    assert TestParsers.bbb.parse("aabb") == Failure(ParseError(SequenceReader("aabb", 2), ["something else"]))
+    assert TestParsers.bbb.parse("aabb") == Failure(ParseError(StringReader("aabb", 2), ["something else"]))
     assert str(TestParsers.aaa) == "aaa = rep('a') & success(1) & rep('b')"
     assert str(TestParsers.bbb) == "bbb = 'aa' & failure('something else') & 'bb'"
 
@@ -484,7 +485,7 @@ def test_until_parser():
 
     no_termination_content = f"""{block_start}{ambiguous_content}"""
     result_3 = TestParser.ambiguous.parse(no_termination_content)
-    assert result_3 == Failure(ParseError(SequenceReader(no_termination_content, 7), ["b"]))
+    assert result_3 == Failure(ParseError(StringReader(no_termination_content, 7), ["b"]))
 
 
 def test_any():
@@ -492,8 +493,15 @@ def test_any():
         any2 = any1 & any1
 
     assert TestParsers.any2.parse("ab") == Success(["a", "b"])
-    assert TestParsers.any2.parse("a") == Failure(ParseError(SequenceReader("a", 1), ["anything"]))
+    assert TestParsers.any2.parse("a") == Failure(ParseError(StringReader("a", 1), ["anything"]))
     assert str(TestParsers.any2) == "any2 = any1 & any1"
+
+
+def test_sequence_reader():
+    class TestParsers(GeneralParsers):
+        uhh = lit([1, 2])
+
+    assert TestParsers.uhh.parse([1, 2]) == Success([1, 2])
 
 
 def test_nested_class():

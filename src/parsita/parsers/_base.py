@@ -1,12 +1,23 @@
 from __future__ import annotations
 
-__all__ = ["Parser", "completely_parse_reader"]
+__all__ = ["Parser"]
 
-from types import MethodType
-from typing import Any, Generic, List, Optional, Sequence
+from typing import Any, Generic, List, Optional, Sequence, Union
 
 from .. import options
-from ..state import Continue, Failure, Input, Output, ParseError, Reader, Result, State, Success
+from ..state import (
+    Continue,
+    Failure,
+    Input,
+    Output,
+    ParseError,
+    Reader,
+    Result,
+    SequenceReader,
+    State,
+    StringReader,
+    Success,
+)
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
@@ -45,9 +56,6 @@ class Parser(Generic[Input, Output]):
             It is set by the context classes when a parser is assigned to a
             name.
     """
-
-    def __init__(self):
-        self.parse = MethodType(options.parse_method, self)
 
     def cached_consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
@@ -103,14 +111,8 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    def parse(self, source: Sequence[Input]) -> Result[Output]:
+    def parse(self, source: Union[Sequence[Input], Reader]) -> Result[Output]:
         """Abstract method for completely parsing a source.
-
-        While ``parse`` is a method on every parser for convenience, it
-        is really a function of the context. It is the duty of the context
-        to set the correct ``Reader`` to use and to handle whitespace
-        not handled by the parsers themselves. This method is pulled from the
-        context when the parser is initialized.
 
         Args:
             source: What will be parsed.
@@ -122,8 +124,35 @@ class Parser(Generic[Input, Output]):
             ``Failure``. If the parser succeeded but the source was not
             completely consumed, a ``Failure`` with a message indicating this
             is returned.
+
+        If a ``Reader`` is passed in, it is used directly. Otherwise, the source
+        is converted to an appropriate ``Reader``. If the source is ``str`, a
+        ``StringReader`` is used. Otherwise, a ``SequenceReader`` is used.
         """
-        raise NotImplementedError()
+        from ._end_of_source import eof
+
+        if isinstance(source, Reader):
+            reader = source
+        elif isinstance(source, str):
+            reader = StringReader(source, 0)
+        else:
+            reader = SequenceReader(source)
+
+        state: State[Input] = State()
+
+        status = (self << eof).cached_consume(state, reader)
+
+        if isinstance(status, Continue):
+            return Success(status.value)
+        else:
+            used = set()
+            unique_expected = []
+            for expected in state.expected:
+                if expected not in used:
+                    used.add(expected)
+                    unique_expected.append(expected)
+
+            return Failure(ParseError(state.farthest, unique_expected))
 
     name: Optional[str] = None
 
@@ -209,36 +238,3 @@ class Parser(Generic[Input, Output]):
         from ._conversion import TransformationParser
 
         return TransformationParser(self, other)
-
-
-def completely_parse_reader(parser: Parser[Input, Output], reader: Reader[Input]) -> Result[Output]:
-    """Consume reader and return Success only on complete consumption.
-
-    This is a helper function for ``parse`` methods, which return ``Success``
-    when the input is completely consumed and ``Failure`` with an appropriate
-    message otherwise.
-
-    Args:
-        parser: The parser doing the consuming
-        reader: The input being consumed
-
-    Returns:
-        A Returns ``Result`` containing either the successfully parsed value or
-        an error from the farthest parsed point in the input.
-    """
-    from ._end_of_source import eof
-
-    state: State[Input] = State()
-    status = (parser << eof).cached_consume(state, reader)
-
-    if isinstance(status, Continue):
-        return Success(status.value)
-    else:
-        used = set()
-        unique_expected = []
-        for expected in state.expected:
-            if expected not in used:
-                used.add(expected)
-                unique_expected.append(expected)
-
-        return Failure(ParseError(state.farthest, unique_expected))
