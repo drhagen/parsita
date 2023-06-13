@@ -1,7 +1,7 @@
 __all__ = ["RegexParser", "reg"]
 
 import re
-from typing import Generic, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar, Union
 
 from .. import options
 from ..state import Continue, Reader, State
@@ -11,11 +11,10 @@ StringType = TypeVar("StringType", str, bytes)
 
 
 class RegexParser(Generic[StringType], Parser[StringType, StringType]):
-    # Python lacks type of compiled regex so use str
-    def __init__(self, pattern: StringType, whitespace: Optional[Parser[StringType, None]] = None):
+    def __init__(self, pattern: re.Pattern, whitespace: Optional[Parser[StringType, Any]] = None):
         super().__init__()
+        self.pattern = pattern
         self.whitespace = whitespace
-        self.pattern = re.compile(pattern)
 
     def consume(self, state: State[StringType], reader: Reader[StringType]):
         if self.whitespace is not None:
@@ -41,7 +40,7 @@ class RegexParser(Generic[StringType], Parser[StringType, StringType]):
         return self.name_or_nothing() + f"reg(r'{self.pattern.pattern}')"
 
 
-def reg(pattern: StringType) -> RegexParser[StringType]:
+def reg(pattern: Union[re.Pattern, StringType]) -> RegexParser[StringType]:
     """Match with a regular expression.
 
     This matches the text with a regular expression. The regular expressions is
@@ -51,4 +50,4 @@ def reg(pattern: StringType) -> RegexParser[StringType]:
     Args:
         pattern: str, bytes, or python regular expression.
     """
-    return RegexParser(pattern, options.whitespace)
+    return RegexParser(re.compile(pattern), options.whitespace)

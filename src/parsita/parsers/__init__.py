@@ -4,7 +4,7 @@ from ._base import Parser
 from ._conversion import ConversionParser, TransformationParser
 from ._debug import DebugParser, debug
 from ._end_of_source import EndOfSourceParser, eof
-from ._literal import LiteralParser, LiteralStringParser, lit
+from ._literal import LiteralParser, lit
 from ._optional import OptionalParser, opt
 from ._predicate import PredicateParser, pred
 from ._regex import RegexParser, reg
