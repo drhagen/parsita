@@ -1,4 +1,4 @@
-from .metaclasses import GeneralParsers, TextParsers, fwd
+from .metaclasses import ParserContext, fwd
 from .parsers import (
     Parser,
     any1,

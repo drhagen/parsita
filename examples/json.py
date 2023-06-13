@@ -1,10 +1,10 @@
-from parsita import TextParsers, lit, reg, rep, repsep
+from parsita import ParserContext, lit, reg, rep, repsep
 from parsita.util import constant
 
 # JSON definition according to https://tools.ietf.org/html/rfc7159
 
 
-class JsonStringParsers(TextParsers, whitespace=None):
+class JsonStringParsers(ParserContext):
     quote = lit(r"\"") > constant('"')
     reverse_solidus = lit(r"\\") > constant("\\")
     solidus = lit(r"\/") > constant("/")
@@ -21,7 +21,7 @@ class JsonStringParsers(TextParsers, whitespace=None):
     string = '"' >> rep(escaped | unescaped) << '"' > "".join
 
 
-class JsonParsers(TextParsers, whitespace=r"[ \t\n\r]*"):
+class JsonParsers(ParserContext, whitespace=r"[ \t\n\r]*"):
     number = reg(r"-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?") > float
 
     false = lit("false") > constant(False)

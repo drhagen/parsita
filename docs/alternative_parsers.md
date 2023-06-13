@@ -7,7 +7,7 @@ This tries to match `parser1` and `parser2`. If one succeeds and the other fails
 ```python
 from parsita import *
 
-class NumberParsers(TextParsers):
+class NumberParsers(ParserContext):
     integer = reg(r'[-+]?[0-9]+') > int
     real = reg(r'[+-]?\d+\.\d+(e[+-]?\d+)?') | 'nan' | 'inf' > float
     number = real | integer
@@ -24,7 +24,7 @@ This tries to match each parser supplied. After it has tried them all, it return
 ```python
 from parsita import *
 
-class ExpressionParsers(TextParsers):
+class ExpressionParsers(ParserContext):
     name = reg(r'[a-zA-Z_]+')
     function = name & '(' >> expression << ')'
     expression = longest(name, function)
@@ -41,7 +41,7 @@ This tries to match each parser supplied. As soon as one parser succeeds, this r
 ```python
 from parsita import *
 
-class ExpressionParsers(TextParsers):
+class ExpressionParsers(ParserContext):
     keyword = lit('pi', 'nan', 'inf')
     name = reg(r'[a-zA-Z_]+')
     function = name & '(' >> expression << ')'
@@ -67,7 +67,7 @@ An optional parser tries to match its argument. If the argument succeeds, it ret
 ```python
 from parsita import *
 
-class DeclarationParsers(TextParsers):
+class DeclarationParsers(ParserContext, whitespace=r'[ ]*'):
     id = reg(r'[A-Za-z_][A-Za-z0-9_]*')
     declaration = id & opt(':' >> id)
 

@@ -21,7 +21,7 @@ The following is a very basic parser for extracting the name from a `Hello, {nam
 ```python
 from parsita import *
 
-class HelloWorldParsers(TextParsers, whitespace=r'[ ]*'):
+class HelloWorldParsers(ParserContext, whitespace=r'[ ]*'):
     hello_world = lit('Hello') >> ',' >> reg(r'[A-Z][a-z]*') << '!'
 
 # A successful parse produces the parsed value

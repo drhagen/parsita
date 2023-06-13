@@ -1,7 +1,7 @@
 from collections import OrderedDict, namedtuple
 from ipaddress import IPv4Address, IPv6Address
 
-from parsita import TextParsers, lit, opt, reg, rep, rep1, rep1sep, repsep
+from parsita import ParserContext, lit, opt, reg, rep, rep1, rep1sep, repsep
 from parsita.util import constant, splat
 
 # This covers a typical URL schema, not the crazy one specified by https://tools.ietf.org/html/rfc3986
@@ -12,7 +12,7 @@ DomainName = namedtuple("DomainName", ["domains"])
 Url = namedtuple("Uri", ["scheme", "user_info", "host", "port", "path", "query", "fragment"])
 
 
-class TypicalUrlParsers(TextParsers, whitespace=None):
+class TypicalUrlParsers(ParserContext):
     encoded = "%" >> reg(r"[0-9A-F]{2}") > (lambda x: chr(int(x, 16)))
 
     scheme = reg(r"[A-Za-z][-+.A-Za-z0-9]*") > str.lower

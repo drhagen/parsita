@@ -10,7 +10,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Generic
 
-from parsita import Parser, Reader, TextParsers, reg
+from parsita import Parser, ParserContext, Reader, reg
 from parsita.state import Continue, Input, Output, State
 from parsita.util import splat
 
@@ -95,7 +95,7 @@ class Plus:
     second: Variable
 
 
-class PlusParsers(TextParsers):
+class PlusParsers(ParserContext):
     variable = positioned(reg("[A-Za-z][A-Za-z0-9_]*") > UnfinishedVariable)
     plus = variable & "+" >> variable > splat(Plus)
 

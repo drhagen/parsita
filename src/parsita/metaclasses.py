@@ -1,4 +1,4 @@
-__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]
+__all__ = ["ForwardDeclaration", "fwd", "ParserContext"]
 
 import builtins
 import inspect
@@ -74,7 +74,7 @@ def fwd() -> ForwardDeclaration:
     return ForwardDeclaration()
 
 
-class GeneralParsersMeta(type):
+class ParserContextMeta(type):
     default_whitespace: Union[Parser[Input, Any], Pattern, str, None] = None
 
     @classmethod
@@ -114,6 +114,9 @@ class GeneralParsersMeta(type):
         for key, value in old_options.items():
             setattr(options, key, value)
 
+    def __new__(mcs, name, bases, dct, **_):  # noqa: N804
+        return super().__new__(mcs, name, bases, dct)
+
     def __call__(cls, *args, **kwargs):
         raise TypeError(
             "Parsers cannot be instantiated. They use class bodies purely as contexts for managing defaults and "
@@ -121,30 +124,26 @@ class GeneralParsersMeta(type):
         )
 
 
-class GeneralParsers(metaclass=GeneralParsersMeta):
-    """Context for parsing general sequences.
-
-    This is not a real class. Don't instantiate it. This is used by inheriting
-    from it and defining parsers as class attributes in the body of the child
-    class.
-    """
-
-
-class TextParsersMeta(GeneralParsersMeta):
-    default_whitespace: Union[Parser[Input, Any], Pattern, str, None] = RegexParser(re.compile(r"\s*"))
-
-    def __new__(mcs, name, bases, dct, **_):  # noqa: N804
-        return super().__new__(mcs, name, bases, dct)
-
-
-class TextParsers(metaclass=TextParsersMeta):
-    r"""Context for parsing text.
+class ParserContext(metaclass=ParserContextMeta):
+    """Context for parsing.
 
     This is not a real class. Don't instantiate it. This is used by inheriting
     from it and defining parsers as class attributes in the body of the child
     class.
 
-    There is a keyword argument for the metaclass ``whitespace``. This is a
-    regular expression defining the whitespace to be ignored. The default is
-    r"\s*".
+    The parser context uses various aspects of class bodies in Python to
+    perform a few kinds of magic:
+
+    1. Assign the metaclass argument ``whitespace`` to ``options.whitespace``
+       only while the class body is being executed so that it can be used by
+       terminal parsers.
+    2. For each class attribute that is a ``Parser``, assign the name of that
+       attribute to the ``name`` attribute of the parser so that names parsers
+       know their own name.
+    3. For each class attribute that is a ``Parser``, set the ``protected``
+       attribute of the parser to ``True`` so that parsers know when they are
+       in a chain of `a | b | c` or `a & b & c` and when they are not.
+    4. Create a ``ForwardDeclaration`` as a new class attribute every time a
+       name is accessed that does not exist and then resolve those forward
+       declarations at the end of the class body.
     """

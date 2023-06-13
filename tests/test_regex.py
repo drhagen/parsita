@@ -2,12 +2,11 @@ import pytest
 
 from parsita import (
     Failure,
-    GeneralParsers,
     ParseError,
+    ParserContext,
     RecursionError,
     StringReader,
     Success,
-    TextParsers,
     debug,
     eof,
     failure,
@@ -27,7 +26,7 @@ from parsita import (
 
 
 def test_literal():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         hundred = lit("100") > float
 
     assert TestParsers.hundred.parse("") == Failure(ParseError(StringReader("", 0), ["'100'"]))
@@ -39,7 +38,7 @@ def test_literal():
 
 
 def test_literal_no_whitespace():
-    class TestParsers(TextParsers, whitespace=None):
+    class TestParsers(ParserContext):
         hundred = lit("100") > float
 
     assert TestParsers.hundred.parse("100") == Success(100)
@@ -49,14 +48,14 @@ def test_literal_no_whitespace():
 
 
 def test_literal_multiple():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         keyword = lit("in", "int")
 
     assert TestParsers.keyword.parse("int") == Success("int")
 
 
 def test_interval():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         number = reg(r"\d+") > int
         pair = "[" >> number << "," & number << "]"
         interval = pred(pair, lambda x: x[0] <= x[1], "ordered pair")
@@ -67,7 +66,7 @@ def test_interval():
 
 
 def test_regex():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         digits = reg(r"\d+")
 
     assert TestParsers.digits.parse("100") == Success("100")
@@ -78,7 +77,7 @@ def test_regex():
 
 
 def test_regex_no_whitespace():
-    class TestParsers(TextParsers, whitespace=None):
+    class TestParsers(ParserContext):
         digits = reg(r"\d+") > float
 
     assert TestParsers.digits.parse("100") == Success(100)
@@ -88,7 +87,7 @@ def test_regex_no_whitespace():
 
 
 def test_regex_custom_whitespace():
-    class TestParsers(TextParsers, whitespace="[ ]*"):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         digits = reg(r"\d+") > float
         pair = digits & digits
 
@@ -103,7 +102,7 @@ def test_regex_custom_whitespace():
 
 
 def test_optional():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         a = reg(r"\d+") > float
         b = opt(a)
 
@@ -113,7 +112,7 @@ def test_optional():
 
 
 def test_multiple_messages():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -129,7 +128,7 @@ def test_multiple_messages():
 
 
 def test_alternative_longest():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -142,7 +141,7 @@ def test_alternative_longest():
 
 
 def test_first_function():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -154,7 +153,7 @@ def test_first_function():
 
 
 def test_longest_function():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -167,7 +166,7 @@ def test_longest_function():
 
 
 def test_longest_function_shortest_later():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -177,7 +176,7 @@ def test_longest_function_shortest_later():
 
 
 def test_longest_function_all_failures():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         name = reg("[a-z]+")
         function = name & "(" >> name << ")"
         index = name & "[" >> name << "]"
@@ -187,7 +186,7 @@ def test_longest_function_all_failures():
 
 
 def test_sequential():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         hello = lit("Hello")
         world = lit("world")
         hello_world = hello & world
@@ -200,7 +199,7 @@ def test_sequential():
 
 
 def test_multiline():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace=r"\s*"):
         hello = lit("Hello")
         world = lit("world")
         hello_world = hello & world
@@ -212,7 +211,7 @@ def test_multiline():
 
 
 def test_repeated():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         number = reg(r"\d+") > int
         trail = "(" >> rep(number << ",") << ")" > tuple
         trail1 = "(" >> rep1(number << ",") << ")" > tuple
@@ -245,7 +244,7 @@ def test_transformation_as_fallible_conversion():
             else:
                 return NotImplemented
 
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         def to_percent(number: int):
             if not 0 <= number <= 100:
                 return failure("a number between 0 and 100")
@@ -262,7 +261,7 @@ def test_transformation_as_fallible_conversion():
 
 
 def test_transformation_as_parameterized_parser():
-    class NumberParsers(TextParsers):
+    class NumberParsers(ParserContext, whitespace="[ ]*"):
         def select_parser(type: str):
             if type == "int":
                 return reg(r"[0-9]+") > int
@@ -279,7 +278,7 @@ def test_transformation_as_parameterized_parser():
 
 
 def test_transformation_error_propogation():
-    class AssignmentsParser(TextParsers):
+    class AssignmentsParser(ParserContext, whitespace="[ ]*"):
         def assignments_to_map(assignments):
             names_found = set()
             output = {}
@@ -315,7 +314,7 @@ def test_debug_callback():
         result &= isinstance(parser.parse(remainder), Failure)
         result &= isinstance(parser.parse("345"), Success)
 
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         a = lit("123")
         b = lit("345")
         c = a & debug(b, callback=callback)
@@ -326,7 +325,7 @@ def test_debug_callback():
 
 
 def test_debug_verbose(capsys):
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext):
         a = lit("123")
         c = a & debug("345", verbose=True)
 
@@ -341,7 +340,7 @@ def test_until_parser():
     block_start = "Ambiguous Content:"
     block_stop = ":End Content"
 
-    class TestParser(TextParsers):
+    class TestParser(ParserContext):
         ambiguous_start = lit(block_start)
         ambiguous_end = lit(block_stop)
         ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end
@@ -366,7 +365,7 @@ def test_until_parser():
 
 
 def test_heredoc():
-    class TestParser(TextParsers):
+    class TestParser(ParserContext, whitespace=r"\s*"):
         heredoc = reg("[A-Za-z]+") >= (lambda token: until(token) << token)
 
     content = "EOF\nAnything at all\nEOF"
@@ -375,7 +374,7 @@ def test_heredoc():
 
 
 def test_recursion_literals():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         one = lit("1") > float
         six = lit("6") > float
         eleven = lit("11") > float
@@ -398,7 +397,7 @@ def test_recursion_literals():
 
 
 def test_recursion_regex():
-    class TestParsers(TextParsers, whitespace="[ ]*"):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         digits = reg(r"\d+") > float
 
         def make_expr(x):
@@ -418,7 +417,7 @@ def test_recursion_regex():
 
 @pytest.mark.timeout(2)
 def test_infinite_recursion_protection():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace=r"\s*"):
         bad_rep = rep(opt("foo"))
         bad_rep1 = rep1(opt("foo"))
         bad_repsep = repsep(opt("foo"), opt(","))
@@ -452,7 +451,7 @@ def test_infinite_recursion_protection():
 
 
 def test_protection():
-    class TestParsers(TextParsers):
+    class TestParsers(ParserContext, whitespace="[ ]*"):
         end_aa = "aa" << eof
         b = lit("b")
         bba = rep(b | end_aa)
@@ -466,7 +465,7 @@ def test_protection():
 
 def test_failures_with_duplicate_tokens():
     # If two alternatives have the same starting token, the failure message should not contain duplicates.
-    class ParallelParsers(TextParsers):
+    class ParallelParsers(ParserContext):
         plus_one = lit("+") >> lit("1")
         plus_two = lit("+") >> lit("2")
         alt = plus_one | plus_two
@@ -475,10 +474,10 @@ def test_failures_with_duplicate_tokens():
 
 
 def test_nested_class():
-    class TestOuter(TextParsers, whitespace="[ ]*"):
+    class TestOuter(ParserContext, whitespace="[ ]*"):
         start = "%%"
 
-        class TestInner(TextParsers, whitespace=None):
+        class TestInner(ParserContext):
             inner = '"' >> reg("[A-Za-z0-9]*") << '"'
 
         wrapped = "(" >> TestInner.inner << ")"
@@ -496,10 +495,10 @@ def test_nested_class():
 
 
 def test_general_in_regex():
-    class TestOuter(TextParsers, whitespace="[ ]*"):
+    class TestOuter(ParserContext, whitespace="[ ]*"):
         start = "%%"
 
-        class TestInner(GeneralParsers):
+        class TestInner(ParserContext):
             inner = '"' >> rep(lit("a", "b", "c")) << '"'
 
         wrapped = "(" >> TestInner.inner << ")"
