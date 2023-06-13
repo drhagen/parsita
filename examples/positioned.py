@@ -95,7 +95,7 @@ class Plus:
     second: Variable
 
 
-class PlusParsers(ParserContext):
+class PlusParsers(ParserContext, whitespace=r"[ ]*"):
     variable = positioned(reg("[A-Za-z][A-Za-z0-9_]*") > UnfinishedVariable)
     plus = variable & "+" >> variable > splat(Plus)
 
