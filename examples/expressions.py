@@ -1,7 +1,7 @@
-from parsita import TextParsers, lit, opt, reg, rep
+from parsita import ParserContext, lit, opt, reg, rep
 
 
-class ExpressionParsers(TextParsers):
+class ExpressionParsers(ParserContext, whitespace=r"[ ]*"):
     number = reg(r"[+-]?\d+(\.\d+)?(e[+-]?\d+)?") > float
 
     base = "(" >> expr << ")" | number

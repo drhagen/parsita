@@ -7,12 +7,11 @@ Conversion parsers don't change how the text is parsed—they change the value r
 ```python
 from parsita import *
 
-class IntegerParsers(TextParsers):
+class IntegerParsers(ParserContext):
     integer = reg(r'[-+]?[0-9]+') > int
 
 assert IntegerParsers.integer.parse('-128') == Success(-128)
 ```
-
 
 ## `parser >= function`: transformation parser
 
@@ -39,7 +38,7 @@ def to_percent(number: int) -> Parser[str, Percent]:
     else:
         return success(Percent(number))
 
-class PercentParsers(TextParsers):
+class PercentParsers(ParserContext):
     percent = (reg(r"[0-9]+") > int) >= to_percent
 
 assert PercentParsers.percent.parse('50') == Success(Percent(50))
@@ -61,7 +60,7 @@ def select_parser(type: str):
     elif type == 'decimal':
         return reg(r"[0-9]+\.[0-9]+") > float
 
-class NumberParsers(TextParsers):
+class NumberParsers(ParserContext, whitespace=r'[ ]*'):
     type = lit('int', 'decimal')
     number = type >= select_parser
 

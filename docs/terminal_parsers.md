@@ -2,15 +2,16 @@
 
 Terminal parsers (those created by `lit` and `reg`) are the atoms of a parser, they match and extract the smallest meaningful words of the language.
 
-You could say that they recognize the tokens of the language being parsed, but Parsita does not really have a concept of tokens, at least when using the `TextParsers` context. Terminal parsers chew directly on the input string.
+You could say that they recognize the tokens of the language being parsed, but Parsita does not really have a concept of tokens, at least when `str` as the input type. Terminal parsers chew directly on the input string.
 
 ## `lit(*literals)`: literal parser
+
 This is the simplest parser. It matches the exact string provided and returns the string as its value. If multiple arguments are provided, it tries each one in succession, returning the first one it finds.
 
 ```python
 from parsita import *
 
-class HelloParsers(TextParsers):
+class HelloParsers(ParserContext):
     hello = lit('Hello World!')
 
 assert HelloParsers.hello.parse('Hello World!') == Success('Hello World!')
@@ -26,7 +27,7 @@ Like `lit`, this matches a string and returns it, but the matching is done with 
 ```python
 from parsita import *
 
-class IntegerParsers(TextParsers):
+class IntegerParsers(ParserContext):
     integer = reg(r'[-+]?[0-9]+')
 
 assert IntegerParsers.integer.parse('-128') == Success('-128')

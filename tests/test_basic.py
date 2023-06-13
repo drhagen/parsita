@@ -2,8 +2,8 @@ import pytest
 
 from parsita import (
     Failure,
-    GeneralParsers,
     ParseError,
+    ParserContext,
     RecursionError,
     SequenceReader,
     StringReader,
@@ -27,7 +27,7 @@ from parsita import (
 
 
 def test_literals():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         ab = lit("ab")
 
@@ -40,7 +40,7 @@ def test_literals():
 
 
 def test_regex():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         status_code = reg(rb"\d+")
         status = reg(rb"[^\n]*")
         http_response = status_code << lit(b" ") & status
@@ -49,7 +49,7 @@ def test_regex():
 
 
 def test_multiple_literals():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         ab = lit("a", "b")
 
     assert TestParsers.ab.parse("a") == Success("a")
@@ -57,7 +57,7 @@ def test_multiple_literals():
 
 
 def test_predicate():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = pred(any1, lambda x: x in ("A", "a"), "letter A")
         d = pred(any1, str.isdigit, "digit")
 
@@ -70,7 +70,7 @@ def test_predicate():
 
 
 def test_forward_declaration():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = b
         b = lit("b")
 
@@ -79,7 +79,7 @@ def test_forward_declaration():
 
 
 def test_forward_expression():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         ca = c | a
         da = d & a
@@ -94,7 +94,7 @@ def test_forward_expression():
 
 
 def test_manual_forward():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         b = fwd()
         a = "a" & b
         b.define("b" & opt(a))
@@ -104,7 +104,7 @@ def test_manual_forward():
 
 
 def test_manual_forward_mutual():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = fwd()
         b = fwd()
         a.define("a" & b)
@@ -115,7 +115,7 @@ def test_manual_forward_mutual():
 
 
 def test_multiple_references():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         cora = c | a
         canda = c & a
@@ -129,7 +129,7 @@ def test_multiple_references():
 
 
 def test_optional():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = opt(a)
 
@@ -139,7 +139,7 @@ def test_optional():
 
 
 def test_optional_longer():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("ab")
         b = opt(a)
 
@@ -149,7 +149,7 @@ def test_optional_longer():
 
 
 def test_optional_literal():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         b = opt(lit("a") & lit("b"))
 
     assert TestParsers.b.parse("ab") == Success([["a", "b"]])
@@ -158,7 +158,7 @@ def test_optional_literal():
 
 
 def test_alternative():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = lit("b")
         c = lit("cd")
@@ -174,7 +174,7 @@ def test_alternative():
 
 
 def test_multiple():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("aaaa")
         b = lit("bbb")
         c = lit("cc")
@@ -195,14 +195,14 @@ def test_multiple():
 
 
 def test_right_or():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         ab = "a" | lit("b")
 
     assert TestParsers.ab.parse("a") == Success("a")
 
 
 def test_multiple_messages_duplicate():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         ab = a & "b"
         ac = a & "c"
@@ -212,7 +212,7 @@ def test_multiple_messages_duplicate():
 
 
 def test_first():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         either = first(a, "b")
 
@@ -220,7 +220,7 @@ def test_first():
 
 
 def test_sequential():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = lit("b")
         c = lit("cd")
@@ -237,7 +237,7 @@ def test_sequential():
 
 
 def test_discard_left():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = lit("b")
         ab = a >> b
@@ -250,7 +250,7 @@ def test_discard_left():
 
 
 def test_discard_right():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = lit("b")
         ab = a << b
@@ -264,7 +264,7 @@ def test_discard_right():
 
 
 def test_discard_bare_literals():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         b = "b"
         rshift = a >> b
@@ -279,7 +279,7 @@ def test_discard_bare_literals():
 
 
 def test_repeated():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         bs = rep1("b")
         cs = rep("c")
 
@@ -305,7 +305,7 @@ def test_repeated_with_bounds():
 
 
 def test_repeated_longer():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         bf = rep1("bf")
         cf = rep("cf")
 
@@ -322,7 +322,7 @@ def test_repeated_longer():
 
 
 def test_repeated_separated():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         bs = rep1sep("b", ",")
         cs = repsep("c", ",")
 
@@ -337,7 +337,7 @@ def test_repeated_separated():
 
 
 def test_repeated_separated_nonliteral():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         bs = rep1sep("b", opt(","))
         cs = repsep("c", opt(","))
 
@@ -364,7 +364,7 @@ def test_repeated_separated_with_bounds():
 
 @pytest.mark.timeout(2)
 def test_infinite_recursion_protection():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         bad_rep = rep(opt("a"))
         bad_rep1 = rep1(opt("a"))
         bad_repsep = repsep(opt("a"), opt(":"))
@@ -392,7 +392,7 @@ def test_infinite_recursion_protection():
 
 
 def test_conversion():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         one = lit("1") > int
         two = lit("2") > int
         twelve = one & two > (lambda x: x[0] * 10 + x[1])
@@ -410,7 +410,7 @@ def test_conversion():
 
 
 def test_recursion():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         one = lit("1") > float
         six = lit("6") > float
         eleven = lit("11") > float
@@ -433,7 +433,7 @@ def test_recursion():
 
 
 def test_protection():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         ab = lit("a") & lit("b")
         abc = ab & "c"
         dab = "d" & ab
@@ -443,7 +443,7 @@ def test_protection():
 
 
 def test_eof_protection():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         end_a = "a" << eof
         b = lit("b")
         bba = rep(b | end_a)
@@ -455,7 +455,7 @@ def test_eof_protection():
 
 
 def test_success_failure_protection():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         aaa = rep("a") & success(1) & rep("b")
         bbb = "aa" & failure("something else") & "bb"
 
@@ -470,7 +470,7 @@ def test_until_parser():
     block_start = "aa"
     block_stop = "bb"
 
-    class TestParser(GeneralParsers):
+    class TestParser(ParserContext):
         ambiguous = block_start >> until(block_stop) << block_stop
 
     ambiguous_content = """ababa"""
@@ -488,7 +488,7 @@ def test_until_parser():
 
 
 def test_any():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         any2 = any1 & any1
 
     assert TestParsers.any2.parse("ab") == Success(["a", "b"])
@@ -497,17 +497,17 @@ def test_any():
 
 
 def test_sequence_reader():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         uhh = lit([1, 2])
 
     assert TestParsers.uhh.parse([1, 2]) == Success([1, 2])
 
 
 def test_nested_class():
-    class TestOuter(GeneralParsers):
+    class TestOuter(ParserContext):
         start = "%"
 
-        class TestInner(GeneralParsers):
+        class TestInner(ParserContext):
             inner = '"' >> rep(lit("a", "b", "c")) << '"'
 
         wrapped = "(" >> TestInner.inner << ")"
@@ -521,7 +521,7 @@ def test_nested_class():
 
 
 def test_disallow_instatiation():
-    class TestParsers(GeneralParsers):
+    class TestParsers(ParserContext):
         a = lit("a")
         bb = lit("bb")
 

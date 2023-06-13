@@ -10,7 +10,7 @@ The function `constant(value: A) -> Callable[..., A]` accepts any single value a
 from parsita import *
 from parsita.util import constant
 
-class BooleanParsers(TextParsers, whitespace=None):
+class BooleanParsers(ParserContext):
     true = lit('true') > constant(True)
     false = lit('false') > constant(False)
     boolean = true | false
@@ -29,17 +29,17 @@ from parsita.util import splat
 
 Url = namedtuple('Url', ['host', 'port', 'path'])
 
-class UrlParsers(TextParsers, whitespace=None):
+class UrlParsers(ParserContext):
     host = reg(r'[A-Za-z0-9.]+')
     port = reg(r'[0-9]+') > int
     path = reg(r'[-._~A-Za-z0-9/]*')
     url = 'https://' >> host << ':' & port & path > splat(Url)
 assert UrlParsers.url.parse('https://drhagen.com:443/blog/') == \
     Success(Url('drhagen.com', 443, '/blog/'))
-
 ```
 
 ## `unsplat(function)`: convert a function of one list argument to take many arguments
+
 The function `unsplat(function: Callable[Tuple[Tuple[*B]], A]) -> Callable[Tuple[*B], A]` does the opposite of `splat`. It takes a single function that takes a single argument that is a list and converts it to a function that takes multiple arguments, each of which was an element of the original list. It is not very useful for writing parsers because the conversion parser always calls its converter function with a single argument, but is included here to complement `splat`.
 
 ```python
