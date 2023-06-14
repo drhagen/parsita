@@ -344,7 +344,7 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
         super().__init__(error)
 
     @property
-    @deprecated("Use failure().message instead.", version="2.0.0")
+    @deprecated("Use failure().message instead.", version="1.8.0")
     def message(self) -> str:
         """A human-readable error message.
 

@@ -1,6 +1,7 @@
 import builtins
 import inspect
 import re
+import warnings
 
 from . import options
 from .parsers import Parser, RegexParser
@@ -67,6 +68,10 @@ def fwd() -> ForwardDeclaration:
     return ForwardDeclaration()
 
 
+# The Deprecated package does not work on __init_subclass__
+deprecation_text = "{} is deprecated; use ParserContext instead. -- Deprecated since 1.8.0."
+
+
 class GeneralParsersMeta(type):
     @classmethod
     def __prepare__(mcs, name, bases, **_):  # noqa: N804
@@ -113,6 +118,10 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
     In Parsita 2.0, this context will be removed, use ``ParserContext`` instead.
     """
 
+    def __init_subclass__(cls, **kwargs) -> None:
+        warnings.warn(DeprecationWarning(deprecation_text.format("GeneralParsers")), stacklevel=1)
+        super().__init_subclass__(**kwargs)
+
 
 class TextParsersMeta(GeneralParsersMeta):
     @classmethod
@@ -154,6 +163,10 @@ class TextParsers(metaclass=TextParsersMeta):
 
     In Parsita 2.0, this context will be removed, use ``ParserContext`` instead.
     """
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        warnings.warn(DeprecationWarning(deprecation_text.format("TextParsers")), stacklevel=1)
+        super().__init_subclass__(**kwargs)
 
 
 class ParserContextMeta(TextParsersMeta):
