@@ -21,6 +21,7 @@ from parsita import (
     success,
     until,
 )
+from parsita.metaclasses import ParserContext
 
 
 def test_literal():
@@ -498,3 +499,31 @@ def test_general_in_regex():
     assert isinstance(TestOuter.outer.parse('%%("abc ")'), Failure)
     assert TestOuter.outer.parse('   %%("abc")') == Success(["a", "b", "c"])
     assert TestOuter.outer.parse('%%("abc")   ') == Success(["a", "b", "c"])
+
+
+def test_parser_context_with_whitespace():
+    class OldParsers(TextParsers):
+        hello = lit("Hello")
+        world = lit("world")
+        hello_world = hello & world
+
+    class NewParsers(ParserContext, whitespace=r"\s*"):
+        hello = lit("Hello")
+        world = lit("world")
+        hello_world = hello & world
+
+    assert OldParsers.hello_world.parse("Hello world") == NewParsers.hello_world.parse("Hello world")
+    assert OldParsers.hello_world.parse("Hello") == NewParsers.hello_world.parse("Hello")
+
+
+def test_parser_context_without_whitespace():
+    class OldParsers(TextParsers, whitespace=None):
+        number = reg(r"\d+") > int
+        pair = "[" >> number << "," & number << "]"
+
+    class NewParsers(ParserContext):
+        number = reg(r"\d+") > int
+        pair = "[" >> number << "," & number << "]"
+
+    assert OldParsers.pair.parse("[1,2]") == NewParsers.pair.parse("[1,2]")
+    assert OldParsers.pair.parse("[1, 2]") == NewParsers.pair.parse("[1, 2]")

@@ -23,6 +23,10 @@ def test_state_creation():
     assert str(fail) == "Failure('my message')"
     assert fail != Failure("another message")
 
+    error_fail = Failure(ParseError("my message"))
+    assert fail == error_fail
+    assert ParseError("my message") != 1
+
     assert succ != fail
 
     read = SequenceReader([1, 2, 3])

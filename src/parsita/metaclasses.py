@@ -109,9 +109,9 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
     This is not a real class. Don't instantiate it. This is used by inheriting
     from it and defining parsers as class attributes in the body of the child
     class.
-    """
 
-    pass
+    In Parsita 2.0, this context will be removed, use ``ParserContext`` instead.
+    """
 
 
 class TextParsersMeta(GeneralParsersMeta):
@@ -151,8 +151,30 @@ class TextParsers(metaclass=TextParsersMeta):
     There is a keyword argument for the metaclass ``whitespace``. This is a
     regular expression defining the whitespace to be ignored. The default is
     r"\s*".
+
+    In Parsita 2.0, this context will be removed, use ``ParserContext`` instead.
     """
-    pass
 
 
-__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers"]
+class ParserContextMeta(TextParsersMeta):
+    @classmethod
+    def __prepare__(mcs, name, bases, whitespace: str = None):  # noqa: N804
+        return super().__prepare__(name, bases, whitespace=whitespace)
+
+
+class ParserContext(metaclass=ParserContextMeta):
+    """Context for parsing.
+
+    This is not a real class. Don't instantiate it. This is used by inheriting
+    from it and defining parsers as class attributes in the body of the child
+    class.
+
+    There is a keyword argument for the metaclass ``whitespace``. This is a
+    regular expression defining the whitespace to be ignored. The default is
+    ``None``.
+
+    In Parsita 2.0, this will become the only context.
+    """
+
+
+__all__ = ["ForwardDeclaration", "fwd", "GeneralParsers", "TextParsers", "ParserContext"]
