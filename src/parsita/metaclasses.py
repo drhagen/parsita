@@ -119,7 +119,7 @@ class GeneralParsers(metaclass=GeneralParsersMeta):
     """
 
     def __init_subclass__(cls, **kwargs) -> None:
-        warnings.warn(DeprecationWarning(deprecation_text.format("GeneralParsers")), stacklevel=1)
+        warnings.warn(DeprecationWarning(deprecation_text.format("GeneralParsers")), stacklevel=2)
         super().__init_subclass__(**kwargs)
 
 
@@ -165,7 +165,7 @@ class TextParsers(metaclass=TextParsersMeta):
     """
 
     def __init_subclass__(cls, **kwargs) -> None:
-        warnings.warn(DeprecationWarning(deprecation_text.format("TextParsers")), stacklevel=1)
+        warnings.warn(DeprecationWarning(deprecation_text.format("TextParsers")), stacklevel=3)
         super().__init_subclass__(**kwargs)
 
 
