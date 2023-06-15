@@ -303,23 +303,21 @@ class Success(Generic[Output], Result[Output], result.Success[Output]):
     """
 
     @property
-    @deprecated("Use unwrap() instead.", version="1.8.0")
+    @deprecated("Use self.unwrap() instead.", version="1.8.0")
     def value(self) -> Output:
         """The value returned from the parser.
 
         Deprecated: Use self.unwrap() instead.
         """
-        return self._inner_value
+        return self.unwrap()
 
-    @deprecated("Use unwrap() instead.", version="1.8.0")
+    @deprecated("Use self.unwrap() instead.", version="1.8.0")
     def or_die(self) -> Output:
         return self.value
 
     def __eq__(self, other):
-        if isinstance(other, Success):
-            return self.value == other.value
-        elif isinstance(other, result.Success):
-            return self._inner_value == other._inner_value
+        if isinstance(other, result.Success):
+            return self.unwrap() == other.unwrap()
         else:
             return NotImplemented
 
@@ -344,30 +342,28 @@ class Failure(Result[NoReturn], result.Failure[ParseError]):
         super().__init__(error)
 
     @property
-    @deprecated("Use failure().message instead.", version="1.8.0")
+    @deprecated("Use str(self.failure()) instead.", version="1.8.0")
     def message(self) -> str:
         """A human-readable error message.
 
-        Deprecated: Use self.failure().message instead.
+        Deprecated: Use str(self.failure()) instead.
 
         From the farthest point reached during parsing.
         """
-        return str(self._inner_value)
+        return self.failure().message
 
-    @deprecated("Use unwrap() instead.", version="1.8.0")
+    @deprecated("Use self.unwrap() instead.", version="1.8.0")
     def or_die(self) -> Output:
-        raise ParseError(self.message)
+        raise self.failure()
 
     def __eq__(self, other):
-        if isinstance(other, Failure):
-            return self.message == other.message
-        elif isinstance(other, result.Failure):
-            return self._inner_value == other._inner_value
+        if isinstance(other, result.Failure):
+            return self.failure() == other.failure()
         else:
             return NotImplemented
 
     def __repr__(self):
-        return f"Failure({self.message!r})"
+        return f"Failure({str(self.failure())!r})"
 
 
 class Status(Generic[Input, Output]):
