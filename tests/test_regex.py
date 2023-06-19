@@ -83,8 +83,12 @@ def test_pred_static_expression():
 
     assert PredParsers.static_expression.parse("1") == Success(1)
     assert PredParsers.static_expression.parse("f(2,1)") == Success([2, 1])
-    assert PredParsers.static_expression.parse("a") == Failure(ParseError(StringReader("a", 1), ["'('", "static expression"]))
-    assert PredParsers.static_expression.parse("f(a,1)") == Failure(ParseError(StringReader("f(a,1)", 6), ["static expression"]))
+    assert PredParsers.static_expression.parse("a") == Failure(
+        ParseError(StringReader("a", 1), ["'('", "static expression"])
+    )
+    assert PredParsers.static_expression.parse("f(a,1)") == Failure(
+        ParseError(StringReader("f(a,1)", 6), ["static expression"])
+    )
     assert PredParsers.static_expression.parse("f(2,1") == Failure(ParseError(StringReader("f(2,1", 5), ["','", "')'"]))
 
 
