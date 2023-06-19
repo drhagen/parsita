@@ -14,13 +14,12 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.description = description
 
     def consume(self, state: State[Input], reader: Reader[Input]):
-        remainder = reader
-        status = self.parser.cached_consume(state, remainder)
+        status = self.parser.cached_consume(state, reader)
         if isinstance(status, Continue):
             if self.predicate(status.value):
                 return status
             else:
-                state.register_failure(self.description, reader)
+                state.register_failure(self.description, status.remainder)
                 return None
         else:
             return status
