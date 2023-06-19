@@ -37,9 +37,15 @@ def test_parse_error_str_string_reader():
     assert str(err) == "Expected 'b' or 'c' but found 'a'\nLine 1, character 3\n\na a\n  ^"
 
 
-def test_parse_error_str_string_reader_end_of_source():
-    err = ParseError(StringReader("a a", 3), ["'b'"])
-    assert str(err) == "Expected 'b' but found end of source"
+@pytest.mark.parametrize("source", ["a a", "a a\n"])
+def test_parse_error_str_string_reader_end_of_source(source):
+    err = ParseError(StringReader(source, 4), ["'b'"])
+    assert str(err) == "Expected 'b' but found end of source\nLine 1, character 4\n\na a\n   ^"
+
+
+def test_parse_error_str_string_reader_empty():
+    err = ParseError(StringReader("", 0), ["'a'"])
+    assert str(err) == "Expected 'a' but found end of source\nLine 1, character 1\n\n\n^"
 
 
 def test_register_failure_first():
@@ -92,14 +98,6 @@ def test_result_annotation():
         return Success(1)
 
     assert foo() == Success(1)
-
-
-def test_current_line():
-    # This test only exists to get 100% test coverage without doing a pragma: no cover on the whole current_line
-    # method. Under normal operation, the for loop should never complete because the position is also on some
-    # line. Here, the position has been artificially advanced beyond the length of the input.
-    reader = StringReader("foo", 3)
-    assert reader.current_line() is None
 
 
 def test_reader_with_defective_next_token_regex():

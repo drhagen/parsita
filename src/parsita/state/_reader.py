@@ -170,23 +170,34 @@ class StringReader(Reader[str]):
             return self.source[match.start() : match.end()]
 
     def current_line(self):
+        # StringIO is not consistent in how it treats empty strings
+        # and other strings not ending in newlines. Ensure that the
+        # source always ends in a newline.
+        # This also ensures that the loop below runs at least once
+        # and that `line` always ends with a newline.
+        if not self.source.endswith("\n"):
+            source = self.source + "\n"
+        else:
+            source = self.source
+
         characters_consumed = 0
-        for line_index, line in enumerate(StringIO(self.source)):
+        for line_index, line in enumerate(StringIO(source)):  # noqa: B007
             if characters_consumed + len(line) > self.position:
                 # The line with the error has been found
                 character_index = self.position - characters_consumed
-
-                # This creates a line like this '        ^                  '
-                pointer = (" " * character_index) + "^" + (" " * (len(line) - character_index - 1))
-
-                # This adds a newline to line in case it is the end of the file
-                if line[-1] != "\n":
-                    line = line + "\n"
-
-                # Add one to indexes to account for 0-indexes
-                return line_index + 1, character_index + 1, line, pointer
+                break
             else:
                 characters_consumed += len(line)
+        else:
+            # The error is at the end of the input
+            # Put the pointer just beyond the last non-newline character
+            character_index = len(line) - 1
+
+        # This creates a line like this '   ^'
+        pointer = " " * character_index + "^"
+
+        # Add one to indexes to account for 0-indexes
+        return line_index + 1, character_index + 1, line, pointer
 
     def expected_error(self, expected: str) -> str:
         """Generate a basic error to include the current state.
@@ -204,14 +215,16 @@ class StringReader(Reader[str]):
         expected_string = " or ".join(expected)
 
         if self.finished:
-            return super().expected_error(expected)
+            next_string = "end of source"
         else:
-            line_index, character_index, line, pointer = self.current_line()
+            next_string = repr(self.next_token())
 
-            return (
-                f"Expected {expected_string} but found {self.next_token()!r}\n"
-                f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
-            )
+        line_index, character_index, line, pointer = self.current_line()
+
+        return (
+            f"Expected {expected_string} but found {next_string}\n"
+            f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
+        )
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -226,12 +239,9 @@ class StringReader(Reader[str]):
         Returns:
             A full error message
         """
-        if self.finished:
-            return super().recursion_error(repeated_parser)
-        else:
-            line_index, character_index, line, pointer = self.current_line()
+        line_index, character_index, line, pointer = self.current_line()
 
-            return (
-                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
-                f"forever\nLine {line_index}, character {character_index}\n\n{line}{pointer}"
-            )
+        return (
+            f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
+            f"forever\nLine {line_index}, character {character_index}\n\n{line}{pointer}"
+        )
