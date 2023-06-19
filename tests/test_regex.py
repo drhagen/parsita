@@ -54,15 +54,42 @@ def test_literal_multiple():
     assert TestParsers.keyword.parse("int") == Success("int")
 
 
-def test_interval():
+def test_pred_interval():
     class TestParsers(ParserContext, whitespace="[ ]*"):
         number = reg(r"\d+") > int
         pair = "[" >> number << "," & number << "]"
         interval = pred(pair, lambda x: x[0] <= x[1], "ordered pair")
 
     assert TestParsers.interval.parse("[1, 2]") == Success([1, 2])
-    assert isinstance(TestParsers.interval.parse("[2, 1]"), Failure)
+    assert TestParsers.interval.parse("[2, 1]") == Failure(ParseError(StringReader("[2, 1]", 6), ["ordered pair"]))
     assert TestParsers.pair.parse("[1,a]") == TestParsers.interval.parse("[1,a]")
+
+
+def test_pred_static_expression():
+    def is_static(expression):
+        if isinstance(expression, str):
+            return False
+        if isinstance(expression, int):
+            return True
+        elif isinstance(expression, list):
+            return all(is_static(e) for e in expression)
+
+    class PredParsers(ParserContext):
+        name = reg(r"[a-zA-Z]+")
+        integer = reg(r"[0-9]+") > int
+        function = name >> "(" >> repsep(expression, ",") << ")"
+        expression = function | name | integer
+        static_expression = pred(expression, is_static, "static expression")
+
+    assert PredParsers.static_expression.parse("1") == Success(1)
+    assert PredParsers.static_expression.parse("f(2,1)") == Success([2, 1])
+    assert PredParsers.static_expression.parse("a") == Failure(
+        ParseError(StringReader("a", 1), ["'('", "static expression"])
+    )
+    assert PredParsers.static_expression.parse("f(a,1)") == Failure(
+        ParseError(StringReader("f(a,1)", 6), ["static expression"])
+    )
+    assert PredParsers.static_expression.parse("f(2,1") == Failure(ParseError(StringReader("f(2,1", 5), ["','", "')'"]))
 
 
 def test_regex():

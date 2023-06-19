@@ -65,7 +65,7 @@ def test_predicate():
     assert TestParsers.a.parse("A") == Success("A")
     assert TestParsers.d.parse("2") == Success("2")
     assert TestParsers.d.parse("23") == Failure(ParseError(StringReader("23", 1), ["end of source"]))
-    assert TestParsers.d.parse("a") == Failure(ParseError(StringReader("a", 0), ["digit"]))
+    assert TestParsers.d.parse("a") == Failure(ParseError(StringReader("a", 1), ["digit"]))
     assert str(TestParsers.a) == "a = pred(any1, letter A)"
 
 
