@@ -37,9 +37,15 @@ def test_parse_error_str_string_reader():
     assert str(err) == "Expected 'b' or 'c' but found 'a'\nLine 1, character 3\n\na a\n  ^"
 
 
-def test_parse_error_str_string_reader_end_of_source():
-    err = ParseError(StringReader("a a", 3), ["'b'"])
+@pytest.mark.parametrize("source", ["a a", "a a\n"])
+def test_parse_error_str_string_reader_end_of_source(source):
+    err = ParseError(StringReader(source, 4), ["'b'"])
     assert str(err) == "Expected 'b' but found end of source\nLine 1, character 4\n\na a\n   ^"
+
+
+def test_parse_error_str_string_reader_empty():
+    err = ParseError(StringReader("", 0), ["'a'"])
+    assert str(err) == "Expected 'a' but found end of source\nLine 1, character 1\n\n\n^"
 
 
 def test_register_failure_first():

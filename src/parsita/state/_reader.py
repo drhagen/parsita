@@ -170,8 +170,18 @@ class StringReader(Reader[str]):
             return self.source[match.start() : match.end()]
 
     def current_line(self):
+        # StringIO is not consistent in how it treats empty strings
+        # and other strings not ending in newlines. Ensure that the
+        # source always ends in a newline.
+        # This also ensures that the loop below runs at least once
+        # and that `line` always ends with a newline.
+        if not self.source.endswith("\n"):
+            source = self.source + "\n"
+        else:
+            source = self.source
+
         characters_consumed = 0
-        for line_index, line in enumerate(StringIO(self.source)):  # noqa: B007
+        for line_index, line in enumerate(StringIO(source)):  # noqa: B007
             if characters_consumed + len(line) > self.position:
                 # The line with the error has been found
                 character_index = self.position - characters_consumed
@@ -180,14 +190,11 @@ class StringReader(Reader[str]):
                 characters_consumed += len(line)
         else:
             # The error is at the end of the input
-            character_index = len(line)
+            # Put the pointer just beyond the last non-newline character
+            character_index = len(line) - 1
 
         # This creates a line like this '   ^'
         pointer = " " * character_index + "^"
-
-        # This adds a newline to line in case it is the end of the file
-        if line[-1] != "\n":
-            line = line + "\n"
 
         # Add one to indexes to account for 0-indexes
         return line_index + 1, character_index + 1, line, pointer
