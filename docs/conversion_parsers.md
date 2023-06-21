@@ -45,7 +45,7 @@ assert PercentParsers.percent.parse('50') == Success(Percent(50))
 assert isinstance(PercentParsers.percent.parse('150'), Failure)
 ```
 
-In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to `>=` before it was converted into a failure. Future versions of Parsita will address this issue.
+In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to `>=` before it was converted into a failure.
 
 ### Parsers parameterized by previous input
 
