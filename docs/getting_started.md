@@ -2,7 +2,7 @@
 
 David Hagen gave an [introductory talk](https://www.youtube.com/watch?v=9JSGGSRgUcw) on Parsita at SciPy 2021. The documentation is more thorough, but the talk is useful for anyone looking for a quick walk-through.
 
-Strictly speaking, Parsita parsers can parse any kind of sequence, `str`, `bytes`, `Sequence[Token]`, etc. As long as the arguments to the terminal parsers match the input sequence, everything will work. However, this documentation will focus exclusively on parsing `str` because parsing text is most accessible to beginners.
+Strictly speaking, Parsita parsers can parse any kind of sequence, `str`, `bytes`, `list[Token]`, etc. As long as the arguments to the terminal parsers match the input sequence, everything will work. However, this documentation will focus exclusively on parsing `str` because parsing text is most accessible to beginners.
 
 ## Defining a parser
 
