@@ -16,4 +16,6 @@ def test_json():
 def test_positioned():
     from examples.positioned import Plus, PlusParsers, Variable
 
-    assert PlusParsers.plus.parse("abc+xyz") == Success(Plus(Variable("abc", 0, 3), Variable("xyz", 4, 3)))
+    assert PlusParsers.plus.parse("abc+xyz") == Success(
+        Plus(Variable("abc", 0, 3), Variable("xyz", 4, 3))
+    )

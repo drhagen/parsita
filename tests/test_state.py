@@ -85,7 +85,9 @@ def test_isinstance():
     assert isinstance(failure, Failure)
 
 
-@pytest.mark.xfail(reason="Result is a type alias and importing the concrete type would break eager annotations")
+@pytest.mark.xfail(
+    reason="Result is a type alias and importing the concrete type would break eager annotations"
+)
 def test_isinstance_result():
     success = Success(1)
     failure = Failure(ParseError(StringReader("bar baz", 4), ["foo"]))
@@ -101,8 +103,8 @@ def test_result_annotation():
 
 
 def test_reader_with_defective_next_token_regex():
-    # With the default value of next_token_regex, a match cannot fail. However, if a fallible regex is provided to
-    # a super class next_token should not crash.
+    # With the default value of next_token_regex, a match cannot fail. However,
+    # if a fallible regex is provided to a super class next_token should not crash.
     class DefectiveReader(StringReader):
         next_token_regex = re.compile(r"[A-Za-z0-9]+")
 

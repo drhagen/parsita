@@ -57,7 +57,9 @@ class Parser(Generic[Input, Output]):
             name.
     """
 
-    def cached_consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def cached_consume(
+        self, state: State[Input], reader: Reader[Input]
+    ) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
 
         This is a concrete wrapper around ``consume``. This method implements
@@ -96,7 +98,9 @@ class Parser(Generic[Input, Output]):
 
         return result
 
-    def consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def consume(
+        self, state: State[Input], reader: Reader[Input]
+    ) -> Optional[Continue[Input, Output]]:
         """Abstract method for matching this parser at the given location.
 
         This is the central method of every parser combinator.

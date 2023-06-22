@@ -66,7 +66,10 @@ class Reader(Generic[Input]):
         if self.finished:
             return f"Expected {expected_string} but found end of source"
         else:
-            return f"Expected {expected_string} but found {self.next_token()} at index {self.position}"
+            return (
+                f"Expected {expected_string} but found {self.next_token()} "
+                f"at index {self.position}"
+            )
 
     def recursion_error(self, repeated_parser: str):
         """Generate an error to indicate that infinite recursion was encountered.
@@ -84,13 +87,13 @@ class Reader(Generic[Input]):
 
         if self.finished:
             return (
-                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
-                "forever at end of source"
+                f"Infinite recursion detected in {repeated_parser}; "
+                "empty string was matched and will be matched forever at end of source"
             )
         else:
             return (
-                f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
-                f"forever at index {self.position} before {self.next_token()}"
+                f"Infinite recursion detected in {repeated_parser}; empty string was matched "
+                f"and will be matched forever at index {self.position} before {self.next_token()}"
             )
 
 
@@ -127,7 +130,8 @@ class SequenceReader(Reader[Input]):
         return SequenceReader(self.source, self.position + count)
 
 
-# Python lacks character type, so "str" will be used for both the sequence and the elements
+# Python lacks character type, so "str" will be used for both the sequence and
+# the elements
 @dataclass(frozen=True)
 class StringReader(Reader[str]):
     """A reader for strings.
@@ -242,6 +246,7 @@ class StringReader(Reader[str]):
         line_index, character_index, line, pointer = self.current_line()
 
         return (
-            f"Infinite recursion detected in {repeated_parser}; empty string was matched and will be matched "
-            f"forever\nLine {line_index}, character {character_index}\n\n{line}{pointer}"
+            f"Infinite recursion detected in {repeated_parser}; "
+            "empty string was matched and will be matched forever\n"
+            f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
         )

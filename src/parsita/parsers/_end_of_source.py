@@ -10,7 +10,9 @@ class EndOfSourceParser(Generic[Input], Parser[Input, None]):
     def __init__(self):
         super().__init__()
 
-    def consume(self, state: State[Input], reader: Reader[Input]) -> Optional[Continue[Input, None]]:
+    def consume(
+        self, state: State[Input], reader: Reader[Input]
+    ) -> Optional[Continue[Input, None]]:
         if reader.finished:
             return Continue(reader, None)
         else:
