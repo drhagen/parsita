@@ -5,7 +5,7 @@ from parsita import ParserContext, lit, opt, reg, rep, rep1, rep1sep, repsep
 from parsita.util import constant, splat
 
 # This covers a typical URL schema, not the crazy one specified by https://tools.ietf.org/html/rfc3986
-# In particular, this doesn't handle Unicode at the moment
+# In particular, this doesn't handle Unicode
 
 UserInfo = namedtuple("Userinfo", ["username", "password"])
 DomainName = namedtuple("DomainName", ["domains"])
@@ -36,18 +36,26 @@ class TypicalUrlParsers(ParserContext):
     )
     host = ipv4_address | ipv6_address | domain_name
 
-    port = ":" >> reg(r"[0-9]+") > int
+    port = reg(r"[0-9]+") > int
 
     path = rep("/" >> (reg(r"[-._~A-Za-z0-9]*") | encoded))
 
     query_as_is = reg(r"[*-._A-Za-z0-9]+")
     query_space = lit("+") > constant(" ")
     query_string = rep1(query_as_is | query_space | encoded) > "".join
-    query = "?" >> repsep(query_string << "=" & query_string, "&") > OrderedDict
+    query = repsep(query_string << "=" & query_string, "&") > OrderedDict
 
-    fragment = "#" >> reg(r"[-._~/?A-Za-z0-9]*")
+    fragment = reg(r"[-._~/?A-Za-z0-9]*")
 
-    url = scheme << "://" & opt(userinfo << "@") & host & opt(port) & path & opt(query) & opt(fragment) > splat(Url)
+    url = (
+        scheme << "://"
+        & opt(userinfo << "@")
+        & host
+        & opt(":" >> port)
+        & path
+        & opt("?" >> query)
+        & opt("#" >> fragment)
+    ) > splat(Url)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,9 @@ from ._base import Parser
 
 
 class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
-    def __init__(self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str):
+    def __init__(
+        self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str
+    ):
         super().__init__()
         self.parser = parser
         self.predicate = predicate

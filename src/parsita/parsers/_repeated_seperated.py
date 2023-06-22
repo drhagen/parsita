@@ -32,9 +32,11 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
             output = [status.value]
             remainder = status.remainder
             while self.max is None or len(output) < self.max:
-                # If the separator matches, but the parser does not, the remainder from the last successful parser step
-                # must be used, not the remainder from any separator. That is why the parser starts from the remainder
-                # on the status, but remainder is not updated until after the parser succeeds.
+                # If the separator matches, but the parser does not, the
+                # remainder from the last successful parser step must be used,
+                # not the remainder from any separator. That is why the parser
+                # starts from the remainder on the status, but remainder is not
+                # updated until after the parser succeeds.
                 status = self.separator.cached_consume(state, remainder)
                 if isinstance(status, Continue):
                     status = self.parser.cached_consume(state, status.remainder)
@@ -55,12 +57,12 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
             return None
 
     def __repr__(self):
+        rep_string = self.parser.name_or_repr()
+        sep_string = self.separator.name_or_repr()
         min_string = f", min={self.min}" if self.min > 0 else ""
         max_string = f", max={self.max}" if self.max is not None else ""
-        return (
-            self.name_or_nothing()
-            + f"repsep({self.parser.name_or_repr()}, {self.separator.name_or_repr()}{min_string}{max_string})"
-        )
+        string = f"repsep({rep_string}, {sep_string}{min_string}{max_string})"
+        return self.name_or_nothing() + string
 
 
 def repsep(
@@ -107,9 +109,11 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
             output = [status.value]
             remainder = status.remainder
             while True:
-                # If the separator matches, but the parser does not, the remainder from the last successful parser step
-                # must be used, not the remainder from any separator. That is why the parser starts from the remainder
-                # on the status, but remainder is not updated until after the parser succeeds.
+                # If the separator matches, but the parser does not, the
+                # remainder from the last successful parser step must be used,
+                # not the remainder from any separator. That is why the parser
+                # starts from the remainder on the status, but remainder is not
+                # updated until after the parser succeeds.
                 status = self.separator.cached_consume(state, remainder)
                 if isinstance(status, Continue):
                     status = self.parser.cached_consume(state, status.remainder)
@@ -125,11 +129,13 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                     return Continue(remainder, output)
 
     def __repr__(self):
-        return self.name_or_nothing() + f"rep1sep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
+        string = f"rep1sep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
+        return self.name_or_nothing() + string
 
 
 def rep1sep(
-    parser: Union[Parser[Input, Output], Sequence[Input]], separator: Union[Parser[Input, Any], Sequence[Input]]
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    separator: Union[Parser[Input, Any], Sequence[Input]],
 ) -> RepeatedOnceSeparatedParser[Input, Output]:
     """Match a parser one or more times separated by another parser.
 

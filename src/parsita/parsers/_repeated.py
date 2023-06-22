@@ -35,7 +35,9 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         return self.name_or_nothing() + f"rep1({self.parser.name_or_repr()})"
 
 
-def rep1(parser: Union[Parser[Input, Output], Sequence[Input]]) -> RepeatedOnceParser[Input, Output]:
+def rep1(
+    parser: Union[Parser[Input, Output], Sequence[Input]]
+) -> RepeatedOnceParser[Input, Output]:
     """Match a parser one or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. If it matches as least
@@ -81,7 +83,8 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __repr__(self):
         min_string = f", min={self.min}" if self.min > 0 else ""
         max_string = f", max={self.max}" if self.max is not None else ""
-        return self.name_or_nothing() + f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
+        string = f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
+        return self.name_or_nothing() + string
 
 
 def rep(

@@ -29,7 +29,8 @@ class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 def first(
-    parser: Union[Parser[Input, Output], Sequence[Input]], *parsers: Union[Parser[Input, Output], Sequence[Input]]
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    *parsers: Union[Parser[Input, Output], Sequence[Input]],
 ) -> FirstAlternativeParser[Input, Output]:
     """Match the first of several alternative parsers.
 
@@ -45,7 +46,9 @@ def first(
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
     """
-    cleaned_parsers = [lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]]
+    cleaned_parsers = [
+        lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]
+    ]
     return FirstAlternativeParser(*cleaned_parsers)
 
 
@@ -59,7 +62,10 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         for parser in self.parsers:
             status = parser.cached_consume(state, reader)
             if isinstance(status, Continue):
-                if longest_success is None or status.remainder.position > longest_success.remainder.position:
+                if (
+                    longest_success is None
+                    or status.remainder.position > longest_success.remainder.position
+                ):
                     longest_success = status
 
         return longest_success
@@ -73,7 +79,8 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 def longest(
-    parser: Union[Parser[Input, Output], Sequence[Input]], *parsers: Union[Parser[Input, Output], Sequence[Input]]
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    *parsers: Union[Parser[Input, Output], Sequence[Input]],
 ) -> LongestAlternativeParser[Input, Output]:
     """Match the longest of several alternative parsers.
 
@@ -90,5 +97,7 @@ def longest(
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
     """
-    cleaned_parsers = [lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]]
+    cleaned_parsers = [
+        lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]
+    ]
     return LongestAlternativeParser(*cleaned_parsers)

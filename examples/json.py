@@ -15,7 +15,17 @@ class JsonStringParsers(ParserContext):
     tab = lit(r"\t") > constant("\t")
     uni = reg(r"\\u([0-9a-fA-F]{4})") > (lambda x: chr(int(x.group(1), 16)))
 
-    escaped = quote | reverse_solidus | solidus | backspace | form_feed | line_feed | carriage_return | tab | uni
+    escaped = (
+        quote
+        | reverse_solidus
+        | solidus
+        | backspace
+        | form_feed
+        | line_feed
+        | carriage_return
+        | tab
+        | uni
+    )
     unescaped = reg(r"[\u0020-\u0021\u0023-\u005B\u005D-\U0010FFFF]+")
 
     string = '"' >> rep(escaped | unescaped) << '"' > "".join
@@ -44,7 +54,12 @@ if __name__ == "__main__":
         "-12.40e2",
         "[false, true, null]",
         '{"__class__" : "Point", "x" : 2.3, "y" : -1.6}',
-        '{"__class__" : "Rectangle", "location" : {"x":-1.3,"y":-4.5}, "height" : 2.0, "width" : 4.0}',
+        """{
+            "__class__" : "Rectangle",
+            "location" : {"x":-1.3,"y":-4.5},
+            "height" : 2.0,
+            "width" : 4.0
+        }""",
         '{"text" : ""}',
     ]
 

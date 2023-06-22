@@ -12,7 +12,8 @@ def constant(x: A) -> Callable[..., A]:
         x: Any object.
 
     Returns:
-        A function that accepts any number of positional and keyword arguments, discards them, and returns ``x``.
+        A function that accepts any number of positional and keyword arguments,
+        discards them, and returns ``x``.
     """
 
     def constanted(*args, **kwargs):
@@ -22,14 +23,14 @@ def constant(x: A) -> Callable[..., A]:
 
 
 def splat(f: Callable[..., A]) -> Callable[[Iterable], A]:
-    """Convert a function taking multiple arguments into a function taking a single iterable argument.
+    """Convert a function of multiple arguments into a function of a single iterable argument.
 
     Args:
         f: Any function
 
     Returns:
-        A function that accepts a single iterable argument. Each element of this iterable argument is passed as an
-        argument to ``f``.
+        A function that accepts a single iterable argument. Each element of this
+        iterable argument is passed as an argument to ``f``.
 
     Example:
         $ def f(a, b, c):
@@ -47,14 +48,14 @@ def splat(f: Callable[..., A]) -> Callable[[Iterable], A]:
 
 
 def unsplat(f: Callable[[Iterable], A]) -> Callable[..., A]:
-    """Convert a function taking a single iterable argument into a function taking multiple arguments.
+    """Convert a function of a single iterable argument into a function of multiple arguments.
 
     Args:
         f: Any function taking a single iterable argument
 
     Returns:
-        A function that accepts multiple arguments. Each argument of this function is passed as an element of an
-        iterable to ``f``.
+        A function that accepts multiple arguments. Each argument of this
+        function is passed as an element of an iterable to ``f``.
 
     Example:
         $ def f(a):

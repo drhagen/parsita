@@ -6,7 +6,8 @@ from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser
 
 
-class SequentialParser(Generic[Input], Parser[Input, List[Any]]):  # Type of this class is inexpressible
+# Type of this class is inexpressible
+class SequentialParser(Generic[Input], Parser[Input, List[Any]]):
     def __init__(self, parser: Parser[Input, Any], *parsers: Parser[Input, Any]):
         super().__init__()
         self.parsers = (parser, *parsers)
@@ -47,7 +48,8 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
             return None
 
     def __repr__(self):
-        return self.name_or_nothing() + f"{self.left.name_or_repr()} >> {self.right.name_or_repr()}"
+        string = f"{self.left.name_or_repr()} >> {self.right.name_or_repr()}"
+        return self.name_or_nothing() + string
 
 
 class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
@@ -68,4 +70,5 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
             return None
 
     def __repr__(self):
-        return self.name_or_nothing() + f"{self.left.name_or_repr()} << {self.right.name_or_repr()}"
+        string = f"{self.left.name_or_repr()} << {self.right.name_or_repr()}"
+        return self.name_or_nothing() + string

@@ -22,7 +22,8 @@ class ParsersDict(dict):
     def __missing__(self, key):
         frame = inspect.currentframe()  # Should be the frame of __missing__
         while frame.f_code.co_name != "__missing__":  # pragma: no cover
-            # But sometimes debuggers add frames on top of the stack; get back to `__missing__`'s frame
+            # But sometimes debuggers add frames on top of the stack;
+            # get back to `__missing__`'s frame
             frame = frame.f_back
 
         class_body_frame = frame.f_back.f_back  # Frame of parser context is two frames back
@@ -44,8 +45,11 @@ class ParsersDict(dict):
 
     def __setitem__(self, key, value):
         if isinstance(value, Parser):
-            value.protected = True  # Protects against accidental concatenation of sequential parsers
-            value.name = key  # Used for better error messages
+            # Protects against accidental concatenation of sequential parsers
+            value.protected = True
+
+            # Used for better error messages
+            value.name = key
 
         super().__setitem__(key, value)
 
@@ -79,7 +83,11 @@ class ParserContextMeta(type):
 
     @classmethod
     def __prepare__(
-        mcs, name, bases, *, whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing  # noqa: N804
+        mcs,  # noqa: N804
+        name,
+        bases,
+        *,
+        whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing
     ):
         if whitespace is missing:
             whitespace = mcs.default_whitespace
@@ -119,8 +127,9 @@ class ParserContextMeta(type):
 
     def __call__(cls, *args, **kwargs):
         raise TypeError(
-            "Parsers cannot be instantiated. They use class bodies purely as contexts for managing defaults and "
-            "allowing forward declarations. Access the individual parsers as static attributes."
+            "Parsers cannot be instantiated. They use class bodies purely as contexts for "
+            "managing defaults and allowing forward declarations. Access the individual parsers "
+            "as static attributes."
         )
 
 

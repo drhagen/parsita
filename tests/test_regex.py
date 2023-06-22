@@ -42,8 +42,12 @@ def test_literal_no_whitespace():
         hundred = lit("100") > float
 
     assert TestParsers.hundred.parse("100") == Success(100)
-    assert TestParsers.hundred.parse(" 100") == Failure(ParseError(StringReader(" 100", 0), ["'100'"]))
-    assert TestParsers.hundred.parse("100 ") == Failure(ParseError(StringReader("100 ", 3), ["end of source"]))
+    assert TestParsers.hundred.parse(" 100") == Failure(
+        ParseError(StringReader(" 100", 0), ["'100'"])
+    )
+    assert TestParsers.hundred.parse("100 ") == Failure(
+        ParseError(StringReader("100 ", 3), ["end of source"])
+    )
     assert str(TestParsers.hundred) == "hundred = '100'"
 
 
@@ -61,7 +65,9 @@ def test_pred_interval():
         interval = pred(pair, lambda x: x[0] <= x[1], "ordered pair")
 
     assert TestParsers.interval.parse("[1, 2]") == Success([1, 2])
-    assert TestParsers.interval.parse("[2, 1]") == Failure(ParseError(StringReader("[2, 1]", 6), ["ordered pair"]))
+    assert TestParsers.interval.parse("[2, 1]") == Failure(
+        ParseError(StringReader("[2, 1]", 6), ["ordered pair"])
+    )
     assert TestParsers.pair.parse("[1,a]") == TestParsers.interval.parse("[1,a]")
 
 
@@ -89,7 +95,9 @@ def test_pred_static_expression():
     assert PredParsers.static_expression.parse("f(a,1)") == Failure(
         ParseError(StringReader("f(a,1)", 6), ["static expression"])
     )
-    assert PredParsers.static_expression.parse("f(2,1") == Failure(ParseError(StringReader("f(2,1", 5), ["','", "')'"]))
+    assert PredParsers.static_expression.parse("f(2,1") == Failure(
+        ParseError(StringReader("f(2,1", 5), ["','", "')'"])
+    )
 
 
 def test_regex():
@@ -108,8 +116,12 @@ def test_regex_no_whitespace():
         digits = reg(r"\d+") > float
 
     assert TestParsers.digits.parse("100") == Success(100)
-    assert TestParsers.digits.parse(" 100") == Failure(ParseError(StringReader(" 100", 0), [r"r'\d+'"]))
-    assert TestParsers.digits.parse("100 ") == Failure(ParseError(StringReader("100 ", 3), ["end of source"]))
+    assert TestParsers.digits.parse(" 100") == Failure(
+        ParseError(StringReader(" 100", 0), [r"r'\d+'"])
+    )
+    assert TestParsers.digits.parse("100 ") == Failure(
+        ParseError(StringReader("100 ", 3), ["end of source"])
+    )
     assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
 
 
@@ -120,10 +132,16 @@ def test_regex_custom_whitespace():
 
     assert TestParsers.digits.parse("100") == Success(100)
     assert TestParsers.digits.parse("   100    ") == Success(100)
-    assert TestParsers.digits.parse("100\n") == Failure(ParseError(StringReader("100\n", 3), ["end of source"]))
-    assert TestParsers.digits.parse("100 \n") == Failure(ParseError(StringReader("100 \n", 4), ["end of source"]))
+    assert TestParsers.digits.parse("100\n") == Failure(
+        ParseError(StringReader("100\n", 3), ["end of source"])
+    )
+    assert TestParsers.digits.parse("100 \n") == Failure(
+        ParseError(StringReader("100 \n", 4), ["end of source"])
+    )
     assert TestParsers.pair.parse("100 100") == Success([100, 100])
-    assert TestParsers.pair.parse("100\n100") == Failure(ParseError(StringReader("100\n100", 3), [r"r'\d+'"]))
+    assert TestParsers.pair.parse("100\n100") == Failure(
+        ParseError(StringReader("100\n100", 3), [r"r'\d+'"])
+    )
     assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
     assert str(TestParsers.pair) == "pair = digits & digits"
 
@@ -151,7 +169,9 @@ def test_multiple_messages():
     assert TestParsers.any.parse("func{var}") == Failure(
         ParseError(StringReader("func{var}", 4), ["'('", "'['", "end of source"])
     )
-    assert TestParsers.any.parse("func[var") == Failure(ParseError(StringReader("func[var", 8), ["']'"]))
+    assert TestParsers.any.parse("func[var") == Failure(
+        ParseError(StringReader("func[var", 8), ["']'"])
+    )
 
 
 def test_alternative_longest():
@@ -175,7 +195,9 @@ def test_first_function():
         any = first(name, function, index)
 
     assert TestParsers.any.parse("var") == Success("var")
-    assert TestParsers.any.parse("var(arg)") == Failure(ParseError(StringReader("var(arg)", 3), ["end of source"]))
+    assert TestParsers.any.parse("var(arg)") == Failure(
+        ParseError(StringReader("var(arg)", 3), ["end of source"])
+    )
     assert TestParsers.any.parse("") == Failure(ParseError(StringReader("", 0), ["r'[a-z]+'"]))
 
 
@@ -209,7 +231,9 @@ def test_longest_function_all_failures():
         index = name & "[" >> name << "]"
         any = longest(function, index)
 
-    assert TestParsers.any.parse("func{var}") == Failure(ParseError(StringReader("func{var}", 4), ["'('", "'['"]))
+    assert TestParsers.any.parse("func{var}") == Failure(
+        ParseError(StringReader("func{var}", 4), ["'('", "'['"])
+    )
 
 
 def test_sequential():
@@ -222,7 +246,9 @@ def test_sequential():
     assert TestParsers.hello_world.parse("Hello David") == Failure(
         ParseError(StringReader("Hello David", 6), ["'world'"])
     )
-    assert TestParsers.hello_world.parse("Hello") == Failure(ParseError(StringReader("Hello", 5), ["'world'"]))
+    assert TestParsers.hello_world.parse("Hello") == Failure(
+        ParseError(StringReader("Hello", 5), ["'world'"])
+    )
 
 
 def test_multiline():
@@ -245,19 +271,31 @@ def test_repeated():
         notrail = "(" >> repsep(number, ",") << ")" > tuple
         notrail1 = "(" >> rep1sep(number, ",") << ")" > tuple
 
-    assert TestParsers.trail.parse("(1,2,3)") == Failure(ParseError(StringReader("(1,2,3)", 6), ["','"]))
+    assert TestParsers.trail.parse("(1,2,3)") == Failure(
+        ParseError(StringReader("(1,2,3)", 6), ["','"])
+    )
 
     assert TestParsers.trail.parse("(1,2,3,)") == Success((1, 2, 3))
     assert TestParsers.trail.parse("()") == Success(())
-    assert TestParsers.trail1.parse("(1,2,3)") == Failure(ParseError(StringReader("(1,2,3)", 6), ["','"]))
+    assert TestParsers.trail1.parse("(1,2,3)") == Failure(
+        ParseError(StringReader("(1,2,3)", 6), ["','"])
+    )
     assert TestParsers.trail1.parse("(1,2,3,)") == Success((1, 2, 3))
-    assert TestParsers.trail1.parse("()") == Failure(ParseError(StringReader("()", 1), [r"r'\d+'"]))
+    assert TestParsers.trail1.parse("()") == Failure(
+        ParseError(StringReader("()", 1), [r"r'\d+'"])
+    )
     assert TestParsers.notrail.parse("(1,2,3)") == Success((1, 2, 3))
-    assert TestParsers.notrail.parse("(1,2,3,)") == Failure(ParseError(StringReader("(1,2,3,)", 7), [r"r'\d+'"]))
+    assert TestParsers.notrail.parse("(1,2,3,)") == Failure(
+        ParseError(StringReader("(1,2,3,)", 7), [r"r'\d+'"])
+    )
     assert TestParsers.notrail.parse("()") == Success(())
     assert TestParsers.notrail1.parse("(1,2,3)") == Success((1, 2, 3))
-    assert TestParsers.notrail1.parse("(1,2,3,)") == Failure(ParseError(StringReader("(1,2,3,)", 7), [r"r'\d+'"]))
-    assert TestParsers.notrail1.parse("()") == Failure(ParseError(StringReader("()", 1), [r"r'\d+'"]))
+    assert TestParsers.notrail1.parse("(1,2,3,)") == Failure(
+        ParseError(StringReader("(1,2,3,)", 7), [r"r'\d+'"])
+    )
+    assert TestParsers.notrail1.parse("()") == Failure(
+        ParseError(StringReader("()", 1), [r"r'\d+'"])
+    )
 
 
 def test_transformation_as_fallible_conversion():
@@ -284,7 +322,9 @@ def test_transformation_as_fallible_conversion():
     assert TestParsers.percent.parse("150") == Failure(
         ParseError(StringReader("150", 3), ["a number between 0 and 100"])
     )
-    assert TestParsers.percent.parse("a") == Failure(ParseError(StringReader("a", 0), ["r'[0-9]+'"]))
+    assert TestParsers.percent.parse("a") == Failure(
+        ParseError(StringReader("a", 0), ["r'[0-9]+'"])
+    )
 
 
 def test_transformation_as_parameterized_parser():
@@ -372,8 +412,8 @@ def test_until_parser():
         ambiguous_end = lit(block_stop)
         ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end
 
-    ambiguous_content = """I'm an ambiguous block of Ambiguous Content: that has a bunch of :End Conten
-    t problematic stuff in it"""
+    ambiguous_content = """I'm an ambiguous block of Ambiguous Content: that has
+    a bunch of :End Conten t problematic stuff in it"""
     content = f"""{block_start}{ambiguous_content}{block_stop}"""
     result = TestParser.ambiguous.parse(content)
     assert result == Success(ambiguous_content)
@@ -385,10 +425,13 @@ def test_until_parser():
     no_termination_content = f"""{block_start}{ambiguous_content}"""
     result_3 = TestParser.ambiguous.parse(no_termination_content)
     assert result_3 == Failure(
-        ParseError(StringReader(no_termination_content, len(no_termination_content)), ["':End Content'"])
+        ParseError(
+            StringReader(no_termination_content, len(no_termination_content)), ["':End Content'"]
+        )
     )
 
-    assert str(TestParser.ambiguous) == "ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end"
+    expected = "ambiguous = ambiguous_start >> until(ambiguous_end) << ambiguous_end"
+    assert str(TestParser.ambiguous) == expected
 
 
 def test_heredoc():
@@ -451,7 +494,12 @@ def test_infinite_recursion_protection():
         bad_rep1sep = rep1sep(opt("foo"), opt(","))
 
     # Recursion happens in middle of stream
-    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+    for parser in (
+        TestParsers.bad_rep,
+        TestParsers.bad_rep1,
+        TestParsers.bad_repsep,
+        TestParsers.bad_rep1sep,
+    ):
         text = "foo foo foo bar\nfoo foo foo"
         with pytest.raises(RecursionError) as actual:
             parser.parse(text)
@@ -466,7 +514,12 @@ def test_infinite_recursion_protection():
         )
 
     # Recursion happens at end of stream
-    for parser in (TestParsers.bad_rep, TestParsers.bad_rep1, TestParsers.bad_repsep, TestParsers.bad_rep1sep):
+    for parser in (
+        TestParsers.bad_rep,
+        TestParsers.bad_rep1,
+        TestParsers.bad_repsep,
+        TestParsers.bad_rep1sep,
+    ):
         text = "foo foo foo\nfoo foo foo"
         with pytest.raises(RecursionError) as actual:
             parser.parse(text)
@@ -490,12 +543,15 @@ def test_protection():
     assert TestParsers.bba.parse("b b aa") == Success(["b", "b", "aa"])
     assert TestParsers.bba.parse("b b aa  ") == Success(["b", "b", "aa"])
     assert TestParsers.bba.parse("  b b aa") == Success(["b", "b", "aa"])
-    assert TestParsers.bba.parse("aa b") == Failure(ParseError(StringReader("aa b", 3), ["end of source"]))
+    assert TestParsers.bba.parse("aa b") == Failure(
+        ParseError(StringReader("aa b", 3), ["end of source"])
+    )
     assert str(TestParsers.end_aa) == "end_aa = 'aa' << eof"
 
 
 def test_failures_with_duplicate_tokens():
-    # If two alternatives have the same starting token, the failure message should not contain duplicates.
+    # If two alternatives have the same starting token, the failure message
+    # should not contain duplicates.
     class ParallelParsers(ParserContext):
         plus_one = lit("+") >> lit("1")
         plus_two = lit("+") >> lit("2")
