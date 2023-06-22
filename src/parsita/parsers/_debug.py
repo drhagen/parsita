@@ -12,7 +12,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self,
         parser: Parser[Input, Output],
         verbose: bool = False,
-        callback: Callable[[Parser[Input, Output], Reader[Input]], None] = None,
+        callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
     ):
         super().__init__()
         self.parser = parser
