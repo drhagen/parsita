@@ -1,11 +1,6 @@
-*      text=auto
+*       text=auto
 
-# General
-*.txt  text
-*.md   text
-*.html text
-*.xml  text
-*.c    text
-
-# Python
-*.py      text
+*.py    text
+*.md    text
+*.yml   text
+*.toml  text

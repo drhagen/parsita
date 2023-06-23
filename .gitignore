@@ -1,12 +1,23 @@
-.idea
-__pycache__
-.cache
-.pytest_cache
-.nox
-parsita.egg-info
-.coverage*
-htmlcov
-coverage.xml
-build
-dist
-site
+# python
+**/__pycache__
+
+# poetry
+/.venv
+/dist
+
+# nox
+/.nox
+
+# pytest
+**/.pytest_cache
+
+# coverage
+/.coverage*
+/htmlcov
+/coverage.xml
+
+# ruff
+/.ruff_cache
+
+# mkdocs
+/site
