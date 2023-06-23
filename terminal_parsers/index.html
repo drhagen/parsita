@@ -19,7 +19,7 @@
         <link rel="next" href="../conversion_parsers/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -493,23 +493,23 @@
 
 <h1 id="terminal-parsers">Terminal parsers</h1>
 <p>Terminal parsers (those created by <code>lit</code> and <code>reg</code>) are the atoms of a parser, they match and extract the smallest meaningful words of the language.</p>
-<p>You could say that they recognize the tokens of the language being parsed, but Parsita does not really have a concept of tokens, at least when using the <code>TextParsers</code> context. Terminal parsers chew directly on the input string.</p>
+<p>You could say that they recognize the tokens of the language being parsed, but Parsita does not really have a concept of tokens, at least when <code>str</code> is the input type. Terminal parsers chew directly on the input string.</p>
 <h2 id="litliterals-literal-parser"><code>lit(*literals)</code>: literal parser</h2>
 <p>This is the simplest parser. It matches the exact string provided and returns the string as its value. If multiple arguments are provided, it tries each one in succession, returning the first one it finds.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">HelloParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">HelloParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">hello</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">HelloParsers</span><span class="o">.</span><span class="n">hello</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">HelloParsers</span><span class="o">.</span><span class="n">hello</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;Goodbye&#39;</span><span class="p">),</span> <span class="n">Failure</span><span class="p">)</span>
 </code></pre></div>
-<p>In most cases, the call to <code>lit</code> is handled automatically. If a bare string is provided to the functions and operators below, it will be promoted to a literal parser whenever possible. Only when an operator is between two Python types, like a string and a string <code>'a' | 'b'</code> or a string and function <code>'100' &gt; int</code> will this "implicit conversion" not take place and you have to use <code>lit</code> (e.g. <code>lit('a', 'b')</code> and <code>lit('100') &gt; int</code>).</p>
+<p>In most cases, the call to <code>lit</code> is handled automatically. If a bare string is provided to the functions and operators of Parsita, it will be promoted to a literal parser whenever possible. Only when an operator is between two Python types, like a string and a string <code>'a' | 'b'</code> or a string and function <code>'100' &gt; int</code> will this "implicit conversion" not take place and you have to use <code>lit</code> (e.g. <code>lit('a', 'b')</code> and <code>lit('100') &gt; int</code>).</p>
 <h2 id="regpattern-regular-expression-parser"><code>reg(pattern)</code>: regular expression parser</h2>
 <p>Like <code>lit</code>, this matches a string and returns it, but the matching is done with a regular expression.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">IntegerParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">IntegerParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">IntegerParsers</span><span class="o">.</span><span class="n">integer</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;-128&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="s1">&#39;-128&#39;</span><span class="p">)</span>
@@ -607,7 +607,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

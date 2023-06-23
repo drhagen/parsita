@@ -19,7 +19,7 @@
         <link rel="next" href="../sequential_parsers/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -347,15 +347,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#firstparsers-first-alternative-parser" class="md-nav__link">
-    first(*parsers): first alternative parser
+  <a href="#longestparsers-longest-alternative-parser" class="md-nav__link">
+    longest(*parsers): longest alternative parser
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#longestparsers-longest-alternative-parser" class="md-nav__link">
-    longest(*parsers): longest alternative parser
+  <a href="#firstparsers-first-alternative-parser" class="md-nav__link">
+    first(*parsers): first alternative parser
   </a>
   
 </li>
@@ -484,15 +484,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#firstparsers-first-alternative-parser" class="md-nav__link">
-    first(*parsers): first alternative parser
+  <a href="#longestparsers-longest-alternative-parser" class="md-nav__link">
+    longest(*parsers): longest alternative parser
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#longestparsers-longest-alternative-parser" class="md-nav__link">
-    longest(*parsers): longest alternative parser
+  <a href="#firstparsers-first-alternative-parser" class="md-nav__link">
+    first(*parsers): first alternative parser
   </a>
   
 </li>
@@ -521,29 +521,41 @@
 
 <h1 id="alternative-parsers">Alternative parsers</h1>
 <h2 id="parser1-parser2-alternative-parser"><code>parser1 | parser2</code>: alternative parser</h2>
-<p>This tries to match <code>parser1</code>. If it fails, it then tries to match <code>parser2</code>. If both fail, it returns the failure message from whichever one got farther. Either side can be a bare string, not both because <code>'a' | 'b'</code> tries to call <code>__or__</code> on <code>str</code> which fails. To try alternative literals, use <code>lit</code> with multiple arguments.</p>
+<p>This tries to match <code>parser1</code> and <code>parser2</code>. If one succeeds and the other fails, it returns the value of the one that succeeded. If both succeed, it returns the value of the one that consumed more input in order to succeed. If both fail, it returns the failure message from whichever one got farther. Either side can be a bare string, but not both because <code>'a' | 'b'</code> tries to call <code>__or__</code> on <code>str</code> which fails. To try alternative literals, use <code>lit</code> with multiple arguments.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
     <span class="n">real</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[+-]?\d+\.\d+(e[+-]?\d+)?&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="s1">&#39;nan&#39;</span> <span class="o">|</span> <span class="s1">&#39;inf&#39;</span> <span class="o">&gt;</span> <span class="nb">float</span>
     <span class="n">number</span> <span class="o">=</span> <span class="n">real</span> <span class="o">|</span> <span class="n">integer</span>
 
 <span class="k">assert</span> <span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;4.0000&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="mf">4.0</span><span class="p">)</span>
 </code></pre></div>
-<p>Currently, <code>first(a, b, c)</code> is an alias for <code>a | b | c</code>. This reflects the current behavior of the alternative parser, which is to return immediately when there is a success and not try any later parsers. In most parsers, the first and longest alternative parsers have the same behavior, especially if the order of the alternatives is carefully considered. In a future release of Parsita, the <code>a | b</code> syntax will construct a <code>longest</code> parser, which tries all the parsers and returns the success that consumed the most input. If the current behavior of stopping on the first success is important, construct the parser with the <code>first</code> function so that it will continue to operate as expected in future releases.</p>
+<p><code>a | b | c</code> is syntactic sugar for <code>longest(a, b, c)</code>. There is similar function <code>first(a, b, c)</code> that succeeds with the value of the first option to succeed instead of the one that consumed the most input. In most parsers, the first and longest alternative parsers have the same behavior, especially if the order of the alternatives is carefully considered. In version 1 of Parsita, the <code>a | b</code> syntax constructed a <code>first</code> parser. This was changed in version 2. If the old behavior of stopping on the first success is important, construct the parser with the <code>first</code> function to recover the old behavior.</p>
+<h2 id="longestparsers-longest-alternative-parser"><code>longest(*parsers)</code>: longest alternative parser</h2>
+<p>This tries to match each parser supplied. After it has tried them all, it returns the result of the one that made the most progress, that is, consumed the most input. If none of the supplied parsers succeeds, then an error is returned corresponding to the parser that got farthest. If two or more parsers are successful and are tied for making the most progress, the result of the first such parser is returned.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">ExpressionParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-zA-Z_]+&#39;</span><span class="p">)</span>
+    <span class="n">function</span> <span class="o">=</span> <span class="n">name</span> <span class="o">&amp;</span> <span class="s1">&#39;(&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">expression</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span>
+    <span class="n">expression</span> <span class="o">=</span> <span class="n">longest</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">function</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">ExpressionParsers</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;f(x)&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">([</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">])</span>
+</code></pre></div>
+<p>As of version 2 of Parsita, <code>longest</code> is the implementation behind the <code>a | b | c</code> syntax. It replaced <code>first</code>, which was the implementation in version 1.</p>
 <h2 id="firstparsers-first-alternative-parser"><code>first(*parsers)</code>: first alternative parser</h2>
 <p>This tries to match each parser supplied. As soon as one parser succeeds, this returns with that parser's successful value. If later parsers would have succeeded, that is irrelevant because they are not tried. If all supplied parsers fail, this fails with the longest failure.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">ExpressionParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ExpressionParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">keyword</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;pi&#39;</span><span class="p">,</span> <span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="s1">&#39;inf&#39;</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-zA-Z_]+&#39;</span><span class="p">)</span>
     <span class="n">function</span> <span class="o">=</span> <span class="n">name</span> <span class="o">&amp;</span> <span class="s1">&#39;(&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">expression</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span>
     <span class="n">expression</span> <span class="o">=</span> <span class="n">first</span><span class="p">(</span><span class="n">keyword</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">ExpressionParsers</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;f(x)&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">([</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">])</span>
-<span class="k">assert</span> <span class="n">ExpressionParsers</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;pi(x)&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Failure</span><span class="p">(</span>
+<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">ExpressionParsers</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;pi(x)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">failure</span><span class="p">())</span> <span class="o">==</span> <span class="p">(</span>
     <span class="s2">&quot;Expected end of source but found &#39;(&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="s2">&quot;Line 1, character 3</span><span class="se">\n\n</span><span class="s2">&quot;</span>
     <span class="s2">&quot;pi(x)</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -552,24 +564,12 @@
 <span class="c1"># Note how the above fails because `keyword` is matched by `first` so that</span>
 <span class="c1"># `function`, which would have matched the input, was not tried.</span>
 </code></pre></div>
-<p>This is the current implementation of the <code>a | b | c</code> syntax. In a future version of Parsita, the longest alternative parser will be used instead.</p>
-<h2 id="longestparsers-longest-alternative-parser"><code>longest(*parsers)</code>: longest alternative parser</h2>
-<p>This tries to match each parser supplied. Unlike <code>first</code>, <code>longest</code> keeps trying parsers even if one or more succeed. After it has tried them all, it returns the result of the one that made the most progress, that is, consumed the most input. If none of the supplied parsers succeeds, then an error is returned corresponding to the parser that got farthest. If two or more parsers are successful and are tied for making the most progress, the result of the first such parser is returned.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
-
-<span class="k">class</span> <span class="nc">ExpressionParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-zA-Z_]+&#39;</span><span class="p">)</span>
-    <span class="n">function</span> <span class="o">=</span> <span class="n">name</span> <span class="o">&amp;</span> <span class="s1">&#39;(&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">expression</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span>
-    <span class="n">expression</span> <span class="o">=</span> <span class="n">longest</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">function</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">ExpressionParsers</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;f(x)&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">([</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">])</span>
-</code></pre></div>
-<p>In a future version of Parsita, this will replace <code>first</code> as the implementation behind the <code>a | b | c</code> syntax.</p>
+<p>In version 1 of Parsita, this was the implementation behind the <code>a | b | c</code> syntax. As of version 2, <code>longest</code> is used instead.</p>
 <h2 id="optparser-optional-parser"><code>opt(parser)</code>: optional parser</h2>
 <p>An optional parser tries to match its argument. If the argument succeeds, it returns a list of length one with the successful value as its only element. If the argument fails, then <code>opt</code> succeeds anyway, but returns an empty list and consumes no input.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">DeclarationParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">DeclarationParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[A-Za-z_][A-Za-z0-9_]*&#39;</span><span class="p">)</span>
     <span class="n">declaration</span> <span class="o">=</span> <span class="nb">id</span> <span class="o">&amp;</span> <span class="n">opt</span><span class="p">(</span><span class="s1">&#39;:&#39;</span> <span class="o">&gt;&gt;</span> <span class="nb">id</span><span class="p">)</span>
 
@@ -669,7 +669,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

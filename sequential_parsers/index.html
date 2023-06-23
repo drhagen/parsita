@@ -19,7 +19,7 @@
         <link rel="next" href="../repeated_parsers/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -493,10 +493,10 @@
 
 <h1 id="sequential-parser">Sequential parser</h1>
 <h2 id="parser1-parser2-sequential-parser"><code>parser1 &amp; parser2</code>: sequential parser</h2>
-<p>All the previous parsers will match at most one thing. This is the syntax for matching one parser and then another after it. If working in the <code>TextParsers</code> context, the two may be separated by whitespace. The value returned is a list of all the values returned by each parser. If there are multiple parsers separated by <code>&amp;</code>, a list of the same length as the number of parsers is returned. Like <code>|</code>, either side may be a bare string, but not both. In accordance with Python's operator precedence, <code>&amp;</code> binds more tightly than <code>|</code>.</p>
+<p>All the previous parsers will match at most one thing. This is the syntax for matching one parser and then another after it. If working in a <code>ParserContext</code>, the two may be separated by whitespace. The value returned is a list of all the values returned by each parser. If there are multiple parsers separated by <code>&amp;</code>, a list of the same length as the number of parsers is returned. Like <code>|</code>, either side may be a bare string, but not both. In accordance with Python's operator precedence, <code>&amp;</code> binds more tightly than <code>|</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">UrlParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">UrlParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">url</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">,</span> <span class="s1">&#39;ftp&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="s1">&#39;://&#39;</span> <span class="o">&amp;</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^/]+&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*&#39;</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">UrlParsers</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;http://drhagen.com/blog/sane-equality/&#39;</span><span class="p">)</span> <span class="o">==</span> \
@@ -506,7 +506,7 @@
 <p>The discard left and discard right parser match the exact same text as <code>parser1 &amp; parser2</code>, but rather than return a list of values from both, the left value in <code>&gt;&gt;</code> and the right value in <code>&lt;&lt;</code> is discarded so that only the remaining value is returned. A mnemonic to help remember which is which is to imagine the symbols as open mouths eating the parser to be discarded.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">PointParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">PointParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
     <span class="n">point</span> <span class="o">=</span> <span class="s1">&#39;(&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">integer</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;,&#39;</span> <span class="o">&amp;</span> <span class="n">integer</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span>
 
@@ -605,7 +605,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

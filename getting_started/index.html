@@ -19,7 +19,7 @@
         <link rel="next" href="../terminal_parsers/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -316,13 +316,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#resultor_die" class="md-nav__link">
-    Result.or_die
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -504,13 +497,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#resultor_die" class="md-nav__link">
-    Result.or_die
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -533,39 +519,53 @@
 
 <h1 id="getting-started">Getting started</h1>
 <p>David Hagen gave an <a href="https://www.youtube.com/watch?v=9JSGGSRgUcw">introductory talk</a> on Parsita at SciPy 2021. The documentation is more thorough, but the talk is useful for anyone looking for a quick walk-through.</p>
+<p>Strictly speaking, Parsita parsers can parse any kind of sequence, <code>str</code>, <code>bytes</code>, <code>list[Token]</code>, etc. As long as the arguments to the terminal parsers match the input sequence, everything will work. However, this documentation will focus exclusively on parsing <code>str</code> because parsing text is most accessible to beginners.</p>
 <h2 id="defining-a-parser">Defining a parser</h2>
-<p>Parsita parsers are written inside the bodies of classes that inherit from <code>TextParsers</code>. (If you are parsing something other than a string, such a stream of tokens, there is the <code>GeneralParsers</code> class.) Such classes are not meant to be instantiated. They are used purely as a kind of souped-up context manager.</p>
-<p>The metaclass of <code>TextParsers</code> takes a <code>whitespace</code> named argument, which is a regular expression, or more commonly, a string that can be parsed into a regular expression. This becomes the definition of whitespace for all <code>Parser</code>s defined in this class body, making it so that whitespace as defined does not need to be explicitly captured and discarded. The default value is <code>r'\s*'</code>—all whitespace including newlines. With <code>whitespace=None</code>, no whitespace is ignored.</p>
+<p>Parsita parsers are written inside the bodies of classes that inherit from <code>ParserContext</code>. Such classes are not meant to be instantiated. They are used purely as a kind of souped-up context manager.</p>
+<p>The metaclass of <code>ParserContext</code> takes a <code>whitespace</code> named argument, which is a regular expression, or more commonly, a string that can be parsed into a regular expression, or less commonly, an arbitrary <code>Parser</code>. This becomes the definition of whitespace for all <code>Parser</code>s defined in this class body, making it so that whitespace as defined does not need to be explicitly captured and discarded. With the default <code>whitespace=None</code>, no whitespace is ignored. Common values for whitespace are:</p>
+<ul>
+<li><code>whitespace=r'[ ]*'</code> to ignore spaces</li>
+<li><code>whitespace=r'[ \t]*'</code> to ignore spaces and tabs</li>
+<li><code>whitespace=r'\s*'</code> to ignore all whitespace including newlines</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="n">integer_list</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">repsep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[+-]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;]&#39;</span>
 </code></pre></div>
 <p>Pretty much every function in Parsita returns an object with type <code>Parser</code>. Various operators, like <code>&amp;</code> and <code>|</code>, are defined so that <code>Parser</code>s can be combined to make new, more complex, parsers, hence the name "parser combinators".</p>
+<p>In version 1 of Parsita, <code>ParserContext</code> was split into two context classes, one with a default whitespace of <code>None</code> and the other with a default whitespace of <code>r'\s*'</code>. This was considered heavyweight, so they were combined into a single context.</p>
 <h2 id="invoking-a-parser">Invoking a parser</h2>
 <h3 id="parserparse"><code>Parser.parse</code></h3>
-<p>The only method of note on a <code>Parser</code> is the <code>parse</code> method. The <code>parse</code> method takes a <code>str</code> as input and returns an instance of the <code>Result</code> class, which has two subclasses <code>Success</code> and <code>Failure</code>. The standard way to test if a result is a <code>Success</code> or <code>Failure</code> is to use <code>isinstance(result, Success)</code>. If <code>Success</code>, the parsed value can be obtained with <code>result.value</code>. If <code>Failure</code>, the error message can be obtained with <code>result.message</code>.</p>
+<p>The only method of note on a <code>Parser</code> is the <code>parse</code> method. The <code>parse</code> method takes a <code>str</code> as as argument and returns an instance of the <code>Result</code> class, which has two subclasses <code>Success</code> and <code>Failure</code>. Note that in v2.0, these classes are reexported by Parsita, but are defined by the popular Returns package in <a href="https://returns.readthedocs.io/en/latest/pages/result.html"><code>returns.result</code></a>. By using the <code>Result</code> class from Returns, Parsita's error handling can be composed with that of other libraries that use Returns. </p>
+<p>Instances of <code>Result</code> work especially well with pattern matching in the <code>match</code> statement introduced in Python 3.10:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
+    <span class="n">integer_list</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">repsep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[+-]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;]&#39;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">NumericListParsers</span><span class="o">.</span><span class="n">integer_list</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;[1, 1, 2, 3, 5]&#39;</span><span class="p">)</span>
+
+<span class="k">match</span> <span class="n">result</span><span class="p">:</span>
+    <span class="k">case</span> <span class="n">Success</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">python_list</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">case</span> <span class="n">Failure</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">error</span>
+</code></pre></div>
+<p>If working in a version of Python prior to 3.10, you can use <code>isinstance</code> directly:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="n">integer_list</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">repsep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[+-]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;]&#39;</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">NumericListParsers</span><span class="o">.</span><span class="n">integer_list</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;[1, 1, 2, 3, 5]&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Success</span><span class="p">):</span>
-    <span class="n">python_list</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">value</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="n">python_list</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()</span>
+<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Failure</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="n">result</span><span class="o">.</span><span class="n">failure</span><span class="p">()</span>
 </code></pre></div>
-<h3 id="resultor_die"><code>Result.or_die</code></h3>
-<p>Alternatively, <code>result.or_die()</code> returns the value if it is a <code>Success</code> and raises a <code>ParseError</code> exception with the message if it is a <code>Failure</code>. It is common to apply this immediately after the call to <code>parse</code> when an exception on failure is desired.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
-
-<span class="k">class</span> <span class="nc">NumericListParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
-    <span class="n">integer_list</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">repsep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[+-]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;]&#39;</span>
-
-<span class="n">python_list</span> <span class="o">=</span> <span class="n">NumericListParsers</span><span class="o">.</span><span class="n">integer_list</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;[1, 1, 2, 3, 5]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">or_die</span><span class="p">()</span>
-</code></pre></div>
+<p>Returns has lots of features related to the <code>Result</code> class not covered here. One of the useful features that is not a method on <code>Result</code> is <code>returns.pipeline.is_successful</code>, which may be useful for those on Python versions without pattern matching.</p>
 
 
 
@@ -659,7 +659,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

@@ -19,7 +19,7 @@
         <link rel="next" href="../utility_functions/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -580,7 +580,7 @@
 <p>A predicate parser matches <code>parser</code> and, if it succeeds, runs a test function <code>predicate</code> on the return value. If <code>predicate</code> returns <code>True</code>, the predicate parser succeeds, returning the same value; if it returns <code>False</code>, the parser fails with the message that it is expecting <code>description</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">IntervalParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">IntervalParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="n">number</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="s1">&#39;\d+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
     <span class="n">pair</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">number</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;,&#39;</span> <span class="o">&amp;</span> <span class="n">number</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;]&#39;</span>
     <span class="n">interval</span> <span class="o">=</span> <span class="n">pred</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;ordered pair&#39;</span><span class="p">)</span>
@@ -590,21 +590,21 @@
 </code></pre></div>
 <h2 id="untilparser-consume-until-parser-matches"><code>until(parser):</code>: consume until parser matches</h2>
 <p>A parser that consumes input until the member parser succeeds. The input matched by the member parser is not consumed. It acts kind of like lookahead. The returned value is all consumed input.</p>
-<p>The user should be warned that this parser is kind of slow within <code>TextParsers</code>, the typical context for Parsita parsers. This is because, when the member parser fails, it tries again at the next character and the next character until it succeeds. Walking one character at a time can be computationally expensive.</p>
+<p>The user should be warned that this parser is kind of slow, especially when applied directly to text. This is because, when the member parser fails, it tries again at the next character and the next character until it succeeds. Walking one character at a time can be computationally expensive.</p>
 <p>One of the obvious uses of the <code>until</code> parser is combining it with the transformation parser in order to implement heredocs.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">TestParser</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TestParser</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\s*&#39;</span><span class="p">):</span>
     <span class="n">heredoc</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="s2">&quot;[A-Za-z]+&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">token</span><span class="p">:</span> <span class="n">until</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">token</span><span class="p">)</span>
 
 <span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;EOF</span><span class="se">\n</span><span class="s2">Anything at all</span><span class="se">\n</span><span class="s2">EOF&quot;</span>
 <span class="k">assert</span> <span class="n">TestParser</span><span class="o">.</span><span class="n">heredoc</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="s2">&quot;Anything at all</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="any1-any-one-element"><code>any1</code>: any one element</h2>
-<p>A parser that matches any single input element. This is not a particularly useful parser in the context of parsing text (for which <code>reg(r'.')</code> would be more standard). But in the <code>GeneralParsers</code> context, this is useful as the first argument to <code>pred</code> when one merely wants to run the predicate on a single token. This parser can only fail at the end of the stream. Note that <code>any1</code> is not a function—it is a complete parser itself.</p>
+<p>A parser that matches any single input element. This is not a particularly useful parser when parsing text (for which <code>reg(r'.')</code> would be more standard). But when parsing other types of input, this is useful as the first argument to <code>pred</code> when one merely wants to run the predicate on a single token. This parser can only fail at the end of the stream. Note that <code>any1</code> is not a function—it is a complete parser itself.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">DigitParsers</span><span class="p">(</span><span class="n">GeneralParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">DigitParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">digit</span> <span class="o">=</span> <span class="n">pred</span><span class="p">(</span><span class="n">any1</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;digit&#39;</span><span class="p">,</span> <span class="s1">&#39;a digit&#39;</span><span class="p">)</span> <span class="o">&gt;</span> \
         <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">])</span>
 
@@ -615,7 +615,7 @@
 <p>A parser than matches the end of the input stream. It is not necessary to include this on every parser. The <code>parse</code> method on every parser is successful only if it matches the entire input. The <code>eof</code> parser is only needed to indicate that the preceding parser is only valid at the end of the input. Most commonly, it is used an alternative to an end token when the end token may be omitted at the end of the input. Note that <code>eof</code> is not a function—it is a complete parser itself.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">OptionsParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">OptionsParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">option</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[A-Za-z]+&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;=&#39;</span> <span class="o">&amp;</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[A-Za-z]+&#39;</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="s1">&#39;;&#39;</span> <span class="o">|</span> <span class="n">eof</span><span class="p">)</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">rep</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
 
@@ -625,11 +625,11 @@
     <span class="n">Success</span><span class="p">([[</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;warn&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;detail&#39;</span><span class="p">,</span> <span class="s1">&#39;minimal&#39;</span><span class="p">]])</span>
 </code></pre></div>
 <h2 id="fwd-forward-declaration"><code>fwd()</code>: forward declaration</h2>
-<p>This creates a forward declaration for a parser to be defined later. This function is not typically needed because forward declarations are created automatically within the class bodies of subclasses of <code>TextParsers</code> and <code>GeneralParsers</code>, which is the recommended way to use Parsita. This function exists so you can create a forward declaration manually because you are either working outside of the magic classes or wish to define them manually to make your IDE happier.</p>
+<p>This creates a forward declaration for a parser to be defined later. This function is not typically needed because forward declarations are created automatically within the class bodies of subclasses of <code>ParserContext</code>, which is the recommended way to use Parsita. This function exists so you can create a forward declaration manually because you are either working outside of the magic classes or wish to define them manually to make your IDE happier.</p>
 <p>To use <code>fwd</code>, first assign <code>fwd()</code> to a variable, then use that variable in other combinators like any other parser, then call the <code>define(parser: Parser)</code> method on the object to provide the forward declaration with its definition. The forward declaration will now look and act like the definition provided.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">AddingParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">AddingParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">number</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[+-]?\d+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
     <span class="n">expr</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">()</span>
     <span class="n">base</span> <span class="o">=</span> <span class="s1">&#39;(&#39;</span> <span class="o">&gt;&gt;</span> <span class="n">expr</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span> <span class="o">|</span> <span class="n">number</span>
@@ -641,7 +641,7 @@
 <p>This parser always succeeds with the given <code>value</code> of an arbitrary type while consuming no input. Its utility is limited to inserting arbitrary values into complex parsers, often as a placeholder for unimplemented code. Usually, these kinds of values are better inserted as a post processing step or with a conversion parser <code>&gt;</code>, but for prototyping, this parser can be convenient.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">HostnameParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">HostnameParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">port</span> <span class="o">=</span> <span class="n">success</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>  <span class="c1"># TODO: do not just ignore other ports</span>
     <span class="n">host</span> <span class="o">=</span> <span class="n">rep1sep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*&#39;</span><span class="p">),</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">host</span> <span class="o">&amp;</span> <span class="n">port</span>
@@ -649,17 +649,18 @@
 <span class="k">assert</span> <span class="n">HostnameParsers</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;drhagen.com&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">([[</span><span class="s1">&#39;drhagen&#39;</span><span class="p">,</span> <span class="s1">&#39;com&#39;</span><span class="p">],</span> <span class="mi">80</span><span class="p">])</span>
 </code></pre></div>
 <h2 id="failureexpected-always-fail-with-message"><code>failure(expected)</code>: always fail with message</h2>
-<p>This parser always fails with a message that it is expecting the given string <code>expected</code>. Its utility is limited to marking sections of code as either not yet implemented or providing a better error message for common bad input. Usually, these kinds of messages are better crafted as a processing step following parsing, but for prototyping, they can be inserted with this parser.</p>
+<p>This parser always fails with a message that it is expecting the given string <code>expected</code>. Its utility is limited to marking sections of code as either not yet implemented or providing a better error message for common bad input. Usually, these kinds of messages are better crafted as a postprocessing step following parsing, but for prototyping, they can be inserted with this parser.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">HostnameParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">HostnameParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="c1"># TODO: implement allowing different port</span>
     <span class="n">port</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;80&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[0-9]+&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">failure</span><span class="p">(</span><span class="s1">&#39;no other port than 80&#39;</span><span class="p">)</span>
     <span class="n">host</span> <span class="o">=</span> <span class="n">rep1sep</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="s1">&#39;[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*&#39;</span><span class="p">),</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">host</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;:&#39;</span> <span class="o">&amp;</span> <span class="n">port</span>
 
-<span class="k">assert</span> <span class="n">HostnameParsers</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;drhagen.com:443&#39;</span><span class="p">)</span> <span class="o">==</span> \
-    <span class="n">Failure</span><span class="p">(</span><span class="s1">&#39;Expected no other port than 80 but found end of source&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">HostnameParsers</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;drhagen.com:443&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">failure</span><span class="p">())</span> <span class="o">==</span> <span class="p">(</span>
+    <span class="s1">&#39;Expected no other port than 80 but found end of source&#39;</span>
+<span class="p">)</span>
 </code></pre></div>
 <h2 id="debugparser-verbosefalse-callbacknone-debug-a-parser"><code>debug(parser, *, verbose=False, callback=None)</code>: debug a parser</h2>
 <p>This parser does not affect input or output in any way. It merely provides a verbose flag and hook to run a callback. The default for the verbose flag is <code>False</code> and the default for the callback is <code>None</code>, so by default, <code>debug</code> does absolutely nothing. If <code>verbose</code> is set to <code>True</code>, then the input location is printed before the member parser is invoked and the result is printed after the member parser has returned.</p>
@@ -674,14 +675,14 @@
     <span class="c1"># Spoiler: use `\.` instead of `.` in regexes</span>
     <span class="k">pass</span>
 
-<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
     <span class="n">decimal</span> <span class="o">=</span> <span class="n">debug</span><span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+.[0-9]+&#39;</span><span class="p">),</span> <span class="n">callback</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span>
     <span class="n">scientific</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+e[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">float</span>
     <span class="n">number</span> <span class="o">=</span> <span class="n">decimal</span> <span class="o">|</span> <span class="n">scientific</span> <span class="o">|</span> <span class="n">integer</span>
 
 <span class="c1"># Assertion is broken and needs debugged </span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;1e5&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">or_die</span><span class="p">(),</span> <span class="nb">float</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NumberParsers</span><span class="o">.</span><span class="n">number</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;1e5&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(),</span> <span class="nb">float</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -776,7 +777,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

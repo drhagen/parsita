@@ -19,7 +19,7 @@
         <link rel="next" href="../alternative_parsers/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -336,7 +336,7 @@
     parser &gt;= function: transformation parser
   </a>
   
-    <nav class="md-nav" aria-label="parser &gt;= function: transformation parser">
+    <nav class="md-nav" aria-label="parser >= function: transformation parser">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -494,7 +494,7 @@
     parser &gt;= function: transformation parser
   </a>
   
-    <nav class="md-nav" aria-label="parser &gt;= function: transformation parser">
+    <nav class="md-nav" aria-label="parser >= function: transformation parser">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -536,7 +536,7 @@
 <p>Conversion parsers don't change how the text is parsed—they change the value returned. Every parser returns a value when it succeeds. The function supplied must take a single argument (the successful value) and returns a new value. This is how text is converted to other objects and simpler objects built into larger ones. In accordance with Python's operator precedence, <code>&gt;</code> is the operator in Parsita with the loosest binding.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
 
-<span class="k">class</span> <span class="nc">IntegerParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">IntegerParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">integer</span> <span class="o">=</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]+&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span>
 
 <span class="k">assert</span> <span class="n">IntegerParsers</span><span class="o">.</span><span class="n">integer</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;-128&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="p">)</span>
@@ -560,13 +560,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">success</span><span class="p">(</span><span class="n">Percent</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">PercentParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">PercentParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">):</span>
     <span class="n">percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">to_percent</span>
 
 <span class="k">assert</span> <span class="n">PercentParsers</span><span class="o">.</span><span class="n">percent</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;50&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Success</span><span class="p">(</span><span class="n">Percent</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">PercentParsers</span><span class="o">.</span><span class="n">percent</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;150&#39;</span><span class="p">),</span> <span class="n">Failure</span><span class="p">)</span>
 </code></pre></div>
-<p>In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to <code>&gt;=</code> before it was converted into a failure. Future versions of Parsita will address this issue.</p>
+<p>In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to <code>&gt;=</code> before it was converted into a failure.</p>
 <h3 id="parsers-parameterized-by-previous-input">Parsers parameterized by previous input</h3>
 <p>The second use is to parse later text based on previous text. This is incredibly powerful, but in my experience, not that useful. When viewing parser combinators as a monad, this is the <code>bind</code> operation, so functional programming enthusiasts are really into it. It is only included in Parsita because it came free with the fallible conversion parser use case above.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">parsita</span> <span class="kn">import</span> <span class="o">*</span>
@@ -577,7 +577,7 @@
     <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;decimal&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+\.[0-9]+&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">float</span>
 
-<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">TextParsers</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NumberParsers</span><span class="p">(</span><span class="n">ParserContext</span><span class="p">,</span> <span class="n">whitespace</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;[ ]*&#39;</span><span class="p">):</span>
     <span class="nb">type</span> <span class="o">=</span> <span class="n">lit</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;decimal&#39;</span><span class="p">)</span>
     <span class="n">number</span> <span class="o">=</span> <span class="nb">type</span> <span class="o">&gt;=</span> <span class="n">select_parser</span>
 
@@ -677,7 +677,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>
