@@ -3,8 +3,7 @@ __all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
 from typing import Generic, List, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -48,9 +47,7 @@ def rep1(
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return RepeatedOnceParser(parser)
+    return RepeatedOnceParser(wrap_literal(parser))
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -103,6 +100,4 @@ def rep(
         max: Nonnegative integer defining the maximum number of entries that
             will be matched or ``None``, meaning that there is no limit
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return RepeatedParser(parser, min=min, max=max)
+    return RepeatedParser(wrap_literal(parser), min=min, max=max)

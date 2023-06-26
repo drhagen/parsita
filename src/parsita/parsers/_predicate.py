@@ -3,7 +3,7 @@ __all__ = ["PredicateParser", "pred"]
 from typing import Callable, Generic
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
+from ._base import Parser, wrap_literal
 
 
 class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
@@ -36,11 +36,11 @@ def pred(
     """Match ``parser``'s result if it satisfies the predicate.
 
     Args:
-        parser: Provides the result
+        parser: ``Parser`` or literal
         predicate: A predicate for the result to satisfy
         description: Name for the predicate, to use in error reporting
 
     Returns:
         A ``PredicateParser``.
     """
-    return PredicateParser(parser, predicate, description)
+    return PredicateParser(wrap_literal(parser), predicate, description)

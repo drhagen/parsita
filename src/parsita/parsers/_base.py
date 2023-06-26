@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["Parser"]
+__all__ = ["Parser", "wrap_literal"]
 
 from typing import Any, Generic, List, Optional, Sequence, Union
 
@@ -21,6 +21,15 @@ from ..state import (
 
 # Singleton indicating that no result is yet in the memo
 missing = object()
+
+
+def wrap_literal(obj: Any) -> Parser:
+    from ._literal import LiteralParser
+
+    if isinstance(obj, Parser):
+        return obj
+    else:
+        return LiteralParser(obj, options.whitespace)
 
 
 class Parser(Generic[Input, Output]):
@@ -174,19 +183,10 @@ class Parser(Generic[Input, Output]):
         else:
             return self.name + " = "
 
-    @staticmethod
-    def handle_other(obj: Any) -> Parser:
-        from ._literal import LiteralParser
-
-        if isinstance(obj, Parser):
-            return obj
-        else:
-            return LiteralParser(obj, options.whitespace)
-
     def __or__(self, other) -> Parser:
         from ._alternative import LongestAlternativeParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         parsers: List[Parser] = []
         if isinstance(self, LongestAlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
@@ -199,40 +199,40 @@ class Parser(Generic[Input, Output]):
         return LongestAlternativeParser(*parsers)
 
     def __ror__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__or__(self)
 
     def __and__(self, other) -> Parser:
         from ._sequential import SequentialParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         if isinstance(self, SequentialParser) and not self.protected:
             return SequentialParser(*self.parsers, other)
         else:
             return SequentialParser(self, other)
 
     def __rand__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__and__(self)
 
     def __rshift__(self, other) -> Parser:
         from ._sequential import DiscardLeftParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return DiscardLeftParser(self, other)
 
     def __rrshift__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__rshift__(self)
 
     def __lshift__(self, other) -> Parser:
         from ._sequential import DiscardRightParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return DiscardRightParser(self, other)
 
     def __rlshift__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__lshift__(self)
 
     def __gt__(self, other) -> Parser:

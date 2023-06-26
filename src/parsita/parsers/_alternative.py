@@ -3,8 +3,7 @@ __all__ = ["FirstAlternativeParser", "first", "LongestAlternativeParser", "longe
 from typing import Generic, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
@@ -46,9 +45,7 @@ def first(
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
     """
-    cleaned_parsers = [
-        lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]
-    ]
+    cleaned_parsers = [wrap_literal(parser_i) for parser_i in [parser, *parsers]]
     return FirstAlternativeParser(*cleaned_parsers)
 
 
@@ -97,7 +94,5 @@ def longest(
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
     """
-    cleaned_parsers = [
-        lit(parser_i) if isinstance(parser_i, str) else parser_i for parser_i in [parser, *parsers]
-    ]
+    cleaned_parsers = [wrap_literal(parser_i) for parser_i in [parser, *parsers]]
     return LongestAlternativeParser(*cleaned_parsers)

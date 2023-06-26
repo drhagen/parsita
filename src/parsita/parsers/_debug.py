@@ -3,8 +3,7 @@ __all__ = ["DebugParser", "debug"]
 from typing import Callable, Generic, Optional
 
 from ..state import Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class DebugParser(Generic[Input, Output], Parser[Input, Output]):
@@ -62,6 +61,4 @@ def debug(
             invoked. This allows the use to inspect the state of the input or
             add breakpoints before the possibly troublesome parser is invoked.
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return DebugParser(parser, verbose, callback)
+    return DebugParser(wrap_literal(parser), verbose, callback)

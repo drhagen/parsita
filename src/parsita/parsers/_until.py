@@ -3,8 +3,7 @@ __all__ = ["UntilParser", "until"]
 from typing import Any, Generic
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class UntilParser(Generic[Input], Parser[Input, Input]):
@@ -39,6 +38,4 @@ def until(parser: Parser[Input, Output]) -> UntilParser:
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return UntilParser(parser)
+    return UntilParser(wrap_literal(parser))

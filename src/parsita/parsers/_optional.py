@@ -3,8 +3,7 @@ __all__ = ["OptionalParser", "opt"]
 from typing import Generic, List, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
@@ -34,6 +33,4 @@ def opt(parser: Union[Parser[Input, Output], Sequence[Input]]) -> OptionalParser
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return OptionalParser(parser)
+    return OptionalParser(wrap_literal(parser))
