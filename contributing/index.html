@@ -601,11 +601,28 @@ poetry<span class="w"> </span>install
 <li>Verify that sdist (<code>.tar.gz</code>) and bdist (<code>.whl</code>) are in <code>dist/</code></li>
 </ol>
 </li>
-<li>Publish<ol>
+<li>Publish to PyPI<ol>
 <li>Run <code>poetry publish -r test</code></li>
 <li>Check <a href="https://test.pypi.org/project/parsita/">PyPI test server</a> for good upload</li>
 <li>Run <code>poetry publish</code></li>
 <li>Check <a href="https://pypi.org/project/parsita/">PyPI</a> for good upload</li>
+</ol>
+</li>
+<li>Publish to conda-forge<ol>
+<li>Fork <a href="https://github.com/conda-forge/parsita-feedstock">parsita-feedstock</a></li>
+<li>Create branch with name <code>vX.Y.Z</code></li>
+<li>Update <code>recipe/meta.yaml</code><ul>
+<li>Update version</li>
+<li>Update sha256 to match source tarball on PyPI</li>
+<li>Reset build number to 0</li>
+<li>Update <code>requirements</code> and other project metadata</li>
+</ul>
+</li>
+<li>Commit with message "updated vX.Y.Z"</li>
+<li>Push to fork</li>
+<li>Open PR on upstream</li>
+<li>Wait for build to succeed</li>
+<li>Squash merge PR</li>
 </ol>
 </li>
 <li>Document<ol>
