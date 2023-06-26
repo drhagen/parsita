@@ -89,7 +89,7 @@ poetry run mkdocs gh-deploy
     4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
 5. Publish to conda-forge
     1. Fork [parsita-feedstock](https://github.com/conda-forge/parsita-feedstock)
-    2. Create branck with name `vX.Y.Z`
+    2. Create branch with name `vX.Y.Z`
     3. Update `recipe/meta.yaml`
         * Update version
         * Update sha256 to match source tarball on PyPI
