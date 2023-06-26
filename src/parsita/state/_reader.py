@@ -173,7 +173,7 @@ class StringReader(Reader[str]):
         else:
             return self.source[match.start() : match.end()]
 
-    def current_line(self):
+    def _current_line(self):
         # StringIO is not consistent in how it treats empty strings
         # and other strings not ending in newlines. Ensure that the
         # source always ends in a newline.
@@ -223,7 +223,7 @@ class StringReader(Reader[str]):
         else:
             next_string = repr(self.next_token())
 
-        line_index, character_index, line, pointer = self.current_line()
+        line_index, character_index, line, pointer = self._current_line()
 
         return (
             f"Expected {expected_string} but found {next_string}\n"
@@ -243,7 +243,7 @@ class StringReader(Reader[str]):
         Returns:
             A full error message
         """
-        line_index, character_index, line, pointer = self.current_line()
+        line_index, character_index, line, pointer = self._current_line()
 
         return (
             f"Infinite recursion detected in {repeated_parser}; "
