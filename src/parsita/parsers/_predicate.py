@@ -15,8 +15,8 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.predicate = predicate
         self.description = description
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
         if isinstance(status, Continue):
             if self.predicate(status.value):
                 return status

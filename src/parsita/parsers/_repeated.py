@@ -11,8 +11,8 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if status is None:
             return None
@@ -20,7 +20,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
             output = [status.value]
             remainder = status.remainder
             while True:
-                status = self.parser.cached_consume(state, remainder)
+                status = self.parser.consume(state, remainder)
                 if isinstance(status, Continue):
                     if remainder.position == status.remainder.position:
                         raise RecursionError(self, remainder)
@@ -57,12 +57,12 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.min = min
         self.max = max
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         output: List[Output] = []
         remainder = reader
 
         while self.max is None or len(output) < self.max:
-            status = self.parser.cached_consume(state, remainder)
+            status = self.parser.consume(state, remainder)
             if isinstance(status, Continue):
                 if remainder.position == status.remainder.position:
                     raise RecursionError(self, remainder)

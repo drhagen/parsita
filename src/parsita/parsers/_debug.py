@@ -19,14 +19,14 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
         if self.callback:
             self.callback(self.parser, reader)
 
-        result = self.parser.cached_consume(state, reader)
+        result = self.parser.consume(state, reader)
 
         if self.verbose:
             print(f"""Result {result!r}""")

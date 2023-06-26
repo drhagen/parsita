@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __all__ = ["Parser", "wrap_literal"]
 
+from abc import abstractmethod
 from typing import Any, Generic, List, Optional, Sequence, Union
 
 from .. import options
@@ -37,10 +38,8 @@ class Parser(Generic[Input, Output]):
 
     Inheritors of this class must:
 
-    1. Implement the ``consume`` method
+    1. Implement the ``_consume`` method
     2. Implement the ``__repr__`` method
-    3. Call super().__init__() in their constructor to get the parse method from
-       the context.
 
     Attributes:
         protected (bool): The metaclasses set this flag to true whenever a
@@ -66,7 +65,7 @@ class Parser(Generic[Input, Output]):
             name.
     """
 
-    def cached_consume(
+    def consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
@@ -81,9 +80,9 @@ class Parser(Generic[Input, Output]):
         4. Put the result in the memo for this parser at this position
         5. Return the result
 
-        Individual parsers need to implement ``consume``, but not
-        ``cached_consume``. But all combinations should invoke
-        ``cached_consume`` instead of ``consume`` on their member parsers.
+        Individual parsers need to implement ``_consume``, but not ``consume``.
+        But all combinations should invoke ``consume`` instead of ``_consume``
+        on their member parsers.
 
         Args:
             state: The mutable state of the parse
@@ -101,13 +100,14 @@ class Parser(Generic[Input, Output]):
 
         state.memo[key] = None
 
-        result = self.consume(state, reader)
+        result = self._consume(state, reader)
 
         state.memo[key] = result
 
         return result
 
-    def consume(
+    @abstractmethod
+    def _consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Output]]:
         """Abstract method for matching this parser at the given location.
@@ -125,7 +125,7 @@ class Parser(Generic[Input, Output]):
         raise NotImplementedError()
 
     def parse(self, source: Union[Sequence[Input], Reader]) -> Result[Output]:
-        """Abstract method for completely parsing a source.
+        """Completely parse a source.
 
         Args:
             source: What will be parsed.
@@ -133,10 +133,11 @@ class Parser(Generic[Input, Output]):
         Returns:
             If the parser succeeded in matching and consumed the entire output,
             the value from ``Continue`` is copied to make a ``Success``. If the
-            parser failed in matching, the error message is copied to a
-            ``Failure``. If the parser succeeded but the source was not
-            completely consumed, a ``Failure`` with a message indicating this
-            is returned.
+            parser failed in matching, the expected patterns at the farthest
+            point in the source are used to construct a ``ParseError`, which is
+            then used to contruct a ``Failure``. If the parser succeeded but the
+            source was not completely consumed, it returns a ``Failure`` with a
+            ``ParseError` indicating this.
 
         If a ``Reader`` is passed in, it is used directly. Otherwise, the source
         is converted to an appropriate ``Reader``. If the source is ``str`, a
@@ -153,7 +154,7 @@ class Parser(Generic[Input, Output]):
 
         state: State[Input] = State()
 
-        status = (self << eof).cached_consume(state, reader)
+        status = (self << eof).consume(state, reader)
 
         if isinstance(status, Continue):
             return Success(status.value)

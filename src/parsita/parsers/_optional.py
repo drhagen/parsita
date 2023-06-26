@@ -11,8 +11,8 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
             return Continue(status.remainder, [status.value])
