@@ -3,8 +3,7 @@ __all__ = ["RepeatedSeparatedParser", "repsep", "RepeatedOnceSeparatedParser", "
 from typing import Any, Generic, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -22,8 +21,8 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         self.min = min
         self.max = max
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if not isinstance(status, Continue):
             output = []
@@ -37,9 +36,9 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
                 # not the remainder from any separator. That is why the parser
                 # starts from the remainder on the status, but remainder is not
                 # updated until after the parser succeeds.
-                status = self.separator.cached_consume(state, remainder)
+                status = self.separator.consume(state, remainder)
                 if isinstance(status, Continue):
-                    status = self.parser.cached_consume(state, status.remainder)
+                    status = self.parser.consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
                             raise RecursionError(self, remainder)
@@ -87,11 +86,7 @@ def repsep(
         max: Nonnegative integer defining the maximum number of entries that
             will be matched or ``None``, meaning that there is no limit
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    if isinstance(separator, str):
-        separator = lit(separator)
-    return RepeatedSeparatedParser(parser, separator, min=min, max=max)
+    return RepeatedSeparatedParser(wrap_literal(parser), wrap_literal(separator), min=min, max=max)
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -100,8 +95,8 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
         self.parser = parser
         self.separator = separator
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if status is None:
             return None
@@ -114,9 +109,9 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
                 # not the remainder from any separator. That is why the parser
                 # starts from the remainder on the status, but remainder is not
                 # updated until after the parser succeeds.
-                status = self.separator.cached_consume(state, remainder)
+                status = self.separator.consume(state, remainder)
                 if isinstance(status, Continue):
-                    status = self.parser.cached_consume(state, status.remainder)
+                    status = self.parser.consume(state, status.remainder)
                     if isinstance(status, Continue):
                         if remainder.position == status.remainder.position:
                             raise RecursionError(self, remainder)
@@ -148,8 +143,4 @@ def rep1sep(
         parser: Parser or literal
         separator: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    if isinstance(separator, str):
-        separator = lit(separator)
-    return RepeatedOnceSeparatedParser(parser, separator)
+    return RepeatedOnceSeparatedParser(wrap_literal(parser), wrap_literal(separator))

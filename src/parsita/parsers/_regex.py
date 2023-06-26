@@ -16,9 +16,9 @@ class RegexParser(Generic[StringType], Parser[StringType, StringType]):
         self.pattern = pattern
         self.whitespace = whitespace
 
-    def consume(self, state: State[StringType], reader: Reader[StringType]):
+    def _consume(self, state: State[StringType], reader: Reader[StringType]):
         if self.whitespace is not None:
-            status = self.whitespace.cached_consume(state, reader)
+            status = self.whitespace.consume(state, reader)
             reader = status.remainder
 
         match = self.pattern.match(reader.source, reader.position)
@@ -31,7 +31,7 @@ class RegexParser(Generic[StringType], Parser[StringType, StringType]):
             reader = reader.drop(len(value))
 
             if self.whitespace is not None:
-                status = self.whitespace.cached_consume(state, reader)
+                status = self.whitespace.consume(state, reader)
                 reader = status.remainder
 
             return Continue(reader, value)

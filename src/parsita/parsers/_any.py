@@ -18,7 +18,7 @@ class AnyParser(Generic[Input], Parser[Input, Input]):
     def __init__(self):
         super().__init__()
 
-    def consume(
+    def _consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Input]]:
         if reader.finished:

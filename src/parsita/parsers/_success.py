@@ -11,7 +11,7 @@ class SuccessParser(Generic[Input, Output], Parser[Any, Output]):
         super().__init__()
         self.value = value
 
-    def consume(self, state: State[Input], reader: Reader[Input]) -> Continue[Input, Output]:
+    def _consume(self, state: State[Input], reader: Reader[Input]) -> Continue[Input, Output]:
         return Continue(reader, self.value)
 
     def __repr__(self):
@@ -36,7 +36,7 @@ class FailureParser(Generic[Input], Parser[Input, NoReturn]):
         super().__init__()
         self.expected = expected
 
-    def consume(self, state: State[Input], reader: Reader[Input]) -> None:
+    def _consume(self, state: State[Input], reader: Reader[Input]) -> None:
         state.register_failure(self.expected, reader)
         return None
 

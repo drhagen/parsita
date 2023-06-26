@@ -13,9 +13,9 @@ class LiteralParser(Parser[Input, Input]):
         self.pattern = pattern
         self.whitespace = whitespace
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         if self.whitespace is not None:
-            status = self.whitespace.cached_consume(state, reader)
+            status = self.whitespace.consume(state, reader)
             reader = status.remainder
 
         if isinstance(reader, StringReader):
@@ -36,7 +36,7 @@ class LiteralParser(Parser[Input, Input]):
                     return None
 
         if self.whitespace is not None:
-            status = self.whitespace.cached_consume(state, reader)
+            status = self.whitespace.consume(state, reader)
             reader = status.remainder
 
         return Continue(reader, self.pattern)

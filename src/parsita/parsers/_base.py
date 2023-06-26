@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-__all__ = ["Parser"]
+__all__ = ["Parser", "wrap_literal"]
 
+from abc import abstractmethod
 from typing import Any, Generic, List, Optional, Sequence, Union
 
 from .. import options
@@ -23,15 +24,22 @@ from ..state import (
 missing = object()
 
 
+def wrap_literal(obj: Any) -> Parser:
+    from ._literal import LiteralParser
+
+    if isinstance(obj, Parser):
+        return obj
+    else:
+        return LiteralParser(obj, options.whitespace)
+
+
 class Parser(Generic[Input, Output]):
     """Abstract base class for all parser combinators.
 
     Inheritors of this class must:
 
-    1. Implement the ``consume`` method
+    1. Implement the ``_consume`` method
     2. Implement the ``__repr__`` method
-    3. Call super().__init__() in their constructor to get the parse method from
-       the context.
 
     Attributes:
         protected (bool): The metaclasses set this flag to true whenever a
@@ -57,7 +65,7 @@ class Parser(Generic[Input, Output]):
             name.
     """
 
-    def cached_consume(
+    def consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
@@ -72,9 +80,9 @@ class Parser(Generic[Input, Output]):
         4. Put the result in the memo for this parser at this position
         5. Return the result
 
-        Individual parsers need to implement ``consume``, but not
-        ``cached_consume``. But all combinations should invoke
-        ``cached_consume`` instead of ``consume`` on their member parsers.
+        Individual parsers need to implement ``_consume``, but not ``consume``.
+        But all combinations should invoke ``consume`` instead of ``_consume``
+        on their member parsers.
 
         Args:
             state: The mutable state of the parse
@@ -92,13 +100,14 @@ class Parser(Generic[Input, Output]):
 
         state.memo[key] = None
 
-        result = self.consume(state, reader)
+        result = self._consume(state, reader)
 
         state.memo[key] = result
 
         return result
 
-    def consume(
+    @abstractmethod
+    def _consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Output]]:
         """Abstract method for matching this parser at the given location.
@@ -116,7 +125,7 @@ class Parser(Generic[Input, Output]):
         raise NotImplementedError()
 
     def parse(self, source: Union[Sequence[Input], Reader]) -> Result[Output]:
-        """Abstract method for completely parsing a source.
+        """Completely parse a source.
 
         Args:
             source: What will be parsed.
@@ -124,10 +133,11 @@ class Parser(Generic[Input, Output]):
         Returns:
             If the parser succeeded in matching and consumed the entire output,
             the value from ``Continue`` is copied to make a ``Success``. If the
-            parser failed in matching, the error message is copied to a
-            ``Failure``. If the parser succeeded but the source was not
-            completely consumed, a ``Failure`` with a message indicating this
-            is returned.
+            parser failed in matching, the expected patterns at the farthest
+            point in the source are used to construct a ``ParseError`, which is
+            then used to contruct a ``Failure``. If the parser succeeded but the
+            source was not completely consumed, it returns a ``Failure`` with a
+            ``ParseError` indicating this.
 
         If a ``Reader`` is passed in, it is used directly. Otherwise, the source
         is converted to an appropriate ``Reader``. If the source is ``str`, a
@@ -144,7 +154,7 @@ class Parser(Generic[Input, Output]):
 
         state: State[Input] = State()
 
-        status = (self << eof).cached_consume(state, reader)
+        status = (self << eof).consume(state, reader)
 
         if isinstance(status, Continue):
             return Success(status.value)
@@ -174,19 +184,10 @@ class Parser(Generic[Input, Output]):
         else:
             return self.name + " = "
 
-    @staticmethod
-    def handle_other(obj: Any) -> Parser:
-        from ._literal import LiteralParser
-
-        if isinstance(obj, Parser):
-            return obj
-        else:
-            return LiteralParser(obj, options.whitespace)
-
     def __or__(self, other) -> Parser:
         from ._alternative import LongestAlternativeParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         parsers: List[Parser] = []
         if isinstance(self, LongestAlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
@@ -199,40 +200,40 @@ class Parser(Generic[Input, Output]):
         return LongestAlternativeParser(*parsers)
 
     def __ror__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__or__(self)
 
     def __and__(self, other) -> Parser:
         from ._sequential import SequentialParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         if isinstance(self, SequentialParser) and not self.protected:
             return SequentialParser(*self.parsers, other)
         else:
             return SequentialParser(self, other)
 
     def __rand__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__and__(self)
 
     def __rshift__(self, other) -> Parser:
         from ._sequential import DiscardLeftParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return DiscardLeftParser(self, other)
 
     def __rrshift__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__rshift__(self)
 
     def __lshift__(self, other) -> Parser:
         from ._sequential import DiscardRightParser
 
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return DiscardRightParser(self, other)
 
     def __rlshift__(self, other) -> Parser:
-        other = self.handle_other(other)
+        other = wrap_literal(other)
         return other.__lshift__(self)
 
     def __gt__(self, other) -> Parser:

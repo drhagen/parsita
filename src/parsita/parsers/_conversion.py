@@ -14,10 +14,10 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         self.parser = parser
         self.converter = converter
 
-    def consume(
+    def _consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Convert]]:
-        status = self.parser.cached_consume(state, reader)
+        status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
             return Continue(status.remainder, self.converter(status.value))
@@ -38,12 +38,12 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
         self.parser = parser
         self.transformer = transformer
 
-    def consume(
+    def _consume(
         self, state: State[Input], reader: Reader[Input]
     ) -> Optional[Continue[Input, Convert]]:
-        status = self.parser.cached_consume(state, reader)
+        status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
-            return self.transformer(status.value).cached_consume(state, status.remainder)
+            return self.transformer(status.value).consume(state, status.remainder)
         else:
             return status

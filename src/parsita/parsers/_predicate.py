@@ -3,7 +3,7 @@ __all__ = ["PredicateParser", "pred"]
 from typing import Callable, Generic
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
+from ._base import Parser, wrap_literal
 
 
 class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
@@ -15,8 +15,8 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.predicate = predicate
         self.description = description
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
         if isinstance(status, Continue):
             if self.predicate(status.value):
                 return status
@@ -36,11 +36,11 @@ def pred(
     """Match ``parser``'s result if it satisfies the predicate.
 
     Args:
-        parser: Provides the result
+        parser: ``Parser`` or literal
         predicate: A predicate for the result to satisfy
         description: Name for the predicate, to use in error reporting
 
     Returns:
         A ``PredicateParser``.
     """
-    return PredicateParser(parser, predicate, description)
+    return PredicateParser(wrap_literal(parser), predicate, description)

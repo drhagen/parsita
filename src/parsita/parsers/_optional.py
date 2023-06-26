@@ -3,8 +3,7 @@ __all__ = ["OptionalParser", "opt"]
 from typing import Generic, List, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
@@ -12,8 +11,8 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
             return Continue(status.remainder, [status.value])
@@ -34,6 +33,4 @@ def opt(parser: Union[Parser[Input, Output], Sequence[Input]]) -> OptionalParser
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return OptionalParser(parser)
+    return OptionalParser(wrap_literal(parser))

@@ -3,8 +3,7 @@ __all__ = ["UntilParser", "until"]
 from typing import Any, Generic
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class UntilParser(Generic[Input], Parser[Input, Input]):
@@ -12,10 +11,10 @@ class UntilParser(Generic[Input], Parser[Input, Input]):
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         start_position = reader.position
         while True:
-            status = self.parser.cached_consume(state, reader)
+            status = self.parser.consume(state, reader)
 
             if isinstance(status, Continue):
                 break
@@ -39,6 +38,4 @@ def until(parser: Parser[Input, Output]) -> UntilParser:
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return UntilParser(parser)
+    return UntilParser(wrap_literal(parser))

@@ -12,12 +12,12 @@ class SequentialParser(Generic[Input], Parser[Input, List[Any]]):
         super().__init__()
         self.parsers = (parser, *parsers)
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         output = []
         remainder = reader
 
         for parser in self.parsers:
-            status = parser.cached_consume(state, remainder)
+            status = parser.consume(state, remainder)
             if isinstance(status, Continue):
                 output.append(status.value)
                 remainder = status.remainder
@@ -40,10 +40,10 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.left.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.left.consume(state, reader)
         if isinstance(status, Continue):
-            return self.right.cached_consume(state, status.remainder)
+            return self.right.consume(state, status.remainder)
         else:
             return None
 
@@ -58,10 +58,10 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status1 = self.left.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status1 = self.left.consume(state, reader)
         if isinstance(status1, Continue):
-            status2 = self.right.cached_consume(state, status1.remainder)
+            status2 = self.right.consume(state, status1.remainder)
             if isinstance(status2, Continue):
                 return Continue(status2.remainder, status1.value)
             else:

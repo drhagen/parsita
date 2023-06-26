@@ -3,8 +3,7 @@ __all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
 from typing import Generic, List, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -12,8 +11,8 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         super().__init__()
         self.parser = parser
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.cached_consume(state, reader)
+    def _consume(self, state: State[Input], reader: Reader[Input]):
+        status = self.parser.consume(state, reader)
 
         if status is None:
             return None
@@ -21,7 +20,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
             output = [status.value]
             remainder = status.remainder
             while True:
-                status = self.parser.cached_consume(state, remainder)
+                status = self.parser.consume(state, remainder)
                 if isinstance(status, Continue):
                     if remainder.position == status.remainder.position:
                         raise RecursionError(self, remainder)
@@ -48,9 +47,7 @@ def rep1(
     Args:
         parser: Parser or literal
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return RepeatedOnceParser(parser)
+    return RepeatedOnceParser(wrap_literal(parser))
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
@@ -60,12 +57,12 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.min = min
         self.max = max
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         output: List[Output] = []
         remainder = reader
 
         while self.max is None or len(output) < self.max:
-            status = self.parser.cached_consume(state, remainder)
+            status = self.parser.consume(state, remainder)
             if isinstance(status, Continue):
                 if remainder.position == status.remainder.position:
                     raise RecursionError(self, remainder)
@@ -103,6 +100,4 @@ def rep(
         max: Nonnegative integer defining the maximum number of entries that
             will be matched or ``None``, meaning that there is no limit
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return RepeatedParser(parser, min=min, max=max)
+    return RepeatedParser(wrap_literal(parser), min=min, max=max)

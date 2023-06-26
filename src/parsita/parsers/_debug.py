@@ -3,8 +3,7 @@ __all__ = ["DebugParser", "debug"]
 from typing import Callable, Generic, Optional
 
 from ..state import Input, Output, Reader, State
-from ._base import Parser
-from ._literal import lit
+from ._base import Parser, wrap_literal
 
 
 class DebugParser(Generic[Input, Output], Parser[Input, Output]):
@@ -20,14 +19,14 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State[Input], reader: Reader[Input]):
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
         if self.callback:
             self.callback(self.parser, reader)
 
-        result = self.parser.cached_consume(state, reader)
+        result = self.parser.consume(state, reader)
 
         if self.verbose:
             print(f"""Result {result!r}""")
@@ -62,6 +61,4 @@ def debug(
             invoked. This allows the use to inspect the state of the input or
             add breakpoints before the possibly troublesome parser is invoked.
     """
-    if isinstance(parser, str):
-        parser = lit(parser)
-    return DebugParser(parser, verbose, callback)
+    return DebugParser(wrap_literal(parser), verbose, callback)
