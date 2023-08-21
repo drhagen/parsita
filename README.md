@@ -4,6 +4,7 @@
 [![Code coverage][coverage-image]][coverage-link]
 [![Latest PyPI version][pypi-image]][pypi-link]
 [![Supported Python versions][python-versions-image]][python-versions-link]
+[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
 
 > The executable grammar of parsers combinators made available in the executable pseudocode of Python.
 
