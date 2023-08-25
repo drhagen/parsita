@@ -1,6 +1,5 @@
 # Parsita
 
-[![Parsita](https://img.shields.io/badge/%F0%9F%AA%84-Parsita-yellow.svg)](https://parsita.drhagen.com/)
 [![Build status](https://github.com/drhagen/parsita/workflows/ci/badge.svg)](https://github.com/drhagen/parsita/actions/workflows/ci.yml)
 [![Code coverage](https://codecov.io/github/drhagen/parsita/coverage.svg?branch=master)](https://codecov.io/github/drhagen/parsita?branch=master)
 [![Latest PyPI version](https://img.shields.io/pypi/v/parsita.svg)](https://pypi.python.org/pypi/parsita)
