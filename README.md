@@ -1,10 +1,14 @@
 # Parsita
 
-[![Build status][build-image]][build-link]
-[![Code coverage][coverage-image]][coverage-link]
-[![Latest PyPI version][pypi-image]][pypi-link]
-[![Supported Python versions][python-versions-image]][python-versions-link]
-[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+[![Build status](https://github.com/drhagen/parsita/workflows/ci/badge.svg)](https://github.com/drhagen/parsita/actions/workflows/ci.yml)
+[![Code coverage](https://codecov.io/github/drhagen/parsita/coverage.svg?branch=master)](https://codecov.io/github/drhagen/parsita?branch=master)
+[![Latest PyPI version](https://img.shields.io/pypi/v/parsita.svg)](https://pypi.python.org/pypi/parsita)
+[![License](https://img.shields.io/pypi/l/parsita.svg)](https://github.com/drhagen/parsita/blob/master/LICENSE)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/parsita.svg)](https://pypi.python.org/pypi/parsita)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://black.readthedocs.io)
+[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org)
+[![Nox](https://img.shields.io/badge/%F0%9F%A6%8A-Nox-D85E00.svg)](https://nox.thea.codes)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://beta.ruff.rs)
 
 > The executable grammar of parsers combinators made available in the executable pseudocode of Python.
 
@@ -46,12 +50,3 @@ name = HelloWorldParsers.hello_world.parse('Hello David!').unwrap()
 # Hello David!
 #       ^
 ```
-
-[build-image]: https://github.com/drhagen/parsita/workflows/python/badge.svg?branch=master&event=push
-[build-link]: https://github.com/drhagen/parsita/actions?query=branch%3Amaster+event%3Apush
-[coverage-image]: https://codecov.io/github/drhagen/parsita/coverage.svg?branch=master
-[coverage-link]: https://codecov.io/github/drhagen/parsita?branch=master
-[pypi-image]: https://img.shields.io/pypi/v/parsita.svg
-[pypi-link]: https://pypi.python.org/pypi/parsita
-[python-versions-image]: https://img.shields.io/pypi/pyversions/parsita.svg
-[python-versions-link]: https://pypi.python.org/pypi/parsita
