@@ -17,14 +17,14 @@ classifiers = [
 
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
-returns = "^0.20|^0.21"
+python = "^3.8"
+returns = "^0.20|^0.21|^0.22"
 
 [tool.poetry.dev-dependencies]
 nox_poetry = "^1.0.3"
 
 # Test
-pytest = "^7.2"
+pytest = "^7.4"
 pytest-cov = "*"
 pytest-timeout = "*"
 
