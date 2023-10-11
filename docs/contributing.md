@@ -73,21 +73,13 @@ poetry run mkdocs gh-deploy
     1. Increment version in `pyproject.toml`
     2. Commit with message "Bump version number to X.Y.Z"
     3. Push commit to GitHub
-    4. Check GitHub Actions to ensure all tests pass
+    4. Check [CI](https://github.com/drhagen/parsita/actions/workflows/ci.yml) to ensure all tests pass
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
-    3. Check GitHub Actions for tag
-3. Build
-    1. Clear `dist/`
-    2. Run `poetry build`
-    3. Verify that sdist (`.tar.gz`) and bdist (`.whl`) are in `dist/`
-4. Publish to PyPI
-    1. Run `poetry publish -r test`
-    2. Check [PyPI test server](https://test.pypi.org/project/parsita/) for good upload
-    3. Run `poetry publish`
+    3. Wait for [build](https://github.com/drhagen/parsita/actions/workflows/release.yml) to finish
     4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
-5. Publish to conda-forge
+3. Publish to conda-forge
     1. Fork [parsita-feedstock](https://github.com/conda-forge/parsita-feedstock)
     2. Create branch with name `vX.Y.Z`
     3. Update `recipe/meta.yaml`
@@ -100,6 +92,6 @@ poetry run mkdocs gh-deploy
     6. Open PR on upstream
     7. Wait for build to succeed
     8. Squash merge PR
-6. Document
+4. Document
     1. Create [GitHub release](https://github.com/drhagen/parsita/releases) with name "Parsita X.Y.Z" and major changes in body
     2. If appropriate, deploy updated docs
