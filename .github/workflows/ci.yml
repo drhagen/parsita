@@ -1,16 +1,14 @@
-name: ci
+name: CI
 
 on:
   pull_request:
   push:
     branches:
       - master
-    tags:
-      - "v*"
 
 env:
   python-version: "3.9"
-  poetry-version: "1.4.1"
+  poetry-version: "1.6.1"
 
 jobs:
   test:
@@ -20,7 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python ${{ matrix.python-version }}
@@ -42,7 +40,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
@@ -66,7 +64,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
@@ -81,10 +79,10 @@ jobs:
   poetry-check:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
+      - uses: actions/checkout@v4
+      - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
-      - name: Set up Python
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.python-version }}
