@@ -31,5 +31,3 @@ jobs:
         run: '[[ "v$(poetry version --short)" == "${{ github.ref_name }}" ]]'
       - name: Upload distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-            repository-url: https://test.pypi.org/legacy/
