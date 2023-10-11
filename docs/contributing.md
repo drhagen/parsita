@@ -77,7 +77,6 @@ poetry run mkdocs gh-deploy
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
-        - `release.yml` will automatically build and publish the tag to PyPI
     3. Wait for [build](https://github.com/drhagen/parsita/actions/workflows/release.yml) to finish
     4. Check [PyPI](https://pypi.org/project/parsita/) for good upload
 3. Publish to conda-forge
