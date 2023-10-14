@@ -642,25 +642,13 @@ poetry<span class="w"> </span>install
 <li>Increment version in <code>pyproject.toml</code></li>
 <li>Commit with message "Bump version number to X.Y.Z"</li>
 <li>Push commit to GitHub</li>
-<li>Check GitHub Actions to ensure all tests pass</li>
+<li>Check <a href="https://github.com/drhagen/parsita/actions/workflows/ci.yml">CI</a> to ensure all tests pass</li>
 </ol>
 </li>
 <li>Tag<ol>
 <li>Tag commit with "vX.Y.Z"</li>
 <li>Push tag to GitHub</li>
-<li>Check GitHub Actions for tag</li>
-</ol>
-</li>
-<li>Build<ol>
-<li>Clear <code>dist/</code></li>
-<li>Run <code>poetry build</code></li>
-<li>Verify that sdist (<code>.tar.gz</code>) and bdist (<code>.whl</code>) are in <code>dist/</code></li>
-</ol>
-</li>
-<li>Publish to PyPI<ol>
-<li>Run <code>poetry publish -r test</code></li>
-<li>Check <a href="https://test.pypi.org/project/parsita/">PyPI test server</a> for good upload</li>
-<li>Run <code>poetry publish</code></li>
+<li>Wait for <a href="https://github.com/drhagen/parsita/actions/workflows/release.yml">build</a> to finish</li>
 <li>Check <a href="https://pypi.org/project/parsita/">PyPI</a> for good upload</li>
 </ol>
 </li>
