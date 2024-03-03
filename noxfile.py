@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from nox import options, parametrize
 from nox_poetry import Session, session
 
