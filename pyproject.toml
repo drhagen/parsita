@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 documentation = "https://parsita.drhagen.com"
 repository = "https://github.com/drhagen/parsita"
-keywords = ["text", "parsing", "parser",  "combinator"]
+keywords = ["text", "parsing", "parser", "combinator"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -24,7 +24,7 @@ returns = "^0.20|^0.21|^0.22"
 nox_poetry = "^1.0.3"
 
 # Test
-pytest = "^7.4"
+pytest = "^8"
 pytest-cov = "*"
 pytest-timeout = "*"
 
@@ -37,15 +37,9 @@ mkdocs-material = "^9"
 
 
 [tool.pytest.ini_options]
-addopts = [
-    "--strict-config",
-    "--strict-markers",
-]
+addopts = ["--strict-config", "--strict-markers"]
 xfail_strict = true
-filterwarnings = [
-    # When running tests, treat warnings as errors (e.g. -Werror).
-    "error",
-]
+filterwarnings = ["error"]
 
 
 [tool.coverage.run]
@@ -73,6 +67,8 @@ line-length = 99
 [tool.ruff]
 src = ["src"]
 line-length = 99
+
+[tool.ruff.lint]
 extend-select = [
     "I", # isort
     "N", # pep8-naming
@@ -89,7 +85,7 @@ extend-select = [
 # N805: invalid-first-argument-name-for-method; Parsita tests and examples define functions in class bodies
 extend-ignore = ["F821", "N805"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # F401: unused-import; Allow unused imports in __init__.py files
 "__init__.py" = ["F401"]
 

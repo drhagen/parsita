@@ -7,7 +7,7 @@ on:
 
 env:
   python-version: "3.9"
-  poetry-version: "1.6.1"
+  poetry-version: "1.7.1"
 
 jobs:
   pypi-publish:
@@ -22,7 +22,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
       - name: Build release with Poetry
