@@ -28,29 +28,24 @@ poetry install
 Parsita uses pytest to run the tests in the `tests/` directory. The test command is encapsulated with Nox:
 
 ```shell
-poetry run nox -e test
+poetry run nox -s test
 ```
 
 This will try to test with all compatible Python versions that `nox` can find. To run the tests with only a particular version, run something like this:
 
 ```shell
-poetry run nox -e test-3.9
+poetry run nox -s test-3.9
 ```
 
-It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway. 
+It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway.
 
 ## Code quality
 
-Parsita uses Black and Ruff to ensure a minimum standard of code quality. The commands to check the code quality are encapsulated with Nox:
+Parsita uses Ruff to ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
 
 ```shell
-poetry run nox -e lint
-```
-
-The commands to apply Black and the isort subset of Ruff are also encapsulated with Nox:
-
-```shell
-poetry run nox - fmt
+poetry run nox -s format
+poetry run nox -s lint
 ```
 
 ## Generating the docs

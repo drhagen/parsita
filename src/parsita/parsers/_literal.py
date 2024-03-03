@@ -67,7 +67,7 @@ def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[Input, I
 
         return LongestAlternativeParser(
             LiteralParser(literal, options.whitespace),
-            *(LiteralParser(literal_i, options.whitespace) for literal_i in literals)
+            *(LiteralParser(literal_i, options.whitespace) for literal_i in literals),
         )
     else:
         return LiteralParser(literal, options.whitespace)
