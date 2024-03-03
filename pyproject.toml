@@ -29,8 +29,7 @@ pytest-cov = "*"
 pytest-timeout = "*"
 
 # Lint
-black = ">=22.10"
-ruff = ">=0.0.265"
+ruff = "^0.1"
 
 # Docs
 mkdocs-material = "^9"
@@ -58,10 +57,6 @@ source = [
     ".nox/test*/lib/python*/site-packages/",
     ".nox/test*/Lib/site-packages/",
 ]
-
-
-[tool.black]
-line-length = 99
 
 
 [tool.ruff]

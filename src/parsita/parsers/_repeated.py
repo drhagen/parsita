@@ -35,7 +35,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
 
 
 def rep1(
-    parser: Union[Parser[Input, Output], Sequence[Input]]
+    parser: Union[Parser[Input, Output], Sequence[Input]],
 ) -> RepeatedOnceParser[Input, Output]:
     """Match a parser one or more times repeatedly.
 

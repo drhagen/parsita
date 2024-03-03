@@ -87,7 +87,7 @@ class ParserContextMeta(type):
         name,
         bases,
         *,
-        whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing
+        whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing,
     ):
         if whitespace is missing:
             whitespace = mcs.default_whitespace
