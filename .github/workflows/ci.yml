@@ -8,7 +8,7 @@ on:
 
 env:
   python-version: "3.9"
-  poetry-version: "1.6.1"
+  poetry-version: "1.7.1"
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -31,7 +31,7 @@ jobs:
       - name: Test with nox
         run: poetry run nox -s test-${{ matrix.python-version }}
       - name: Store coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: .coverage.*
@@ -44,14 +44,14 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
           cache: poetry
       - name: Install environment
         run: poetry install
       - name: Fetch coverage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage
       - name: Combine coverage and generate report
@@ -68,7 +68,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
           cache: poetry
@@ -83,7 +83,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
       - name: Validate Poetry configuration and lockfile freshness
