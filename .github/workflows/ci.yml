@@ -58,8 +58,9 @@ jobs:
       - name: Combine coverage and generate report
         run: poetry run nox -s coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
   lint:
     runs-on: ubuntu-22.04
