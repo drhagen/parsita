@@ -1,3 +1,7 @@
+---
+icon: material/plus
+---
+
 # Sequential parser
 
 ## `parser1 & parser2`: sequential parser

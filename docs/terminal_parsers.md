@@ -1,3 +1,7 @@
+---
+icon: material/text-recognition
+---
+
 # Terminal parsers
 
 Terminal parsers (those created by `lit` and `reg`) are the atoms of a parser, they match and extract the smallest meaningful words of the language.

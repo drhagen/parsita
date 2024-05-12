@@ -1,3 +1,7 @@
+---
+icon: material/home
+---
+
 # Parsita
 
 Parsita is a parser combinator library written in Python. Parser combinators provide an easy way to define a grammar using code so that the grammar itself effectively parses the source. They are not the fastest at parsing, but they are the easiest to write.

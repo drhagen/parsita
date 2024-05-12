@@ -1,3 +1,7 @@
+---
+icon: material/tools
+---
+
 # Utility functions
 
 There are several utility functions, `constant`, `splat`, and `unsplat`. They are mostly useful when used with the conversion parser (`>`). These utility functions are not exported by `from parsita import *` and must be imported from `parsita.util`.

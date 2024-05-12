@@ -1,3 +1,7 @@
+---
+icon: material/repeat-variant
+---
+
 # Repeated parsers
 
 ## `rep(parser, min=0, max=inf)` and `rep1(parser)`: repeated parsers

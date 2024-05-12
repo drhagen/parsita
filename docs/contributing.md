@@ -1,3 +1,7 @@
+---
+icon: material/hand-heart
+---
+
 # Contributing
 
 Parsita is free and open source software developed under an MIT license. Development occurs at the [GitHub project](https://github.com/drhagen/parsita). Contributions, big and small, are welcome.
