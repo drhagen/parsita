@@ -1,3 +1,7 @@
+---
+icon: material/sign-direction
+---
+
 # Getting started
 
 David Hagen gave an [introductory talk](https://www.youtube.com/watch?v=9JSGGSRgUcw) on Parsita at SciPy 2021. The documentation is more thorough, but the talk is useful for anyone looking for a quick walk-through.
@@ -29,7 +33,7 @@ In version 1 of Parsita, `ParserContext` was split into two context classes, one
 
 ### `Parser.parse`
 
-The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as as argument and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. Note that in v2.0, these classes are reexported by Parsita, but are defined by the popular Returns package in [`returns.result`](https://returns.readthedocs.io/en/latest/pages/result.html). By using the `Result` class from Returns, Parsita's error handling can be composed with that of other libraries that use Returns. 
+The only method of note on a `Parser` is the `parse` method. The `parse` method takes a `str` as as argument and returns an instance of the `Result` class, which has two subclasses `Success` and `Failure`. Note that in v2.0, these classes are reexported by Parsita, but are defined by the popular Returns package in [`returns.result`](https://returns.readthedocs.io/en/latest/pages/result.html). By using the `Result` class from Returns, Parsita's error handling can be composed with that of other libraries that use Returns.
 
 Instances of `Result` work especially well with pattern matching in the `match` statement introduced in Python 3.10:
 

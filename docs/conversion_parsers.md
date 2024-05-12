@@ -1,3 +1,7 @@
+---
+icon: material/function
+---
+
 # Conversion parsers
 
 ## `parser > function`: conversion parser

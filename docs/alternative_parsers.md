@@ -1,3 +1,7 @@
+---
+icon: material/directions-fork
+---
+
 # Alternative parsers
 
 ## `parser1 | parser2`: alternative parser

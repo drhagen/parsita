@@ -18,18 +18,24 @@ theme:
     repo: fontawesome/brands/github
 
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: black
       accent: yellow
       toggle:
         icon: material/weather-sunny
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: yellow
       accent: deep orange
       toggle:
         icon: material/weather-night
-        name: Switch to light mode
+        name: Switch to system preference
 
 markdown_extensions:
   - pymdownx.highlight

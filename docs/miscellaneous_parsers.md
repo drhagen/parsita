@@ -1,3 +1,7 @@
+---
+icon: material/shape-plus
+---
+
 # Miscellaneous parsers
 
 ## `pred(parser, predicate, description)`: predicate parser
@@ -141,6 +145,6 @@ class NumberParsers(ParserContext):
     scientific = reg(r'[-+]?[0-9]+e[-+]?[0-9]+') > float
     number = decimal | scientific | integer
 
-# Assertion is broken and needs debugged 
+# Assertion is broken and needs debugged
 assert isinstance(NumberParsers.number.parse('1e5').unwrap(), float)
 ```
