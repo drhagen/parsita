@@ -17,8 +17,8 @@ classifiers = [
 
 
 [tool.poetry.dependencies]
-python = "^3.8"
-returns = "^0.20|^0.21|^0.22"
+python = "^3.9"
+returns = "^0.20|^0.21|^0.22|^0.23"
 
 [tool.poetry.dev-dependencies]
 nox_poetry = "^1.0.3"
