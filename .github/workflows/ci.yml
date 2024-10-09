@@ -35,6 +35,7 @@ jobs:
         with:
           name: coverage-${{ matrix.python-version }}
           path: .coverage.*
+          if-no-files-found: error
   coverage:
     needs: test
     runs-on: ubuntu-22.04
