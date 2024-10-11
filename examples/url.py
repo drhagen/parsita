@@ -68,4 +68,4 @@ if __name__ == "__main__":
     ]
 
     for string in strings:
-        print("source: {}\nvalue: {}".format(string, TypicalUrlParsers.url.parse(string)))
+        print(f"source: {string}\nvalue: {TypicalUrlParsers.url.parse(string)}")

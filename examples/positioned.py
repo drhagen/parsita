@@ -56,7 +56,7 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
             return status
 
     def __repr__(self):
-        return self.name_or_nothing() + "positioned({})".format(self.parser.name_or_repr())
+        return self.name_or_nothing() + f"positioned({self.parser.name_or_repr()})"
 
 
 def positioned(parser: Parser[Input, PositionAware[Output]]):

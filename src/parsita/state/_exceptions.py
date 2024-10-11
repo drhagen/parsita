@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["ParseError", "RecursionError"]
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 
 from ._reader import Reader
 
@@ -19,7 +19,7 @@ class ParseError(Exception):
     """
 
     farthest: Reader[Any]
-    expected: List[str]
+    expected: list[str]
 
     def __str__(self):
         return self.farthest.expected_error(self.expected)
