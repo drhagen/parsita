@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["Parser", "wrap_literal"]
 
 from abc import abstractmethod
-from typing import Any, Generic, List, Optional, Sequence, Union
+from typing import Any, Generic, Optional, Sequence, Union
 
 from .. import options
 from ..state import (
@@ -188,7 +188,7 @@ class Parser(Generic[Input, Output]):
         from ._alternative import LongestAlternativeParser
 
         other = wrap_literal(other)
-        parsers: List[Parser] = []
+        parsers: list[Parser] = []
         if isinstance(self, LongestAlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
         else:
