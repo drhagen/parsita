@@ -37,4 +37,4 @@ if __name__ == "__main__":
     expressions = ["123", "2 ^ 3", "1 + 1", "1 - 2 + 3 - 4", "3 - 4 * 2 + 10", "14 / (3.1 + 3.9)"]
 
     for expression in expressions:
-        print("{} = {}".format(expression, ExpressionParsers.expr.parse(expression).unwrap()))
+        print(f"{expression} = {ExpressionParsers.expr.parse(expression).unwrap()}")
