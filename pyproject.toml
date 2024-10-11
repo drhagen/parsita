@@ -32,7 +32,7 @@ pytest-cov = "*"
 pytest-timeout = "*"
 
 # Lint
-ruff = "^0.1"
+ruff = "^0.6"
 
 # Docs
 mkdocs-material = "^9"
