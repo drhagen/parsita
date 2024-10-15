@@ -13,9 +13,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Operating System :: OS Independent",
-    # Remove classifier for Python 3.13 after next release of Poetry
-    # https://github.com/python-poetry/poetry-core/pull/747
-    "Programming Language :: Python :: 3.13",
 ]
 
 
