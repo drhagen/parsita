@@ -342,6 +342,7 @@ def test_transformation_as_parameterized_parser():
     assert NumberParsers.number.parse("decimal 5") == Failure(
         ParseError(StringReader("decimal 5", 8), [r"r'[0-9]+\.[0-9]+'"])
     )
+    assert str(NumberParsers.number) == "number = type >= select_parser"
 
 
 def test_transformation_error_propogation():
