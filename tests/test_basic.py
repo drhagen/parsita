@@ -437,8 +437,8 @@ def test_conversion():
     assert TestParsers.one.parse("1") == Success(1)
     assert TestParsers.twelve.parse("12") == Success(12)
     assert TestParsers.twentyone.parse("21") == Success(21)
-    assert str(TestParsers.twelve) == "twelve = one & two"
-    assert str(TestParsers.twentyone) == "twentyone = two & one"
+    assert str(TestParsers.twelve) == "twelve = one & two > <lambda>"
+    assert str(TestParsers.twentyone) == "twentyone = two & one > make_twentyone"
 
 
 def test_recursion():
