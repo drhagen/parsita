@@ -25,7 +25,7 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
             return None
 
     def __repr__(self):
-        return self.name_or_nothing() + repr(self.parser)
+        return self.name_or_nothing() + f"{self.parser!r} > {self.converter.__name__}"
 
 
 class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
@@ -47,3 +47,7 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
             return self.transformer(status.value).consume(state, status.remainder)
         else:
             return status
+
+    def __repr__(self) -> str:
+        string = f"{self.parser.name_or_repr()} >= {self.transformer.__name__}"
+        return self.name_or_nothing() + string

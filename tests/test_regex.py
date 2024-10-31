@@ -34,7 +34,7 @@ def test_literal():
     assert TestParsers.hundred.parse("   100") == Success(100)
     assert TestParsers.hundred.parse("100    ") == Success(100)
     assert TestParsers.hundred.parse("   100    ") == Success(100)
-    assert str(TestParsers.hundred) == "hundred = '100'"
+    assert str(TestParsers.hundred) == "hundred = '100' > float"
 
 
 def test_literal_no_whitespace():
@@ -48,7 +48,7 @@ def test_literal_no_whitespace():
     assert TestParsers.hundred.parse("100 ") == Failure(
         ParseError(StringReader("100 ", 3), ["end of source"])
     )
-    assert str(TestParsers.hundred) == "hundred = '100'"
+    assert str(TestParsers.hundred) == "hundred = '100' > float"
 
 
 def test_literal_multiple():
@@ -108,7 +108,7 @@ def test_regex():
     assert TestParsers.digits.parse("   100") == Success("100")
     assert TestParsers.digits.parse("100    ") == Success("100")
     assert TestParsers.digits.parse("   100    ") == Success("100")
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+')"
 
 
 def test_regex_no_whitespace():
@@ -122,7 +122,7 @@ def test_regex_no_whitespace():
     assert TestParsers.digits.parse("100 ") == Failure(
         ParseError(StringReader("100 ", 3), ["end of source"])
     )
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+') > float"
 
 
 def test_regex_custom_whitespace():
@@ -142,7 +142,7 @@ def test_regex_custom_whitespace():
     assert TestParsers.pair.parse("100\n100") == Failure(
         ParseError(StringReader("100\n100", 3), [r"r'\d+'"])
     )
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+') > float"
     assert str(TestParsers.pair) == "pair = digits & digits"
 
 
@@ -342,6 +342,7 @@ def test_transformation_as_parameterized_parser():
     assert NumberParsers.number.parse("decimal 5") == Failure(
         ParseError(StringReader("decimal 5", 8), [r"r'[0-9]+\.[0-9]+'"])
     )
+    assert str(NumberParsers.number) == "number = type >= select_parser"
 
 
 def test_transformation_error_propogation():
