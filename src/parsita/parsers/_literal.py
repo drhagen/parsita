@@ -1,26 +1,30 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Any, Optional, Sequence
+from typing import Generic, Optional, Sequence
 
 from .. import options
-from ..state import Continue, Input, Reader, State, StringReader
+from ..state import Continue, Element, Reader, State, StringReader
 from ._base import Parser
 
 
-class LiteralParser(Parser[Input, Input]):
-    def __init__(self, pattern: Sequence[Input], whitespace: Optional[Parser[Input, Any]] = None):
+class LiteralParser(Generic[Element], Parser[Element, Sequence[Element]]):
+    def __init__(
+        self, pattern: Sequence[Element], whitespace: Optional[Parser[Element, object]] = None
+    ):
         super().__init__()
         self.pattern = pattern
         self.whitespace = whitespace
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(
+        self, state: State, reader: Reader[Element]
+    ) -> Optional[Continue[Element, Sequence[Element]]]:
         if self.whitespace is not None:
             status = self.whitespace.consume(state, reader)
-            reader = status.remainder
+            reader = status.remainder  # type: ignore  # whitespace is infallible
 
         if isinstance(reader, StringReader):
-            if reader.source.startswith(self.pattern, reader.position):
-                reader = reader.drop(len(self.pattern))
+            if reader.source.startswith(self.pattern, reader.position):  # type: ignore
+                reader = reader.drop(len(self.pattern))  # type: ignore
             else:
                 state.register_failure(repr(self.pattern), reader)
                 return None
@@ -37,18 +41,20 @@ class LiteralParser(Parser[Input, Input]):
 
         if self.whitespace is not None:
             status = self.whitespace.consume(state, reader)
-            reader = status.remainder
+            reader = status.remainder  # type: ignore  # whitespace is infallible
 
         return Continue(reader, self.pattern)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + repr(self.pattern)
 
 
-def lit(literal: Sequence[Input], *literals: Sequence[Input]) -> Parser[Input, Input]:
+def lit(
+    literal: Sequence[Element], *literals: Sequence[Element]
+) -> Parser[Element, Sequence[Element]]:
     """Match a literal sequence.
 
-    This parser returns successfully if the subsequence of the parsing input
+    This parser returns successfully if the subsequence of the parsing Element
     matches the literal sequence provided.
 
     If multiple literals are provided, they are treated as alternatives. e.g.

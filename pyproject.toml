@@ -31,6 +31,9 @@ pytest-timeout = "*"
 # Lint
 ruff = "^0.6"
 
+# Type checking
+mypy = "^1"
+
 # Docs
 mkdocs-material = "^9"
 
@@ -49,6 +52,7 @@ exclude_lines = [
     "pragma: no cover",
     "raise NotImplementedError",
     "if TYPE_CHECKING",
+    "@overload",
 ]
 
 [tool.coverage.paths]
@@ -83,6 +87,11 @@ extend-ignore = ["F821", "N805"]
 [tool.ruff.lint.per-file-ignores]
 # F401: unused-import; Allow unused imports in __init__.py files
 "__init__.py" = ["F401"]
+
+
+[tool.mypy]
+strict = true
+implicit_reexport = true
 
 
 [build-system]

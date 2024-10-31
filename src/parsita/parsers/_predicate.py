@@ -1,12 +1,12 @@
 __all__ = ["PredicateParser", "pred"]
 
-from typing import Callable, Generic
+from typing import Callable, Generic, Optional
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
+class PredicateParser(Generic[Input, Output], Parser[Input, Output]):
     def __init__(
         self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str
     ):
@@ -15,7 +15,7 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         self.predicate = predicate
         self.description = description
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         status = self.parser.consume(state, reader)
         if isinstance(status, Continue):
             if self.predicate(status.value):
@@ -26,7 +26,7 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Input]):
         else:
             return status
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + f"pred({self.parser.name_or_repr()}, {self.description})"
 
 

@@ -1,25 +1,38 @@
+from __future__ import annotations
+
 __all__ = ["ForwardDeclaration", "fwd", "ParserContext"]
 
 import builtins
 import inspect
 import re
+from dataclasses import dataclass
 from re import Pattern
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Generic, NoReturn, Optional, Union, no_type_check
 
 from . import options
 from .parsers import LiteralParser, Parser, RegexParser
-from .state import Input
+from .state import Continue, Input, Output, Reader, State
 
-missing = object()
+missing: Any = object()
 
 
-class ParsersDict(dict):
-    def __init__(self, old_options: dict):
+@dataclass(frozen=True)
+class Options:
+    whitespace: Optional[Parser[Any, Any]] = None
+
+
+class ParsersDict(dict[str, Any]):
+    def __init__(self, old_options: Options):
         super().__init__()
-        self.old_options = old_options  # Holds state of options at start of definition
-        self.forward_declarations = {}  # Stores forward declarations as they are discovered
 
-    def __missing__(self, key):
+        # Holds state of options at start of definition
+        self.old_options = old_options
+
+        # Stores forward declarations as they are discovered
+        self.forward_declarations: dict[str, ForwardDeclaration[Any, Any]] = {}
+
+    @no_type_check  # mypy cannot handle all the frame inspection
+    def __missing__(self, key: str) -> ForwardDeclaration[Any, Any]:
         frame = inspect.currentframe()  # Should be the frame of __missing__
         while frame.f_code.co_name != "__missing__":  # pragma: no cover
             # But sometimes debuggers add frames on top of the stack;
@@ -43,7 +56,7 @@ class ParsersDict(dict):
             self.forward_declarations[key] = new_forward_declaration
             return new_forward_declaration
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         if isinstance(value, Parser):
             # Protects against accidental concatenation of sequential parsers
             value.protected = True
@@ -54,21 +67,29 @@ class ParsersDict(dict):
         super().__setitem__(key, value)
 
 
-class ForwardDeclaration(Parser):
-    def __init__(self):
-        self._definition = None
+class ForwardDeclaration(Generic[Input, Output], Parser[Input, Output]):
+    def __init__(self) -> None:
+        self._definition: Optional[Parser[Input, Output]] = None
 
-    def __getattribute__(self, member):
+    def __getattribute__(self, member: str) -> Any:
         if member != "_definition" and self._definition is not None:
             return getattr(self._definition, member)
         else:
             return object.__getattribute__(self, member)
 
-    def define(self, parser: Parser) -> None:
+    if TYPE_CHECKING:
+        # Type checkers don't know that `_consume` is implemented in `__getattribute__`
+
+        def _consume(
+            self, state: State, reader: Reader[Input]
+        ) -> Optional[Continue[Input, Output]]:
+            pass
+
+    def define(self, parser: Parser[Input, Output]) -> None:
         self._definition = parser
 
 
-def fwd() -> ForwardDeclaration:
+def fwd() -> ForwardDeclaration[Input, Output]:
     """Manually create a forward declaration.
 
     Normally, forward declarations are created automatically by the contexts.
@@ -79,16 +100,20 @@ def fwd() -> ForwardDeclaration:
 
 
 class ParserContextMeta(type):
-    default_whitespace: Union[Parser[Input, Any], Pattern, str, None] = None
+    default_whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = None
 
     @classmethod
     def __prepare__(
         mcs,  # noqa: N804
-        name,
-        bases,
+        name: str,
+        bases: tuple[type, ...],
+        /,
         *,
-        whitespace: Union[Parser[Input, Any], Pattern, str, None] = missing,
-    ):
+        whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = missing,
+        **kwargs: Any,
+    ) -> ParsersDict:
+        super().__prepare__(name, bases, **kwargs)
+
         if whitespace is missing:
             whitespace = mcs.default_whitespace
 
@@ -98,15 +123,13 @@ class ParserContextMeta(type):
         if isinstance(whitespace, Pattern):
             whitespace = RegexParser(whitespace)
 
-        old_options = {
-            "whitespace": options.whitespace,
-        }
+        old_options = Options(whitespace=options.whitespace)
 
         # Store whitespace in global location
         options.whitespace = whitespace
         return ParsersDict(old_options)
 
-    def __init__(cls, name, bases, dct, **_):
+    def __init__(cls, name: str, bases: tuple[type, ...], dct: ParsersDict, /, **_: Any) -> None:
         old_options = dct.old_options
 
         super().__init__(name, bases, dct)
@@ -119,15 +142,21 @@ class ParserContextMeta(type):
             forward_declaration._definition = obj
 
         # Reset global variables
-        for key, value in old_options.items():
-            setattr(options, key, value)
+        options.whitespace = old_options.whitespace
 
-    def __new__(mcs, name, bases, dct, **_):  # noqa: N804
+    def __new__(
+        mcs: type[ParserContextMeta],  # noqa: N804
+        name: str,
+        bases: tuple[type, ...],
+        dct: ParsersDict,
+        /,
+        whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = missing,
+    ) -> ParserContextMeta:
         return super().__new__(mcs, name, bases, dct)
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: object, **kwargs: object) -> NoReturn:
         raise TypeError(
-            "Parsers cannot be instantiated. They use class bodies purely as contexts for "
+            "ParserContexts cannot be instantiated. They use class bodies purely as contexts for "
             "managing defaults and allowing forward declarations. Access the individual parsers "
             "as static attributes."
         )

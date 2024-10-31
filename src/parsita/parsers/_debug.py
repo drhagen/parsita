@@ -2,7 +2,7 @@ __all__ = ["DebugParser", "debug"]
 
 from typing import Callable, Generic, Optional
 
-from ..state import Input, Output, Reader, State
+from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
@@ -19,7 +19,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
@@ -33,7 +33,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + f"debug({self.parser.name_or_repr()})"
 
 
@@ -42,7 +42,7 @@ def debug(
     *,
     verbose: bool = False,
     callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
-) -> DebugParser:
+) -> DebugParser[Input, Output]:
     """Execute debugging hooks before a parser.
 
     This parser is used purely for debugging purposes. From a parsing

@@ -1,22 +1,33 @@
 __all__ = ["RegexParser", "reg"]
 
 import re
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Generic, Optional, TypeVar, Union, no_type_check
 
 from .. import options
-from ..state import Continue, Reader, State
+from ..state import Continue, State, StringReader
 from ._base import Parser
 
 StringType = TypeVar("StringType", str, bytes)
 
 
 class RegexParser(Generic[StringType], Parser[StringType, StringType]):
-    def __init__(self, pattern: re.Pattern, whitespace: Optional[Parser[StringType, Any]] = None):
+    def __init__(
+        self,
+        pattern: re.Pattern[StringType],
+        whitespace: Optional[Parser[StringType, object]] = None,
+    ):
         super().__init__()
-        self.pattern = pattern
-        self.whitespace = whitespace
+        self.pattern: re.Pattern[StringType] = pattern
+        self.whitespace: Optional[Parser[StringType, object]] = whitespace
 
-    def _consume(self, state: State[StringType], reader: Reader[StringType]):
+    # RegexParser is special in that is assumes StringReader is the only
+    # possible reader for strings and bytes. This is technically unsound.
+    @no_type_check
+    def _consume(
+        self,
+        state: State,
+        reader: StringReader,
+    ) -> Optional[Continue[StringType, StringType]]:
         if self.whitespace is not None:
             status = self.whitespace.consume(state, reader)
             reader = status.remainder
@@ -40,7 +51,7 @@ class RegexParser(Generic[StringType], Parser[StringType, StringType]):
         return self.name_or_nothing() + f"reg({self.pattern.pattern!r})"
 
 
-def reg(pattern: Union[re.Pattern, StringType]) -> RegexParser[StringType]:
+def reg(pattern: Union[re.Pattern[StringType], StringType]) -> RegexParser[StringType]:
     """Match with a regular expression.
 
     This matches the text with a regular expression. The regular expressions is

@@ -21,7 +21,7 @@ class ParseError(Exception):
     farthest: Reader[Any]
     expected: list[str]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.farthest.expected_error(self.expected)
 
 
@@ -35,5 +35,5 @@ class RecursionError(Exception):
     parser: Parser[Any, Any]
     context: Reader[Any]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.context.recursion_error(repr(self.parser))

@@ -24,7 +24,7 @@ assert BooleanParsers.boolean.parse('false') == Success(False)
 
 ## `splat(function)`: convert a function of many arguments to take only one list argument
 
-The function `splat(function: Callable[Tuple[*B], A]) -> Callable[Tuple[Tuple[*B]], A]` has a complicated type signature, but does a simple thing. It takes a single function that takes multiple arguments and converts it to a function that takes only one argument, which is a list of all original arguments. It is particularly useful for passing a list of results from a sequential parser `&` to a function that takes each element as an separate argument. By applying `splat` to the function, it now takes the single list that is returned by the sequential parser.
+The function `splat(function: Callable[tuple[*B], A]) -> Callable[tuple[tuple[*B]], A]` has a complicated type signature, but does a simple thing. It takes a single function that takes multiple arguments and converts it to a function that takes only one argument, which is a list of all original arguments. It is particularly useful for passing a list of results from a sequential parser `&` to a function that takes each element as an separate argument. By applying `splat` to the function, it now takes the single list that is returned by the sequential parser.
 
 ```python
 from collections import namedtuple
@@ -44,7 +44,7 @@ assert UrlParsers.url.parse('https://drhagen.com:443/blog/') == \
 
 ## `unsplat(function)`: convert a function of one list argument to take many arguments
 
-The function `unsplat(function: Callable[Tuple[Tuple[*B]], A]) -> Callable[Tuple[*B], A]` does the opposite of `splat`. It takes a single function that takes a single argument that is a list and converts it to a function that takes multiple arguments, each of which was an element of the original list. It is not very useful for writing parsers because the conversion parser always calls its converter function with a single argument, but is included here to complement `splat`.
+The function `unsplat(function: Callable[tuple[tuple[*B]], A]) -> Callable[tuple[*B], A]` does the opposite of `splat`. It takes a single function that takes a single argument that is a list and converts it to a function that takes multiple arguments, each of which was an element of the original list. It is not very useful for writing parsers because the conversion parser always calls its converter function with a single argument, but is included here to complement `splat`.
 
 ```python
 from parsita.util import splat, unsplat
