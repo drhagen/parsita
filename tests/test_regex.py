@@ -108,7 +108,7 @@ def test_regex():
     assert TestParsers.digits.parse("   100") == Success("100")
     assert TestParsers.digits.parse("100    ") == Success("100")
     assert TestParsers.digits.parse("   100    ") == Success("100")
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+')"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+')"
 
 
 def test_regex_no_whitespace():
@@ -122,7 +122,7 @@ def test_regex_no_whitespace():
     assert TestParsers.digits.parse("100 ") == Failure(
         ParseError(StringReader("100 ", 3), ["end of source"])
     )
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+') > float"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+') > float"
 
 
 def test_regex_custom_whitespace():
@@ -142,7 +142,7 @@ def test_regex_custom_whitespace():
     assert TestParsers.pair.parse("100\n100") == Failure(
         ParseError(StringReader("100\n100", 3), [r"r'\d+'"])
     )
-    assert str(TestParsers.digits) == r"digits = reg(r'\d+') > float"
+    assert str(TestParsers.digits) == r"digits = reg('\\d+') > float"
     assert str(TestParsers.pair) == "pair = digits & digits"
 
 

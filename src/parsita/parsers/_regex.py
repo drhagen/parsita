@@ -36,8 +36,8 @@ class RegexParser(Generic[StringType], Parser[StringType, StringType]):
 
             return Continue(reader, value)
 
-    def __repr__(self):
-        return self.name_or_nothing() + f"reg(r'{self.pattern.pattern}')"
+    def __repr__(self) -> str:
+        return self.name_or_nothing() + f"reg({self.pattern.pattern!r})"
 
 
 def reg(pattern: Union[re.Pattern, StringType]) -> RegexParser[StringType]:
