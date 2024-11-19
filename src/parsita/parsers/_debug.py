@@ -1,6 +1,6 @@
 __all__ = ["DebugParser", "debug"]
 
-from typing import Callable, Generic, Optional
+from typing import Any, Callable, Generic, Optional, Sequence, Union, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -37,12 +37,32 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + f"debug({self.parser.name_or_repr()})"
 
 
+@overload
+def debug(
+    parser: Sequence[Input],
+    *,
+    verbose: bool = False,
+    callback: Optional[Callable[[Parser[Input, Sequence[Input]], Reader[Input]], None]] = None,
+) -> DebugParser[Input, Sequence[Input]]:
+    pass
+
+
+@overload
 def debug(
     parser: Parser[Input, Output],
     *,
     verbose: bool = False,
     callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
 ) -> DebugParser[Input, Output]:
+    pass
+
+
+def debug(
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    *,
+    verbose: bool = False,
+    callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
+) -> DebugParser[Input, Any]:
     """Execute debugging hooks before a parser.
 
     This parser is used purely for debugging purposes. From a parsing

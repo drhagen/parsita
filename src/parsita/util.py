@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __all__ = ["constant", "splat", "unsplat"]
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, Sequence
 
 if TYPE_CHECKING:
     # ParamSpec was introduced in Python 3.10
@@ -31,7 +31,8 @@ def constant(x: A) -> Callable[P, A]:
     return constanted
 
 
-def splat(f: Callable[[Unpack[Ts]], A], /) -> Callable[[tuple[Unpack[Ts]]], A]:
+# This signature cannot be expressed narrowly because SequenceParser does not return a tuple
+def splat(f: Callable[[Unpack[Ts]], A], /) -> Callable[[Sequence[Any]], A]:
     """Convert a function of multiple arguments into a function of a single iterable argument.
 
     Args:
@@ -50,7 +51,7 @@ def splat(f: Callable[[Unpack[Ts]], A], /) -> Callable[[tuple[Unpack[Ts]]], A]:
         $ g([1, 2, 3])  # 6
     """
 
-    def splatted(args: tuple[Unpack[Ts]], /) -> A:
+    def splatted(args: Sequence[Any], /) -> A:
         return f(*args)
 
     return splatted

@@ -9,11 +9,13 @@ from parsita import Failure, ParseError, Reader, Result, SequenceReader, StringR
 from parsita.state import Continue, State
 
 
-def test_state_creation():
+def test_sequence_reader_creation():
     read = SequenceReader([1, 2, 3])
     assert read.first == 1
     assert read.rest.first == 2
 
+
+def test_string_reader_creation():
     read = StringReader("a b")
     assert read.first == "a"
     assert read.rest.first == " "
@@ -38,7 +40,7 @@ def test_parse_error_str_string_reader():
 
 
 @pytest.mark.parametrize("source", ["a a", "a a\n"])
-def test_parse_error_str_string_reader_end_of_source(source):
+def test_parse_error_str_string_reader_end_of_source(source: str):
     err = ParseError(StringReader(source, 4), ["'b'"])
     assert str(err) == "Expected 'b' but found end of source\nLine 1, character 4\n\na a\n   ^"
 
@@ -52,6 +54,7 @@ def test_register_failure_first():
     state = State()
     state.register_failure("foo", StringReader("bar baz", 0))
     assert state.expected == ["foo"]
+    assert isinstance(state.farthest, Reader)
     assert state.farthest.position == 0
 
 
@@ -59,6 +62,7 @@ def test_register_failure_at_middle():
     state = State()
     state.register_failure("foo", StringReader("bar baz", 4))
     assert state.expected == ["foo"]
+    assert isinstance(state.farthest, Reader)
     assert state.farthest.position == 4
 
 
@@ -67,6 +71,7 @@ def test_register_failure_latest():
     state.register_failure("foo", StringReader("bar baz", 0))
     state.register_failure("egg", StringReader("bar baz", 4))
     assert state.expected == ["egg"]
+    assert isinstance(state.farthest, Reader)
     assert state.farthest.position == 4
 
 
@@ -75,6 +80,7 @@ def test_register_failure_tied():
     state.register_failure("foo", StringReader("bar baz", 4))
     state.register_failure("egg", StringReader("bar baz", 4))
     assert state.expected == ["foo", "egg"]
+    assert isinstance(state.farthest, Reader)
     assert state.farthest.position == 4
 
 
@@ -91,8 +97,8 @@ def test_isinstance():
 def test_isinstance_result():
     success = Success(1)
     failure = Failure(ParseError(StringReader("bar baz", 4), ["foo"]))
-    assert isinstance(success, Result)
-    assert isinstance(failure, Result)
+    assert isinstance(success, Result)  # type: ignore
+    assert isinstance(failure, Result)  # type: ignore
 
 
 def test_result_annotation():
@@ -120,7 +126,7 @@ def test_reader_drop():
     # drop, so this test is for that in case someone extends Reader.
 
     @dataclass(frozen=True)
-    class BytesReader(Reader):
+    class BytesReader(Reader[int]):
         source: bytes
         position: int = 0
 

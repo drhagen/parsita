@@ -1,7 +1,7 @@
 __all__ = ["RegexParser", "reg"]
 
 import re
-from typing import Generic, Optional, TypeVar, Union, no_type_check
+from typing import Any, Generic, Optional, TypeVar, Union, no_type_check
 
 from .. import options
 from ..state import Continue, State, StringReader
@@ -10,7 +10,9 @@ from ._base import Parser
 StringType = TypeVar("StringType", str, bytes)
 
 
-class RegexParser(Generic[StringType], Parser[StringType, StringType]):
+# The Element type is str for str and int for bytes, but there is not way to
+# express that in Python.
+class RegexParser(Generic[StringType], Parser[Any, StringType]):
     def __init__(
         self,
         pattern: re.Pattern[StringType],

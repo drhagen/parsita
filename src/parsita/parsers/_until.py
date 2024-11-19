@@ -1,6 +1,6 @@
 __all__ = ["UntilParser", "until"]
 
-from typing import Any, Generic, Optional, Sequence
+from typing import Any, Generic, Optional, Sequence, Union
 
 from ..state import Continue, Element, Reader, State
 from ._base import Parser, wrap_literal
@@ -31,7 +31,7 @@ class UntilParser(Generic[Element], Parser[Element, Sequence[Element]]):
         return self.name_or_nothing() + f"until({self.parser.name_or_repr()})"
 
 
-def until(parser: Parser[Element, object]) -> UntilParser[Element]:
+def until(parser: Union[Parser[Element, object], Sequence[Element]]) -> UntilParser[Element]:
     """Match everything until it matches the provided parser.
 
     This parser matches all Element until it encounters a position in the Element

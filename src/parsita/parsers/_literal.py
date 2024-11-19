@@ -1,23 +1,24 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Generic, Optional, Sequence
+from typing import Any, Generic, Optional, Sequence, TypeVar, Union, overload
 
 from .. import options
 from ..state import Continue, Element, Reader, State, StringReader
 from ._base import Parser
 
+# The bound should be Sequence[Element], but mypy doesn't support higher-kinded types.
+Literal = TypeVar("Literal", bound=Sequence[Any], covariant=True)
 
-class LiteralParser(Generic[Element], Parser[Element, Sequence[Element]]):
-    def __init__(
-        self, pattern: Sequence[Element], whitespace: Optional[Parser[Element, object]] = None
-    ):
+
+class LiteralParser(Generic[Element, Literal], Parser[Element, Literal]):
+    def __init__(self, pattern: Literal, whitespace: Optional[Parser[Element, object]] = None):
         super().__init__()
         self.pattern = pattern
         self.whitespace = whitespace
 
     def _consume(
         self, state: State, reader: Reader[Element]
-    ) -> Optional[Continue[Element, Sequence[Element]]]:
+    ) -> Optional[Continue[Element, Literal]]:
         if self.whitespace is not None:
             status = self.whitespace.consume(state, reader)
             reader = status.remainder  # type: ignore  # whitespace is infallible
@@ -49,9 +50,27 @@ class LiteralParser(Generic[Element], Parser[Element, Sequence[Element]]):
         return self.name_or_nothing() + repr(self.pattern)
 
 
+FunctionLiteral = TypeVar("FunctionLiteral", bound=Sequence[Any])
+
+
+@overload
+def lit(literal: str, *literals: str) -> Parser[str, str]:
+    pass
+
+
+@overload
+def lit(literal: bytes, *literals: bytes) -> Parser[int, bytes]:
+    pass
+
+
+@overload
+def lit(literal: FunctionLiteral, *literals: FunctionLiteral) -> Parser[Any, FunctionLiteral]:
+    pass
+
+
 def lit(
-    literal: Sequence[Element], *literals: Sequence[Element]
-) -> Parser[Element, Sequence[Element]]:
+    literal: Union[FunctionLiteral, str, bytes], *literals: Union[FunctionLiteral, str, bytes]
+) -> Parser[Element, object]:
     """Match a literal sequence.
 
     This parser returns successfully if the subsequence of the parsing Element
