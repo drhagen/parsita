@@ -26,15 +26,13 @@ class OptionalParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
 @overload
 def opt(
     parser: Sequence[Input],
-) -> OptionalParser[Input, Sequence[Input]]:
-    pass
+) -> OptionalParser[Input, Sequence[Input]]: ...
 
 
 @overload
 def opt(
     parser: Parser[Input, Output],
-) -> OptionalParser[Input, Output]:
-    pass
+) -> OptionalParser[Input, Output]: ...
 
 
 def opt(

@@ -34,15 +34,14 @@ def first(
 ) -> FirstAlternativeParser[Input, Sequence[Input]]:
     # This signature is not quite right because Python cannot express that
     # Output must be a supertype of Sequence[Input].
-    pass
+    ...
 
 
 @overload
 def first(
     parser: Parser[Input, Output],
     *parsers: Parser[Input, Output],
-) -> FirstAlternativeParser[Input, Output]:
-    pass
+) -> FirstAlternativeParser[Input, Output]: ...
 
 
 def first(
@@ -100,15 +99,14 @@ def longest(
 ) -> LongestAlternativeParser[Input, Sequence[Input]]:
     # This signature is not quite right because Python cannot express that
     # Output must be a supertype of Sequence[Input].
-    pass
+    ...
 
 
 @overload
 def longest(
     parser: Parser[Input, Output],
     *parsers: Parser[Input, Output],
-) -> LongestAlternativeParser[Input, Output]:
-    pass
+) -> LongestAlternativeParser[Input, Output]: ...
 
 
 def longest(

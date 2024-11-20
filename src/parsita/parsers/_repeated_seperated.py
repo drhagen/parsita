@@ -73,8 +73,7 @@ def repsep(
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedSeparatedParser[Input, Sequence[Input]]:
-    pass
+) -> RepeatedSeparatedParser[Input, Sequence[Input]]: ...
 
 
 @overload
@@ -84,8 +83,7 @@ def repsep(
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedSeparatedParser[Input, Output]:
-    pass
+) -> RepeatedSeparatedParser[Input, Output]: ...
 
 
 def repsep(
@@ -157,15 +155,13 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
 @overload
 def rep1sep(
     parser: Sequence[Input], separator: Union[Parser[Input, object], Sequence[Input]]
-) -> RepeatedOnceSeparatedParser[Input, Sequence[Input]]:
-    pass
+) -> RepeatedOnceSeparatedParser[Input, Sequence[Input]]: ...
 
 
 @overload
 def rep1sep(
     parser: Parser[Input, Output], separator: Union[Parser[Input, object], Sequence[Input]]
-) -> RepeatedOnceSeparatedParser[Input, Output]:
-    pass
+) -> RepeatedOnceSeparatedParser[Input, Output]: ...
 
 
 def rep1sep(

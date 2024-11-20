@@ -28,13 +28,11 @@ missing = ...
 
 
 @overload
-def wrap_literal(obj: Sequence[Input]) -> Parser[Input, Sequence[Input]]:
-    pass
+def wrap_literal(obj: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
 
 
 @overload
-def wrap_literal(obj: Parser[Input, Output]) -> Parser[Input, Output]:
-    pass
+def wrap_literal(obj: Parser[Input, Output]) -> Parser[Input, Output]: ...
 
 
 def wrap_literal(
@@ -198,14 +196,12 @@ class Parser(Generic[Input, Output]):
             return self.name + " = "
 
     @overload
-    def __or__(self, other: Sequence[Input]) -> Parser[Input, Union[Output, Sequence[Input]]]:
-        pass
+    def __or__(self, other: Sequence[Input]) -> Parser[Input, Union[Output, Sequence[Input]]]: ...
 
     @overload
     def __or__(
         self, other: Parser[Input, OtherOutput]
-    ) -> Parser[Input, Union[Output, OtherOutput]]:
-        pass
+    ) -> Parser[Input, Union[Output, OtherOutput]]: ...
 
     def __or__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
@@ -225,14 +221,12 @@ class Parser(Generic[Input, Output]):
         return LongestAlternativeParser(*parsers)
 
     @overload
-    def __ror__(self, other: Sequence[Input]) -> Parser[Input, Union[Sequence[Input], Output]]:
-        pass
+    def __ror__(self, other: Sequence[Input]) -> Parser[Input, Union[Sequence[Input], Output]]: ...
 
     @overload
     def __ror__(
         self, other: Parser[Input, OtherOutput]
-    ) -> Parser[Input, Union[OtherOutput, Output]]:
-        pass
+    ) -> Parser[Input, Union[OtherOutput, Output]]: ...
 
     def __ror__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
@@ -241,12 +235,10 @@ class Parser(Generic[Input, Output]):
         return narrowed_other.__or__(self)
 
     @overload
-    def __and__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]:
-        pass
+    def __and__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]: ...
 
     @overload
-    def __and__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]:
-        pass
+    def __and__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
 
     def __and__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
@@ -260,12 +252,10 @@ class Parser(Generic[Input, Output]):
             return SequentialParser(self, narrowed_other)
 
     @overload
-    def __rand__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]:
-        pass
+    def __rand__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]: ...
 
     @overload
-    def __rand__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]:
-        pass
+    def __rand__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
 
     def __rand__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
@@ -274,12 +264,10 @@ class Parser(Generic[Input, Output]):
         return narrowed_other.__and__(self)
 
     @overload
-    def __rshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]:
-        pass
+    def __rshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
 
     @overload
-    def __rshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]:
-        pass
+    def __rshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
 
     def __rshift__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
@@ -304,12 +292,10 @@ class Parser(Generic[Input, Output]):
         return DiscardRightParser(self, narrowed_other)
 
     @overload
-    def __rlshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]:
-        pass
+    def __rlshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
 
     @overload
-    def __rlshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]:
-        pass
+    def __rlshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
 
     def __rlshift__(
         self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]

@@ -54,18 +54,15 @@ FunctionLiteral = TypeVar("FunctionLiteral", bound=Sequence[Any])
 
 
 @overload
-def lit(literal: str, *literals: str) -> Parser[str, str]:
-    pass
+def lit(literal: str, *literals: str) -> Parser[str, str]: ...
 
 
 @overload
-def lit(literal: bytes, *literals: bytes) -> Parser[int, bytes]:
-    pass
+def lit(literal: bytes, *literals: bytes) -> Parser[int, bytes]: ...
 
 
 @overload
-def lit(literal: FunctionLiteral, *literals: FunctionLiteral) -> Parser[Any, FunctionLiteral]:
-    pass
+def lit(literal: FunctionLiteral, *literals: FunctionLiteral) -> Parser[Any, FunctionLiteral]: ...
 
 
 def lit(

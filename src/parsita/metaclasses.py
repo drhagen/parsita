@@ -82,8 +82,7 @@ class ForwardDeclaration(Generic[Input, Output], Parser[Input, Output]):
 
         def _consume(
             self, state: State, reader: Reader[Input]
-        ) -> Optional[Continue[Input, Output]]:
-            pass
+        ) -> Optional[Continue[Input, Output]]: ...
 
     def define(self, parser: Parser[Input, Output]) -> None:
         self._definition = parser

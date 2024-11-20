@@ -37,13 +37,11 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
 
 
 @overload
-def rep1(parser: Sequence[Input]) -> RepeatedOnceParser[Input, Sequence[Input]]:
-    pass
+def rep1(parser: Sequence[Input]) -> RepeatedOnceParser[Input, Sequence[Input]]: ...
 
 
 @overload
-def rep1(parser: Parser[Input, Output]) -> RepeatedOnceParser[Input, Output]:
-    pass
+def rep1(parser: Parser[Input, Output]) -> RepeatedOnceParser[Input, Output]: ...
 
 
 def rep1(
@@ -104,8 +102,7 @@ def rep(
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedParser[Input, Sequence[Input]]:
-    pass
+) -> RepeatedParser[Input, Sequence[Input]]: ...
 
 
 @overload
@@ -114,8 +111,7 @@ def rep(
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedParser[Input, Output]:
-    pass
+) -> RepeatedParser[Input, Output]: ...
 
 
 def rep(

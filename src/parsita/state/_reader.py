@@ -30,24 +30,19 @@ class Reader(Generic[Input]):
         # dataclass subclasses
 
         @property
-        def first(self) -> Input:
-            pass
+        def first(self) -> Input: ...
 
         @property
-        def rest(self) -> Reader[Input]:
-            pass
+        def rest(self) -> Reader[Input]: ...
 
         @property
-        def position(self) -> int:
-            pass
+        def position(self) -> int: ...
 
         @property
-        def finished(self) -> bool:
-            pass
+        def finished(self) -> bool: ...
 
         @property
-        def source(self) -> Sequence[Input]:
-            pass
+        def source(self) -> Sequence[Input]: ...
 
     def drop(self, count: int) -> Reader[Input]:
         """Advance the reader by ``count`` elements.

@@ -43,8 +43,7 @@ def debug(
     *,
     verbose: bool = False,
     callback: Optional[Callable[[Parser[Input, Sequence[Input]], Reader[Input]], None]] = None,
-) -> DebugParser[Input, Sequence[Input]]:
-    pass
+) -> DebugParser[Input, Sequence[Input]]: ...
 
 
 @overload
@@ -53,8 +52,7 @@ def debug(
     *,
     verbose: bool = False,
     callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
-) -> DebugParser[Input, Output]:
-    pass
+) -> DebugParser[Input, Output]: ...
 
 
 def debug(
