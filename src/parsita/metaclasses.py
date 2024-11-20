@@ -18,7 +18,7 @@ missing: Any = object()
 
 @dataclass(frozen=True)
 class Options:
-    whitespace: Optional[Parser[Any, Any]] = None
+    whitespace: Optional[Parser[Any, object]] = None
 
 
 class ParsersDict(dict[str, Any]):
@@ -99,7 +99,7 @@ def fwd() -> ForwardDeclaration[Input, Output]:
 
 
 class ParserContextMeta(type):
-    default_whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = None
+    default_whitespace: Union[Parser[Any, object], Pattern[str], str, None] = None
 
     @classmethod
     def __prepare__(
@@ -108,7 +108,7 @@ class ParserContextMeta(type):
         bases: tuple[type, ...],
         /,
         *,
-        whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = missing,
+        whitespace: Union[Parser[Any, object], Pattern[str], str, None] = missing,
         **kwargs: Any,
     ) -> ParsersDict:
         super().__prepare__(name, bases, **kwargs)

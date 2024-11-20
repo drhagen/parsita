@@ -70,7 +70,7 @@ def lit(
 ) -> Parser[Element, object]:
     """Match a literal sequence.
 
-    This parser returns successfully if the subsequence of the parsing Element
+    This parser returns successfully if the subsequence of the parsing input
     matches the literal sequence provided.
 
     If multiple literals are provided, they are treated as alternatives. e.g.

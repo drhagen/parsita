@@ -32,8 +32,8 @@ def first(
     parser: Union[Parser[Input, Output], Sequence[Input]],
     *parsers: Union[Parser[Input, Output], Sequence[Input]],
 ) -> FirstAlternativeParser[Input, Sequence[Input]]:
-    # This signature is not quite right because Python cannot express that
-    # Output must be a supertype of Sequence[Input].
+    # This signature is not quite right because Python has no higher-kinded
+    # types to express that Output must be a subtype of Sequence[Input].
     ...
 
 
@@ -92,14 +92,13 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + " | ".join(names)
 
 
+# This signature is not quite right because Python has no higher-kinded
+# types to express that Output must be a subtype of Sequence[Input].
 @overload
 def longest(
     parser: Union[Parser[Input, Output], Sequence[Input]],
     *parsers: Union[Parser[Input, Output], Sequence[Input]],
-) -> LongestAlternativeParser[Input, Sequence[Input]]:
-    # This signature is not quite right because Python cannot express that
-    # Output must be a supertype of Sequence[Input].
-    ...
+) -> LongestAlternativeParser[Input, Sequence[Input]]: ...
 
 
 @overload

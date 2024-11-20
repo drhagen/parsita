@@ -97,8 +97,8 @@ def test_isinstance():
 def test_isinstance_result():
     success = Success(1)
     failure = Failure(ParseError(StringReader("bar baz", 4), ["foo"]))
-    assert isinstance(success, Result)  # type: ignore
-    assert isinstance(failure, Result)  # type: ignore
+    assert isinstance(success, Result)
+    assert isinstance(failure, Result)
 
 
 def test_result_annotation():

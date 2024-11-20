@@ -10,7 +10,7 @@ from ._base import Parser
 StringType = TypeVar("StringType", str, bytes)
 
 
-# The Element type is str for str and int for bytes, but there is not way to
+# The Element type is str for str and int for bytes, but there is no way to
 # express that in Python.
 class RegexParser(Generic[StringType], Parser[Any, StringType]):
     def __init__(
