@@ -1,6 +1,6 @@
 __all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
 
-from typing import Generic, List, Optional, Sequence, Union
+from typing import Generic, Optional, Sequence, Union, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal
@@ -11,14 +11,16 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
         super().__init__()
         self.parser = parser
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.consume(state, reader)
+    def _consume(
+        self, state: State, reader: Reader[Input]
+    ) -> Optional[Continue[Input, Sequence[Output]]]:
+        initial_status = self.parser.consume(state, reader)
 
-        if status is None:
+        if initial_status is None:
             return None
         else:
-            output = [status.value]
-            remainder = status.remainder
+            output = [initial_status.value]
+            remainder = initial_status.remainder
             while True:
                 status = self.parser.consume(state, remainder)
                 if isinstance(status, Continue):
@@ -30,13 +32,21 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
                 else:
                     return Continue(remainder, output)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + f"rep1({self.parser.name_or_repr()})"
+
+
+@overload
+def rep1(parser: Sequence[Input]) -> RepeatedOnceParser[Input, Sequence[Input]]: ...
+
+
+@overload
+def rep1(parser: Parser[Input, Output]) -> RepeatedOnceParser[Input, Output]: ...
 
 
 def rep1(
     parser: Union[Parser[Input, Output], Sequence[Input]],
-) -> RepeatedOnceParser[Input, Output]:
+) -> RepeatedOnceParser[Input, object]:
     """Match a parser one or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. If it matches as least
@@ -57,8 +67,10 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         self.min = min
         self.max = max
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
-        output: List[Output] = []
+    def _consume(
+        self, state: State, reader: Reader[Input]
+    ) -> Optional[Continue[Input, Sequence[Output]]]:
+        output: list[Output] = []
         remainder = reader
 
         while self.max is None or len(output) < self.max:
@@ -77,16 +89,37 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
         else:
             return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         min_string = f", min={self.min}" if self.min > 0 else ""
         max_string = f", max={self.max}" if self.max is not None else ""
         string = f"rep({self.parser.name_or_repr()}{min_string}{max_string})"
         return self.name_or_nothing() + string
 
 
+@overload
 def rep(
-    parser: Union[Parser, Sequence[Input]], *, min: int = 0, max: Optional[int] = None
-) -> RepeatedParser[Input, Output]:
+    parser: Sequence[Input],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
+) -> RepeatedParser[Input, Sequence[Input]]: ...
+
+
+@overload
+def rep(
+    parser: Parser[Input, Output],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
+) -> RepeatedParser[Input, Output]: ...
+
+
+def rep(
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
+) -> RepeatedParser[Input, object]:
     """Match a parser zero or more times repeatedly.
 
     This matches ``parser`` multiple times in a row. A list is returned

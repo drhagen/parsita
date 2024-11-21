@@ -1,9 +1,8 @@
 __all__ = ["whitespace"]
 
-from typing import Any
+from typing import Any, Optional
 
 from .parsers import Parser
-from .state import Input
 
 # Global mutable state
-whitespace: Parser[Input, Any] = None
+whitespace: Optional[Parser[Any, Any]] = None

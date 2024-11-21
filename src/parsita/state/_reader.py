@@ -5,9 +5,9 @@ __all__ = ["Reader", "SequenceReader", "StringReader"]
 import re
 from dataclasses import dataclass
 from io import StringIO
-from typing import Generic, Sequence, TypeVar
+from typing import TYPE_CHECKING, Generic, Sequence, TypeVar
 
-Input = TypeVar("Input")
+Input = TypeVar("Input", covariant=True)
 
 
 class Reader(Generic[Input]):
@@ -25,16 +25,27 @@ class Reader(Generic[Input]):
         source (Sequence[Input]): The full source being read.
     """
 
-    # Despite what mypy says, these cannot be converted to properties because
-    # they will break the dataclass attributes of the subclasses.
-    first: Input
-    rest: Reader[Input]
-    position: int
-    finished: bool
-    source: Sequence[Input]
+    if TYPE_CHECKING:
+        # These abstract properties cannot exist at runtime or they will break the
+        # dataclass subclasses
+
+        @property
+        def first(self) -> Input: ...
+
+        @property
+        def rest(self) -> Reader[Input]: ...
+
+        @property
+        def position(self) -> int: ...
+
+        @property
+        def finished(self) -> bool: ...
+
+        @property
+        def source(self) -> Sequence[Input]: ...
 
     def drop(self, count: int) -> Reader[Input]:
-        """Advance the reader by a ``count`` elements.
+        """Advance the reader by ``count`` elements.
 
         Both ``SequenceReader`` and ``StringReader`` override this method with a
         more efficient implementation.
@@ -44,7 +55,7 @@ class Reader(Generic[Input]):
             rest = rest.rest
         return rest
 
-    def next_token(self):
+    def next_token(self) -> Input:
         return self.first
 
     def expected_error(self, expected: Sequence[str]) -> str:
@@ -71,7 +82,7 @@ class Reader(Generic[Input]):
                 f"at index {self.position}"
             )
 
-    def recursion_error(self, repeated_parser: str):
+    def recursion_error(self, repeated_parser: str) -> str:
         """Generate an error to indicate that infinite recursion was encountered.
 
         A parser can supply a representation of itself to this method and the
@@ -98,7 +109,7 @@ class Reader(Generic[Input]):
 
 
 @dataclass(frozen=True)
-class SequenceReader(Reader[Input]):
+class SequenceReader(Generic[Input], Reader[Input]):
     """A reader for sequences that should not be sliced.
 
     Python makes a copy when a sequence is sliced. This reader avoids making
@@ -173,7 +184,7 @@ class StringReader(Reader[str]):
         else:
             return self.source[match.start() : match.end()]
 
-    def _current_line(self):
+    def _current_line(self) -> tuple[int, int, str, str]:
         # StringIO is not consistent in how it treats empty strings
         # and other strings not ending in newlines. Ensure that the
         # source always ends in a newline.
@@ -203,7 +214,7 @@ class StringReader(Reader[str]):
         # Add one to indexes to account for 0-indexes
         return line_index + 1, character_index + 1, line, pointer
 
-    def expected_error(self, expected: str) -> str:
+    def expected_error(self, expected: Sequence[str]) -> str:
         """Generate a basic error to include the current state.
 
         A parser can supply only a representation of what it is expecting to
@@ -230,7 +241,7 @@ class StringReader(Reader[str]):
             f"Line {line_index}, character {character_index}\n\n{line}{pointer}"
         )
 
-    def recursion_error(self, repeated_parser: str):
+    def recursion_error(self, repeated_parser: str) -> str:
         """Generate an error to indicate that infinite recursion was encountered.
 
         A parser can supply a representation of itself to this method and the

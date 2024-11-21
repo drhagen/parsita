@@ -3,7 +3,7 @@ from __future__ import annotations
 from nox import options, parametrize
 from nox_poetry import Session, session
 
-options.sessions = ["test", "coverage", "lint"]
+options.sessions = ["test", "coverage", "lint", "type_check"]
 
 
 @session(python=["3.9", "3.10", "3.11", "3.12", "3.13"])
@@ -27,6 +27,11 @@ def lint(s: Session, command: list[str]):
 
 
 @session(venv_backend="none")
-def format(s: Session) -> None:
+def type_check(s: Session):
+    s.run("mypy", "src")
+
+
+@session(venv_backend="none")
+def format(s: Session):
     s.run("ruff", "check", ".", "--select", "I", "--fix")
     s.run("ruff", "format", ".")

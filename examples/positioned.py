@@ -8,7 +8,7 @@ consumed by that parser.
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Generic
+from typing import Generic, Optional
 
 from parsita import Parser, ParserContext, Reader, reg
 from parsita.state import Continue, Input, Output, State
@@ -45,7 +45,7 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parser = parser
 
-    def _consume(self, state: State, reader: Reader[Input]):
+    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         start = reader.position
         status = self.parser.consume(state, reader)
 
@@ -55,11 +55,11 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
         else:
             return status
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + f"positioned({self.parser.name_or_repr()})"
 
 
-def positioned(parser: Parser[Input, PositionAware[Output]]):
+def positioned(parser: Parser[Input, PositionAware[Output]]) -> PositionedParser[Input, Output]:
     """Set the position on a PositionAware value.
 
     This parser matches ``parser`` and, if successful, calls ``set_position``
@@ -75,18 +75,18 @@ def positioned(parser: Parser[Input, PositionAware[Output]]):
 
 # Everything below here is an example use case
 @dataclass
-class UnfinishedVariable(PositionAware):
-    name: str
-
-    def set_position(self, start: int, length: int):
-        return Variable(self.name, start, length)
-
-
-@dataclass
 class Variable:
     name: str
     start: int
     length: int
+
+
+@dataclass
+class UnfinishedVariable(PositionAware[Variable]):
+    name: str
+
+    def set_position(self, start: int, length: int) -> Variable:
+        return Variable(self.name, start, length)
 
 
 @dataclass

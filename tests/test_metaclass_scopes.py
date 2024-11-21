@@ -3,7 +3,7 @@ import pytest
 from parsita import ParserContext, Success, lit
 
 
-def convert(value: str):
+def convert(value: str) -> str:
     return "global"
 
 
@@ -20,7 +20,7 @@ def test_global_class_global_function():
 
 
 class GlobalLocal(ParserContext):
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "local"
 
     x = lit("x") > convert
@@ -35,7 +35,7 @@ def test_global_class_local_function():
 
 
 class GlobalInner(ParserContext):
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "local"
 
     x = lit("x") > convert
@@ -65,7 +65,7 @@ def test_local_class_global_function():
 
 def test_local_class_local_function():
     class LocalLocal(ParserContext):
-        def convert(value: str):
+        def convert(value: str) -> str:
             return "local"
 
         x = lit("x") > convert
@@ -79,13 +79,13 @@ def test_local_class_local_function():
 
 def test_inner_class_inner_function():
     class LocalLocal(ParserContext):
-        def convert(value: str):
+        def convert(value: str) -> str:
             return "local"
 
         x = lit("x") > convert
 
         class Inner(ParserContext):
-            def convert(value: str):
+            def convert(value: str) -> str:
                 return "nested"
 
             x = lit("x") > convert
@@ -95,7 +95,7 @@ def test_inner_class_inner_function():
 
 
 def test_nested_class_global_function():
-    def nested():
+    def nested() -> type[ParserContext]:
         class LocalLocal(ParserContext):
             x = lit("x") > convert
 
@@ -110,7 +110,7 @@ def test_nested_class_global_function():
 
 
 def factory():
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "local"
 
     class LocalLocal(ParserContext):
@@ -123,7 +123,7 @@ def factory():
 
 
 def test_factory_class_local_function():
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "caller"
 
     returned_class = factory()
@@ -133,10 +133,10 @@ def test_factory_class_local_function():
 
 
 def test_nested_class_nonlocal_function():
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "nonlocal"
 
-    def nested():
+    def nested() -> type[ParserContext]:
         class LocalLocal(ParserContext):
             x = lit("x") > convert
 
@@ -152,10 +152,10 @@ def test_nested_class_nonlocal_function():
 
 
 def test_nested_class_local_function():
-    def convert(value: str):
+    def convert(value: str) -> str:
         return "nonlocal"
 
-    def nested():
+    def nested() -> type[ParserContext]:
         def convert(value: str):
             return "local"
 

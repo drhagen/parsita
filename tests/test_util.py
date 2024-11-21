@@ -10,21 +10,21 @@ def test_constant():
 
 
 def test_splat():
-    def f(a, b, c):
+    def f(a: int, b: int, c: int) -> int:
         return a + b + c
 
     assert f(1, 2, 3) == 6
 
     g = splat(f)
-    args = [1, 2, 3]
+    args = (1, 2, 3)
     assert g(args) == 6
 
 
 def test_unsplat():
-    def f(a):
+    def f(a: tuple[int, int, int]) -> int:
         return a[0] + a[1] + a[2]
 
-    args = [1, 2, 3]
+    args = (1, 2, 3)
     assert f(args) == 6
 
     g = unsplat(f)

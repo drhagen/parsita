@@ -1,6 +1,6 @@
 __all__ = ["RepeatedSeparatedParser", "repsep", "RepeatedOnceSeparatedParser", "rep1sep"]
 
-from typing import Any, Generic, Optional, Sequence, Union
+from typing import Generic, Optional, Sequence, Union, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal
@@ -10,7 +10,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
     def __init__(
         self,
         parser: Parser[Input, Output],
-        separator: Parser[Input, Any],
+        separator: Parser[Input, object],
         *,
         min: int = 0,
         max: Optional[int] = None,
@@ -21,30 +21,32 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         self.min = min
         self.max = max
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.consume(state, reader)
+    def _consume(
+        self, state: State, reader: Reader[Input]
+    ) -> Optional[Continue[Input, Sequence[Output]]]:
+        initial_status = self.parser.consume(state, reader)
 
-        if not isinstance(status, Continue):
+        if not isinstance(initial_status, Continue):
             output = []
             remainder = reader
         else:
-            output = [status.value]
-            remainder = status.remainder
+            output = [initial_status.value]
+            remainder = initial_status.remainder
             while self.max is None or len(output) < self.max:
                 # If the separator matches, but the parser does not, the
                 # remainder from the last successful parser step must be used,
                 # not the remainder from any separator. That is why the parser
                 # starts from the remainder on the status, but remainder is not
                 # updated until after the parser succeeds.
-                status = self.separator.consume(state, remainder)
-                if isinstance(status, Continue):
-                    status = self.parser.consume(state, status.remainder)
-                    if isinstance(status, Continue):
-                        if remainder.position == status.remainder.position:
+                separator_status = self.separator.consume(state, remainder)
+                if isinstance(separator_status, Continue):
+                    parser_status = self.parser.consume(state, separator_status.remainder)
+                    if isinstance(parser_status, Continue):
+                        if remainder.position == parser_status.remainder.position:
                             raise RecursionError(self, remainder)
 
-                        remainder = status.remainder
-                        output.append(status.value)
+                        remainder = parser_status.remainder
+                        output.append(parser_status.value)
                     else:
                         break
                 else:
@@ -55,7 +57,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         else:
             return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         rep_string = self.parser.name_or_repr()
         sep_string = self.separator.name_or_repr()
         min_string = f", min={self.min}" if self.min > 0 else ""
@@ -64,13 +66,33 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         return self.name_or_nothing() + string
 
 
+@overload
 def repsep(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    separator: Union[Parser[Input, Any], Sequence[Input]],
+    parser: Sequence[Input],
+    separator: Union[Parser[Input, object], Sequence[Input]],
     *,
     min: int = 0,
     max: Optional[int] = None,
-) -> RepeatedSeparatedParser[Input, Output]:
+) -> RepeatedSeparatedParser[Input, Sequence[Input]]: ...
+
+
+@overload
+def repsep(
+    parser: Parser[Input, Output],
+    separator: Union[Parser[Input, object], Sequence[Input]],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
+) -> RepeatedSeparatedParser[Input, Output]: ...
+
+
+def repsep(
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+    separator: Union[Parser[Input, object], Sequence[Input]],
+    *,
+    min: int = 0,
+    max: Optional[int] = None,
+) -> RepeatedSeparatedParser[Input, object]:
     """Match a parser zero or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``. A
@@ -90,48 +112,62 @@ def repsep(
 
 
 class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, Any]):
+    def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, object]):
         super().__init__()
         self.parser = parser
         self.separator = separator
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
-        status = self.parser.consume(state, reader)
+    def _consume(
+        self, state: State, reader: Reader[Input]
+    ) -> Optional[Continue[Input, Sequence[Output]]]:
+        initial_status = self.parser.consume(state, reader)
 
-        if status is None:
+        if initial_status is None:
             return None
         else:
-            output = [status.value]
-            remainder = status.remainder
+            output = [initial_status.value]
+            remainder = initial_status.remainder
             while True:
                 # If the separator matches, but the parser does not, the
                 # remainder from the last successful parser step must be used,
                 # not the remainder from any separator. That is why the parser
                 # starts from the remainder on the status, but remainder is not
                 # updated until after the parser succeeds.
-                status = self.separator.consume(state, remainder)
-                if isinstance(status, Continue):
-                    status = self.parser.consume(state, status.remainder)
-                    if isinstance(status, Continue):
-                        if remainder.position == status.remainder.position:
+                separator_status = self.separator.consume(state, remainder)
+                if isinstance(separator_status, Continue):
+                    parser_status = self.parser.consume(state, separator_status.remainder)
+                    if isinstance(parser_status, Continue):
+                        if remainder.position == parser_status.remainder.position:
                             raise RecursionError(self, remainder)
 
-                        remainder = status.remainder
-                        output.append(status.value)
+                        remainder = parser_status.remainder
+                        output.append(parser_status.value)
                     else:
                         return Continue(remainder, output)
                 else:
                     return Continue(remainder, output)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         string = f"rep1sep({self.parser.name_or_repr()}, {self.separator.name_or_repr()})"
         return self.name_or_nothing() + string
 
 
+@overload
+def rep1sep(
+    parser: Sequence[Input], separator: Union[Parser[Input, object], Sequence[Input]]
+) -> RepeatedOnceSeparatedParser[Input, Sequence[Input]]: ...
+
+
+@overload
+def rep1sep(
+    parser: Parser[Input, Output], separator: Union[Parser[Input, object], Sequence[Input]]
+) -> RepeatedOnceSeparatedParser[Input, Output]: ...
+
+
 def rep1sep(
     parser: Union[Parser[Input, Output], Sequence[Input]],
-    separator: Union[Parser[Input, Any], Sequence[Input]],
-) -> RepeatedOnceSeparatedParser[Input, Output]:
+    separator: Union[Parser[Input, object], Sequence[Input]],
+) -> RepeatedOnceSeparatedParser[Input, object]:
     """Match a parser one or more times separated by another parser.
 
     This matches repeated sequences of ``parser`` separated by ``separator``.

@@ -1,3 +1,5 @@
+from typing import Union
+
 import pytest
 
 from parsita import (
@@ -424,13 +426,13 @@ def test_infinite_recursion_protection():
 
 
 def test_conversion():
+    def make_twentyone(x: tuple[float, float]) -> float:
+        return x[0] * 10 + x[1]
+
     class TestParsers(ParserContext):
         one = lit("1") > int
         two = lit("2") > int
         twelve = one & two > (lambda x: x[0] * 10 + x[1])
-
-        def make_twentyone(x):
-            return x[0] * 10 + x[1]
 
         twentyone = two & one > make_twentyone
 
@@ -442,20 +444,20 @@ def test_conversion():
 
 
 def test_recursion():
+    def make_expr(x: tuple[float, Union[tuple[()], tuple[float]]]) -> float:
+        digits1, maybe_expr = x
+        if maybe_expr:
+            digits2 = maybe_expr[0]
+            return digits1 + digits2
+        else:
+            return digits1
+
     class TestParsers(ParserContext):
         one = lit("1") > float
         six = lit("6") > float
         eleven = lit("11") > float
 
         numbers = eleven | one | six
-
-        def make_expr(x):
-            digits1, maybe_expr = x
-            if maybe_expr:
-                digits2 = maybe_expr[0]
-                return digits1 + digits2
-            else:
-                return digits1
 
         expr = numbers & opt("+" >> expr) > make_expr
 

@@ -1,17 +1,17 @@
 __all__ = ["OptionalParser", "opt"]
 
-from typing import Generic, List, Sequence, Union
+from typing import Generic, Sequence, Union, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
+class OptionalParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
     def __init__(self, parser: Parser[Input, Output]):
         super().__init__()
         self.parser = parser
 
-    def _consume(self, state: State[Input], reader: Reader[Input]):
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Sequence[Output]]:
         status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
@@ -19,11 +19,25 @@ class OptionalParser(Generic[Input, Output], Parser[Input, List[Output]]):
         else:
             return Continue(reader, [])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name_or_nothing() + f"opt({self.parser.name_or_repr()})"
 
 
-def opt(parser: Union[Parser[Input, Output], Sequence[Input]]) -> OptionalParser[Input, Output]:
+@overload
+def opt(
+    parser: Sequence[Input],
+) -> OptionalParser[Input, Sequence[Input]]: ...
+
+
+@overload
+def opt(
+    parser: Parser[Input, Output],
+) -> OptionalParser[Input, Output]: ...
+
+
+def opt(
+    parser: Union[Parser[Input, Output], Sequence[Input]],
+) -> OptionalParser[Input, object]:
     """Optionally match a parser.
 
     An ``OptionalParser`` attempts to match ``parser``. If it succeeds, it

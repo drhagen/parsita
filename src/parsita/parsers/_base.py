@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["Parser", "wrap_literal"]
 
 from abc import abstractmethod
-from typing import Any, Generic, Optional, Sequence, Union
+from typing import Any, Callable, Generic, Optional, Sequence, TypeVar, Union, overload
 
 from .. import options
 from ..state import (
@@ -20,11 +20,24 @@ from ..state import (
     Success,
 )
 
+OtherOutput = TypeVar("OtherOutput")
+
 # Singleton indicating that no result is yet in the memo
-missing = object()
+# Use Ellipsis instead of object() to avoid mypy errors
+missing = ...
 
 
-def wrap_literal(obj: Any) -> Parser:
+@overload
+def wrap_literal(obj: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
+
+
+@overload
+def wrap_literal(obj: Parser[Input, Output]) -> Parser[Input, Output]: ...
+
+
+def wrap_literal(
+    obj: Union[Parser[Input, Output], Sequence[Input]],
+) -> Union[Parser[Input, Output], Parser[Input, Sequence[Input]]]:
     from ._literal import LiteralParser
 
     if isinstance(obj, Parser):
@@ -65,9 +78,7 @@ class Parser(Generic[Input, Output]):
             name.
     """
 
-    def consume(
-        self, state: State[Input], reader: Reader[Input]
-    ) -> Optional[Continue[Input, Output]]:
+    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         """Match this parser at the given location.
 
         This is a concrete wrapper around ``consume``. This method implements
@@ -107,9 +118,7 @@ class Parser(Generic[Input, Output]):
         return result
 
     @abstractmethod
-    def _consume(
-        self, state: State[Input], reader: Reader[Input]
-    ) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
         """Abstract method for matching this parser at the given location.
 
         This is the central method of every parser combinator.
@@ -124,7 +133,7 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    def parse(self, source: Union[Sequence[Input], Reader]) -> Result[Output]:
+    def parse(self, source: Union[Sequence[Input], Reader[Input]]) -> Result[Output]:
         """Completely parse a source.
 
         Args:
@@ -134,13 +143,13 @@ class Parser(Generic[Input, Output]):
             If the parser succeeded in matching and consumed the entire output,
             the value from ``Continue`` is copied to make a ``Success``. If the
             parser failed in matching, the expected patterns at the farthest
-            point in the source are used to construct a ``ParseError`, which is
+            point in the source are used to construct a ``ParseError``, which is
             then used to contruct a ``Failure``. If the parser succeeded but the
             source was not completely consumed, it returns a ``Failure`` with a
-            ``ParseError` indicating this.
+            ``ParseError`` indicating this.
 
         If a ``Reader`` is passed in, it is used directly. Otherwise, the source
-        is converted to an appropriate ``Reader``. If the source is ``str`, a
+        is converted to an appropriate ``Reader``. If the source is ``str``, a
         ``StringReader`` is used. Otherwise, a ``SequenceReader`` is used.
         """
         from ._end_of_source import eof
@@ -148,11 +157,11 @@ class Parser(Generic[Input, Output]):
         if isinstance(source, Reader):
             reader = source
         elif isinstance(source, str):
-            reader = StringReader(source, 0)
+            reader = StringReader(source, 0)  # type: ignore
         else:
             reader = SequenceReader(source)
 
-        state: State[Input] = State()
+        state: State = State()
 
         status = (self << eof).consume(state, reader)
 
@@ -166,7 +175,9 @@ class Parser(Generic[Input, Output]):
                     used.add(expected)
                     unique_expected.append(expected)
 
-            return Failure(ParseError(state.farthest, unique_expected))
+            # mypy does not understand that state.farthest cannot be None when there is a failure
+            parse_error = ParseError(state.farthest, unique_expected)  # type: ignore
+            return Failure(parse_error)
 
     name: Optional[str] = None
 
@@ -178,70 +189,128 @@ class Parser(Generic[Input, Output]):
         else:
             return self.name
 
-    def name_or_nothing(self) -> Optional[str]:
+    def name_or_nothing(self) -> str:
         if self.name is None:
             return ""
         else:
             return self.name + " = "
 
-    def __or__(self, other) -> Parser:
+    @overload
+    def __or__(self, other: Sequence[Input]) -> Parser[Input, Union[Output, Sequence[Input]]]: ...
+
+    @overload
+    def __or__(
+        self, other: Parser[Input, OtherOutput]
+    ) -> Parser[Input, Union[Output, OtherOutput]]: ...
+
+    def __or__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, object]:
         from ._alternative import LongestAlternativeParser
 
-        other = wrap_literal(other)
-        parsers: list[Parser] = []
+        narrowed_other = wrap_literal(other)
+        parsers: list[Parser[Input, object]] = []
         if isinstance(self, LongestAlternativeParser) and not self.protected:
             parsers.extend(self.parsers)
         else:
             parsers.append(self)
-        if isinstance(other, LongestAlternativeParser) and not other.protected:
-            parsers.extend(other.parsers)
+        if isinstance(narrowed_other, LongestAlternativeParser) and not narrowed_other.protected:
+            parsers.extend(narrowed_other.parsers)
         else:
-            parsers.append(other)
+            parsers.append(narrowed_other)
         return LongestAlternativeParser(*parsers)
 
-    def __ror__(self, other) -> Parser:
-        other = wrap_literal(other)
-        return other.__or__(self)
+    @overload
+    def __ror__(self, other: Sequence[Input]) -> Parser[Input, Union[Sequence[Input], Output]]: ...
 
-    def __and__(self, other) -> Parser:
+    @overload
+    def __ror__(
+        self, other: Parser[Input, OtherOutput]
+    ) -> Parser[Input, Union[OtherOutput, Output]]: ...
+
+    def __ror__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, object]:
+        narrowed_other = wrap_literal(other)
+        return narrowed_other.__or__(self)
+
+    @overload
+    def __and__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]: ...
+
+    @overload
+    def __and__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
+
+    def __and__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, Sequence[Any]]:
         from ._sequential import SequentialParser
 
-        other = wrap_literal(other)
-        if isinstance(self, SequentialParser) and not self.protected:
-            return SequentialParser(*self.parsers, other)
+        narrowed_other = wrap_literal(other)
+        if isinstance(self, SequentialParser) and not self.protected:  # type: ignore
+            return SequentialParser(*self.parsers, narrowed_other)  # type: ignore
         else:
-            return SequentialParser(self, other)
+            return SequentialParser(self, narrowed_other)
 
-    def __rand__(self, other) -> Parser:
-        other = wrap_literal(other)
-        return other.__and__(self)
+    @overload
+    def __rand__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Any]]: ...
 
-    def __rshift__(self, other) -> Parser:
+    @overload
+    def __rand__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
+
+    def __rand__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, Sequence[Any]]:
+        narrowed_other = wrap_literal(other)
+        return narrowed_other.__and__(self)
+
+    @overload
+    def __rshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
+
+    @overload
+    def __rshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
+
+    def __rshift__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, object]:
         from ._sequential import DiscardLeftParser
 
-        other = wrap_literal(other)
-        return DiscardLeftParser(self, other)
+        narrowed_other = wrap_literal(other)
+        return DiscardLeftParser(self, narrowed_other)
 
-    def __rrshift__(self, other) -> Parser:
-        other = wrap_literal(other)
-        return other.__rshift__(self)
+    def __rrshift__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, Output]:
+        narrowed_other = wrap_literal(other)
+        return narrowed_other.__rshift__(self)
 
-    def __lshift__(self, other) -> Parser:
+    def __lshift__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, Output]:
         from ._sequential import DiscardRightParser
 
-        other = wrap_literal(other)
-        return DiscardRightParser(self, other)
+        narrowed_other = wrap_literal(other)
+        return DiscardRightParser(self, narrowed_other)
 
-    def __rlshift__(self, other) -> Parser:
-        other = wrap_literal(other)
-        return other.__lshift__(self)
+    @overload
+    def __rlshift__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input]]: ...
 
-    def __gt__(self, other) -> Parser:
+    @overload
+    def __rlshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
+
+    def __rlshift__(
+        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, object]:
+        narrowed_other = wrap_literal(other)
+        return narrowed_other.__lshift__(self)
+
+    def __gt__(self, other: Callable[[Output], OtherOutput]) -> Parser[Input, OtherOutput]:
         from ._conversion import ConversionParser
 
         return ConversionParser(self, other)
 
-    def __ge__(self, other) -> Parser:
+    def __ge__(
+        self, other: Callable[[Output], Parser[Input, OtherOutput]]
+    ) -> Parser[Input, OtherOutput]:
         from ._conversion import TransformationParser
 
         return TransformationParser(self, other)

@@ -13,7 +13,7 @@ class JsonStringParsers(ParserContext):
     line_feed = lit(r"\n") > constant("\n")
     carriage_return = lit(r"\r") > constant("\r")
     tab = lit(r"\t") > constant("\t")
-    uni = reg(r"\\u([0-9a-fA-F]{4})") > (lambda x: chr(int(x.group(1), 16)))
+    uni = reg(r"\\u[0-9a-fA-F]{4}") > (lambda x: chr(int(x[2:], 16)))
 
     escaped = (
         quote
@@ -61,6 +61,7 @@ if __name__ == "__main__":
             "width" : 4.0
         }""",
         '{"text" : ""}',
+        r'"\u2260"',
     ]
 
     for string in strings:
