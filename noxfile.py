@@ -28,7 +28,7 @@ def lint(s: Session, command: list[str]):
 
 @session(venv_backend="none")
 def type_check(s: Session):
-    s.run("mypy", "src")
+    s.run("mypy", "src", "examples")
 
 
 @session(venv_backend="none")
