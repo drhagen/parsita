@@ -1,4 +1,4 @@
-__all__ = ["RepeatedOnceParser", "rep1", "RepeatedParser", "rep"]
+__all__ = ["RepeatedOnceParser", "RepeatedParser", "rep", "rep1"]
 
 from typing import Generic, Optional, Sequence, Union, overload
 

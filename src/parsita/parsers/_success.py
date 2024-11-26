@@ -1,4 +1,4 @@
-__all__ = ["SuccessParser", "success", "FailureParser", "failure"]
+__all__ = ["FailureParser", "SuccessParser", "failure", "success"]
 
 from typing import Generic, NoReturn, TypeVar
 

@@ -1,4 +1,4 @@
-__all__ = ["SequentialParser", "DiscardLeftParser", "DiscardRightParser"]
+__all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser"]
 
 from typing import Any, Generic, Optional, Sequence
 

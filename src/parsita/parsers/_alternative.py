@@ -1,4 +1,4 @@
-__all__ = ["FirstAlternativeParser", "first", "LongestAlternativeParser", "longest"]
+__all__ = ["FirstAlternativeParser", "LongestAlternativeParser", "first", "longest"]
 
 from typing import Generic, Optional, Sequence, Union, overload
 
