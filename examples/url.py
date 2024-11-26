@@ -7,9 +7,9 @@ from parsita.util import constant, splat
 # This covers a typical URL schema, not the crazy one specified by https://tools.ietf.org/html/rfc3986
 # In particular, this doesn't handle Unicode
 
-UserInfo = namedtuple("Userinfo", ["username", "password"])
+UserInfo = namedtuple("UserInfo", ["username", "password"])
 DomainName = namedtuple("DomainName", ["domains"])
-Url = namedtuple("Uri", ["scheme", "user_info", "host", "port", "path", "query", "fragment"])
+Url = namedtuple("Url", ["scheme", "user_info", "host", "port", "path", "query", "fragment"])
 
 
 class TypicalUrlParsers(ParserContext):
@@ -43,7 +43,7 @@ class TypicalUrlParsers(ParserContext):
     query_as_is = reg(r"[*-._A-Za-z0-9]+")
     query_space = lit("+") > constant(" ")
     query_string = rep1(query_as_is | query_space | encoded) > "".join
-    query = repsep(query_string << "=" & query_string, "&") > OrderedDict
+    query = repsep(query_string << "=" & query_string, "&") > OrderedDict  # type: ignore
 
     fragment = reg(r"[-._~/?A-Za-z0-9]*")
 
