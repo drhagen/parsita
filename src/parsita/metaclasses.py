@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["ForwardDeclaration", "fwd", "ParserContext"]
+__all__ = ["ForwardDeclaration", "ParserContext", "fwd"]
 
 import builtins
 import inspect

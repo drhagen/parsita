@@ -1,4 +1,4 @@
-__all__ = ["Result", "Success", "Failure"]
+__all__ = ["Failure", "Result", "Success"]
 
 from typing import TypeVar
 

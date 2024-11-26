@@ -29,7 +29,7 @@ pytest-cov = "*"
 pytest-timeout = "*"
 
 # Lint
-ruff = "^0.6"
+ruff = "^0.8"
 
 # Type checking
 mypy = "^1"

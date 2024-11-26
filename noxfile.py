@@ -33,5 +33,5 @@ def type_check(s: Session):
 
 @session(venv_backend="none")
 def format(s: Session):
-    s.run("ruff", "check", ".", "--select", "I", "--fix")
+    s.run("ruff", "check", ".", "--select", "I", "--select", "RUF022", "--fix")
     s.run("ruff", "format", ".")
