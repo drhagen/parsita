@@ -32,7 +32,11 @@ class ParsersDict(dict[str, Any]):
         self.forward_declarations: dict[str, ForwardDeclaration[Any, Any]] = {}
 
     @no_type_check  # mypy cannot handle all the frame inspection
-    def __missing__(self, key: str) -> ForwardDeclaration[Any, Any]:
+    def __missing__(self, key: str) -> Any:
+        # Allow type annotations in the class body  
+        if key == "__annotations__":
+            return {}
+
         frame = inspect.currentframe()  # Should be the frame of __missing__
         while frame.f_code.co_name != "__missing__":  # pragma: no cover
             # But sometimes debuggers add frames on top of the stack;

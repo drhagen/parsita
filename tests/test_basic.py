@@ -3,6 +3,7 @@ from typing import Union
 import pytest
 
 from parsita import (
+    Parser,
     Failure,
     ParseError,
     ParserContext,
@@ -565,3 +566,9 @@ def test_disallow_instatiation():
 
     with pytest.raises(TypeError):
         _ = TestParsers()
+
+def test_type_annotations():
+    class TestParsers(ParserContext):
+        w: Parser[str, str] = lit("w")
+
+    assert TestParsers.w.parse("w") == Success("w")
