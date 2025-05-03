@@ -33,7 +33,7 @@ class ParsersDict(dict[str, Any]):
 
     @no_type_check  # mypy cannot handle all the frame inspection
     def __missing__(self, key: str) -> Any:
-        # Allow type annotations in the class body  
+        # Allow type annotations in the class body
         if key == "__annotations__":
             return {}
 
