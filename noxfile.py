@@ -6,7 +6,7 @@ from nox_poetry import Session, session
 options.sessions = ["test", "coverage", "lint", "type_check"]
 
 
-@session(python=["3.9", "3.10", "3.11", "3.12", "3.13"])
+@session(python=["3.10", "3.11", "3.12", "3.13"])
 def test(s: Session):
     s.install(".", "pytest", "pytest-cov", "pytest-timeout")
     s.env["COVERAGE_FILE"] = f".coverage.{s.python}"

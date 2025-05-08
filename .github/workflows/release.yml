@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 env:
-  python-version: "3.9"
+  python-version: "3.10"
   poetry-version: "1.8.4"
 
 jobs:
