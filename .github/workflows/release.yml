@@ -6,8 +6,7 @@ on:
       - 'v*'
 
 env:
-  python-version: "3.10"
-  poetry-version: "1.8.4"
+  uv-version: "0.8.3"
 
 jobs:
   pypi-publish:
@@ -19,15 +18,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ env.python-version }}
-      - name: Build release with Poetry
-        run: poetry build
-      - name: Check that tag version and Poetry version match
-        run: '[[ "v$(poetry version --short)" == "${{ github.ref_name }}" ]]'
+          version: ${{ env.uv-version }}
+      - name: Build release with uv
+        run: uv build
+      - name: Check that tag version and project version match
+        run: '[[ "v$(uv version --short)" == "${{ github.ref_name }}" ]]'
       - name: Upload distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

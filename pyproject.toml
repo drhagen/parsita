@@ -1,51 +1,69 @@
-[tool.poetry]
+[build-system]
+requires = ["uv_build == 0.8.*"]
+build-backend = "uv_build"
+
+[project]
 name = "parsita"
 version = "2.2.2"
 description = "Parser combinator library for Python"
-authors = ["David Hagen <david@drhagen.com>"]
+authors = [ { name = "David Hagen", email = "david@drhagen.com" } ]
 license = "MIT"
 readme = "README.md"
-documentation = "https://parsita.drhagen.com"
-repository = "https://github.com/drhagen/parsita"
+requires-python = ">=3.10"
 keywords = ["text", "parsing", "parser", "combinator"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+dependencies = [
+    "returns>=0.20,<0.26"
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-returns = "^0.20|^0.21|^0.22|^0.23|^0.24|^0.25"
+[project.urls]
+Documentation = "https://parsita.drhagen.com"
+Repository = "https://github.com/drhagen/parsita"
 
-[tool.poetry.dev-dependencies]
-nox_poetry = "^1.0.3"
+[dependency-groups]
+nox = [
+    "nox-uv == 0.6.*",
+]
+test = [
+    "pytest == 8.*",
+    "pytest-timeout == 2.*",
+    "coverage == 7.*"
+]
+lint = [
+    "ruff == 0.6.*"
+]
+typing = [
+    "mypy == 1.*"
+]
+docs = [
+    "mkdocs-material == 9.*"
+]
 
-# Test
-pytest = "^8"
-pytest-cov = "*"
-pytest-timeout = "*"
-
-# Lint
-ruff = "^0.8"
-
-# Type checking
-mypy = "^1"
-
-# Docs
-mkdocs-material = "^9"
-
+[tool.uv]
+default-groups = "all"
+python-preference = "only-managed"
 
 [tool.pytest.ini_options]
 addopts = ["--strict-config", "--strict-markers"]
 xfail_strict = true
 filterwarnings = ["error"]
 
-
 [tool.coverage.run]
 branch = true
+source_pkgs = ["parsita"]
+relative_files = true
 
 [tool.coverage.report]
 exclude_lines = [
@@ -58,10 +76,8 @@ exclude_lines = [
 [tool.coverage.paths]
 source = [
     "src/",
-    ".nox/test*/lib/python*/site-packages/",
-    ".nox/test*/Lib/site-packages/",
+    "**/site-packages/",
 ]
-
 
 [tool.ruff]
 src = ["src"]
@@ -89,12 +105,7 @@ isort.combine-as-imports = true
 # F401: unused-import; Allow unused imports in __init__.py files
 "__init__.py" = ["F401"]
 
-
 [tool.mypy]
 strict = true
 # name-defined; Parsita triggers this, but code coverage will catch it
 disable_error_code = ["name-defined"]
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
