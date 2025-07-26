@@ -33,4 +33,4 @@ class State:
 @dataclass(frozen=True)
 class Continue(Generic[Input, Output]):
     remainder: Reader[Input]
-    value: Output
+    value: Output  # type: ignore[misc]  # mypy doesn't understand covariant immutable attributes

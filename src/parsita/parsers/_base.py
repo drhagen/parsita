@@ -246,8 +246,8 @@ class Parser(Generic[Input, Output]):
         from ._sequential import SequentialParser
 
         narrowed_other = wrap_literal(other)
-        if isinstance(self, SequentialParser) and not self.protected:  # type: ignore
-            return SequentialParser(*self.parsers, narrowed_other)  # type: ignore
+        if isinstance(self, SequentialParser) and not self.protected:
+            return SequentialParser(*self.parsers, narrowed_other)
         else:
             return SequentialParser(self, narrowed_other)
 
