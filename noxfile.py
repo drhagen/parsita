@@ -1,16 +1,14 @@
-from __future__ import annotations
+from nox import Session, options, parametrize
+from nox_uv import session
 
-from nox import options, parametrize
-from nox_poetry import Session, session
-
+options.default_venv_backend = "uv"
 options.sessions = ["test", "coverage", "lint", "type_check"]
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13"])
+@session(python=["3.10", "3.11", "3.12", "3.13"], uv_groups=["test"])
 def test(s: Session):
-    s.install(".", "pytest", "pytest-cov", "pytest-timeout")
-    s.env["COVERAGE_FILE"] = f".coverage.{s.python}"
-    s.run("python", "-m", "pytest", "--cov", "parsita")
+    coverage_file = f".coverage.{s.python}"
+    s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests")
 
 
 @session(venv_backend="none")
