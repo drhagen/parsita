@@ -32,7 +32,7 @@ uv sync
 Parsita uses pytest to run the tests in the `tests/` directory. The test command is encapsulated with Nox:
 
 ```shell
-poetry run nox -s test
+uv run nox -s test
 ```
 
 This will try to test with all compatible Python versions that `nox` can find. To run the tests with only a particular version, run something like this:

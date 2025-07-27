@@ -27,7 +27,7 @@ jobs:
         with:
           version: ${{ env.uv-version }}
       - name: Test with Nox
-        run: uv run --locked nox -s test-${{ matrix.python }}
+        run: uv run --locked --only-group nox nox -s test-${{ matrix.python }}
       - name: Store coverage
         uses: actions/upload-artifact@v4
         with:
