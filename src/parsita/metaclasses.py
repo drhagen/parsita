@@ -148,7 +148,7 @@ class ParserContextMeta(type):
         options.whitespace = old_options.whitespace
 
     def __new__(
-        mcs: type[ParserContextMeta],  # noqa: N804
+        mcs: type[ParserContextMeta],
         name: str,
         bases: tuple[type, ...],
         dct: ParsersDict,
