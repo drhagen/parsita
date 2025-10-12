@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "parsita"
-version = "2.2.2"
+version = "2.2.3"
 description = "Parser combinator library for Python"
 authors = [ { name = "David Hagen", email = "david@drhagen.com" } ]
 license = "MIT"

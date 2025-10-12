@@ -71,9 +71,10 @@ uv run mkdocs gh-deploy
 
 1. Bump
     1. Increment version in `pyproject.toml`
-    2. Commit with message "Bump version number to X.Y.Z"
-    3. Push commit to GitHub
-    4. Check [CI](https://github.com/drhagen/parsita/actions/workflows/ci.yml) to ensure all tests pass
+    2. Run `uv lock`
+    3. Commit with message "Bump version number to X.Y.Z"
+    4. Push commit to GitHub
+    5. Check [CI](https://github.com/drhagen/parsita/actions/workflows/ci.yml) to ensure all tests pass
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
