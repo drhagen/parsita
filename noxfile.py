@@ -5,7 +5,7 @@ options.default_venv_backend = "uv"
 options.sessions = ["test", "coverage", "lint", "type_check"]
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13"], uv_groups=["test"])
+@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"], uv_groups=["test"])
 def test(s: Session):
     coverage_file = f".coverage.{s.python}"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests")

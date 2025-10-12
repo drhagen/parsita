@@ -7,7 +7,7 @@ on:
       - master
 
 env:
-  uv-version: "0.8.3"
+  uv-version: "0.9.0"
 
 jobs:
   test:
@@ -18,6 +18,7 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo

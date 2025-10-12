@@ -21,11 +21,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11", 
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
 dependencies = [
-    "returns>=0.20,<0.26"
+    "returns>=0.20,<0.27"
 ]
 
 [project.urls]
@@ -42,7 +43,7 @@ test = [
     "coverage == 7.*"
 ]
 lint = [
-    "ruff == 0.6.*"
+    "ruff == 0.14.*"
 ]
 typing = [
     "mypy == 1.*"
