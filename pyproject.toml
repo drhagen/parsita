@@ -8,6 +8,7 @@ version = "2.2.3"
 description = "Parser combinator library for Python"
 authors = [ { name = "David Hagen", email = "david@drhagen.com" } ]
 license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["text", "parsing", "parser", "combinator"]
