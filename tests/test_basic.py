@@ -277,6 +277,14 @@ def test_seq_literal():
     assert TestParsers.ab.parse("ab") == Success(["a", "b"])
 
 
+def test_seq_zero():
+    class TestParsers(ParserContext):
+        empty = seq()
+
+    assert TestParsers.empty.parse("") == Success([])
+    assert str(TestParsers.empty) == "empty = seq()"
+
+
 def test_discard_left():
     class TestParsers(ParserContext):
         a = lit("a")

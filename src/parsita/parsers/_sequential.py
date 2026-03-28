@@ -8,9 +8,9 @@ from ._base import Parser, wrap_literal
 
 # Type of this class is inexpressible
 class SequentialParser(Generic[Input], Parser[Input, Sequence[Any]]):
-    def __init__(self, parser: Parser[Input, Any], *parsers: Parser[Input, Any]):
+    def __init__(self, *parsers: Parser[Input, Any]):
         super().__init__()
-        self.parsers = (parser, *parsers)
+        self.parsers = parsers
 
     def _consume(
         self, state: State, reader: Reader[Input]
@@ -29,11 +29,14 @@ class SequentialParser(Generic[Input], Parser[Input, Sequence[Any]]):
         return Continue(remainder, output)
 
     def __repr__(self) -> str:
-        names = []
-        for parser in self.parsers:
-            names.append(parser.name_or_repr())
+        if len(self.parsers) == 0:
+            return self.name_or_nothing() + "seq()"
+        else:
+            names = []
+            for parser in self.parsers:
+                names.append(parser.name_or_repr())
 
-        return self.name_or_nothing() + " & ".join(names)
+            return self.name_or_nothing() + " & ".join(names)
 
 
 class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
@@ -77,7 +80,6 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 def seq(
-    parser: Union[Parser[Input, Any], Sequence[Input]],
     *parsers: Union[Parser[Input, Any], Sequence[Input]],
 ) -> SequentialParser[Input]:
     """Match a sequence of parsers, returning a list of all results.
@@ -94,7 +96,7 @@ def seq(
     Python operator precedence rules.
 
     Args:
-        *parsers: Non-empty list of ``Parser``s or literals to match in order
+        *parsers: ``Parser``s or literals to match in order
     """
-    cleaned_parsers = [wrap_literal(parser_i) for parser_i in [parser, *parsers]]
+    cleaned_parsers = [wrap_literal(parser_i) for parser_i in parsers]
     return SequentialParser(*cleaned_parsers)
