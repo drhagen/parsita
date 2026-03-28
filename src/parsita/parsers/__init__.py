@@ -33,6 +33,7 @@ from ._sequential import (
     DiscardLeftParser as DiscardLeftParser,
     DiscardRightParser as DiscardRightParser,
     SequentialParser as SequentialParser,
+    seq as seq,
 )
 from ._success import (
     FailureParser as FailureParser,

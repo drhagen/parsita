@@ -24,6 +24,7 @@ from parsita import (
     rep1,
     rep1sep,
     repsep,
+    seq,
     success,
     until,
 )
@@ -251,6 +252,29 @@ def test_sequential():
     assert TestParsers.abc.parse("abc") == Failure(ParseError(StringReader("abc", 2), ["'cd'"]))
     assert TestParsers.abc.parse("abf") == Failure(ParseError(StringReader("abf", 2), ["'cd'"]))
     assert str(TestParsers.abc) == "abc = a & b & c"
+
+
+def test_seq():
+    class TestParsers(ParserContext):
+        a = lit("a")
+        b = lit("b")
+        c = lit("cd")
+        ab = seq(a, b)
+        abc = seq(a, b, c)
+        nested = seq(ab, c)
+
+    assert TestParsers.ab.parse("ab") == Success(["a", "b"])
+    assert TestParsers.abc.parse("abcd") == Success(["a", "b", "cd"])
+    assert TestParsers.nested.parse("abcd") == Success([["a", "b"], "cd"])
+    assert TestParsers.abc.parse("abc") == Failure(ParseError(StringReader("abc", 2), ["'cd'"]))
+    assert str(TestParsers.abc) == "abc = a & b & c"
+
+
+def test_seq_literal():
+    class TestParsers(ParserContext):
+        ab = seq("a", "b")
+
+    assert TestParsers.ab.parse("ab") == Success(["a", "b"])
 
 
 def test_discard_left():

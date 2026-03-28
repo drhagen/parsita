@@ -1,9 +1,9 @@
-__all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser"]
+__all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser", "seq"]
 
-from typing import Any, Generic, Optional, Sequence
+from typing import Any, Generic, Optional, Sequence, Union
 
 from ..state import Continue, Input, Output, Reader, State
-from ._base import Parser
+from ._base import Parser, wrap_literal
 
 
 # Type of this class is inexpressible
@@ -74,3 +74,27 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
     def __repr__(self) -> str:
         string = f"{self.left.name_or_repr()} << {self.right.name_or_repr()}"
         return self.name_or_nothing() + string
+
+
+def seq(
+    parser: Union[Parser[Input, Any], Sequence[Input]],
+    *parsers: Union[Parser[Input, Any], Sequence[Input]],
+) -> SequentialParser[Input]:
+    """Match a sequence of parsers, returning a list of all results.
+
+    A ``SequentialParser`` matches each parser in order and returns a list of
+    all the values returned by each parser.
+
+    This function is syntactic sugar for the ``&`` operator.
+    ``parser1 & parser2`` is equivalent to ``seq(parser1, parser2)``, except
+    that the ``&`` operator performs a bit of magic to flatten nested
+    ``SequentialParser``s such as ``parser1 & parser2 & parser3`` into
+    ``seq(parser1, parser2, parser3)`` instead of
+    ``seq(seq(parser1, parser2), parser3)`` as might be expected from the
+    Python operator precedence rules.
+
+    Args:
+        *parsers: Non-empty list of ``Parser``s or literals to match in order
+    """
+    cleaned_parsers = [wrap_literal(parser_i) for parser_i in [parser, *parsers]]
+    return SequentialParser(*cleaned_parsers)
