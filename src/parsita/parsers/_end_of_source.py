@@ -1,6 +1,6 @@
 __all__ = ["EndOfSourceParser", "eof"]
 
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 from ..state import Continue, Reader, State
 from ._base import Parser
@@ -14,7 +14,7 @@ class EndOfSourceParser(Parser[object, None]):
 
     def _consume(
         self, state: State, reader: Reader[FunctionInput]
-    ) -> Optional[Continue[FunctionInput, None]]:
+    ) -> Continue[FunctionInput, None] | None:
         if reader.finished:
             return Continue(reader, None)
         else:

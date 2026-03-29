@@ -1,6 +1,6 @@
 __all__ = ["PredicateParser", "pred"]
 
-from typing import Callable, Generic, Optional
+from typing import Callable, Generic
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -15,7 +15,7 @@ class PredicateParser(Generic[Input, Output], Parser[Input, Output]):
         self.predicate = predicate
         self.description = description
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         status = self.parser.consume(state, reader)
         if isinstance(status, Continue):
             if self.predicate(status.value):

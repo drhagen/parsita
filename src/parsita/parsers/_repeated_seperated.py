@@ -1,6 +1,6 @@
 __all__ = ["RepeatedOnceSeparatedParser", "RepeatedSeparatedParser", "rep1sep", "repsep"]
 
-from typing import Generic, Optional, Sequence, Union, overload
+from typing import Generic, Sequence, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal
@@ -13,7 +13,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
         separator: Parser[Input, object],
         *,
         min: int = 0,
-        max: Optional[int] = None,
+        max: int | None = None,
     ):
         super().__init__()
         self.parser = parser
@@ -23,7 +23,7 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
 
     def _consume(
         self, state: State, reader: Reader[Input]
-    ) -> Optional[Continue[Input, Sequence[Output]]]:
+    ) -> Continue[Input, Sequence[Output]] | None:
         initial_status = self.parser.consume(state, reader)
 
         if not isinstance(initial_status, Continue):
@@ -69,29 +69,29 @@ class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Out
 @overload
 def repsep(
     parser: Sequence[Input],
-    separator: Union[Parser[Input, object], Sequence[Input]],
+    separator: Parser[Input, object] | Sequence[Input],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedSeparatedParser[Input, Sequence[Input]]: ...
 
 
 @overload
 def repsep(
     parser: Parser[Input, Output],
-    separator: Union[Parser[Input, object], Sequence[Input]],
+    separator: Parser[Input, object] | Sequence[Input],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedSeparatedParser[Input, Output]: ...
 
 
 def repsep(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    separator: Union[Parser[Input, object], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
+    separator: Parser[Input, object] | Sequence[Input],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedSeparatedParser[Input, object]:
     """Match a parser zero or more times separated by another parser.
 
@@ -119,7 +119,7 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
 
     def _consume(
         self, state: State, reader: Reader[Input]
-    ) -> Optional[Continue[Input, Sequence[Output]]]:
+    ) -> Continue[Input, Sequence[Output]] | None:
         initial_status = self.parser.consume(state, reader)
 
         if initial_status is None:
@@ -154,19 +154,19 @@ class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence
 
 @overload
 def rep1sep(
-    parser: Sequence[Input], separator: Union[Parser[Input, object], Sequence[Input]]
+    parser: Sequence[Input], separator: Parser[Input, object] | Sequence[Input]
 ) -> RepeatedOnceSeparatedParser[Input, Sequence[Input]]: ...
 
 
 @overload
 def rep1sep(
-    parser: Parser[Input, Output], separator: Union[Parser[Input, object], Sequence[Input]]
+    parser: Parser[Input, Output], separator: Parser[Input, object] | Sequence[Input]
 ) -> RepeatedOnceSeparatedParser[Input, Output]: ...
 
 
 def rep1sep(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    separator: Union[Parser[Input, object], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
+    separator: Parser[Input, object] | Sequence[Input],
 ) -> RepeatedOnceSeparatedParser[Input, object]:
     """Match a parser one or more times separated by another parser.
 

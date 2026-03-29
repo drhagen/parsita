@@ -1,6 +1,6 @@
 __all__ = ["ConversionParser", "TransformationParser"]
 
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Callable, Generic, TypeVar
 
 from ..state import Continue, Input, Reader, State
 from ._base import Parser
@@ -15,7 +15,7 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         self.parser = parser
         self.converter = converter
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Convert]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Convert] | None:
         status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):
@@ -37,7 +37,7 @@ class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Conver
         self.parser = parser
         self.transformer = transformer
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Convert]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Convert] | None:
         status = self.parser.consume(state, reader)
 
         if isinstance(status, Continue):

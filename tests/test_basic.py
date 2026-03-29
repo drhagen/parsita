@@ -1,5 +1,3 @@
-from typing import Union
-
 import pytest
 
 from parsita import (
@@ -477,7 +475,7 @@ def test_conversion():
 
 
 def test_recursion():
-    def make_expr(x: tuple[float, Union[tuple[()], tuple[float]]]) -> float:
+    def make_expr(x: tuple[float, tuple[()] | tuple[float]]) -> float:
         digits1, maybe_expr = x
         if maybe_expr:
             digits2 = maybe_expr[0]

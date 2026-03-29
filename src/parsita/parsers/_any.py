@@ -1,6 +1,6 @@
 __all__ = ["AnyParser", "any1"]
 
-from typing import Any, Generic, Optional
+from typing import Any, Generic
 
 from ..state import Continue, Element, Reader, State
 from ._base import Parser
@@ -18,9 +18,7 @@ class AnyParser(Generic[Element], Parser[Element, Element]):
     def __init__(self) -> None:
         super().__init__()
 
-    def _consume(
-        self, state: State, reader: Reader[Element]
-    ) -> Optional[Continue[Element, Element]]:
+    def _consume(self, state: State, reader: Reader[Element]) -> Continue[Element, Element] | None:
         if reader.finished:
             state.register_failure("anything", reader)
             return None

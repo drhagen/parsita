@@ -1,6 +1,6 @@
 __all__ = ["FirstAlternativeParser", "LongestAlternativeParser", "first", "longest"]
 
-from typing import Generic, Optional, Sequence, Union, overload
+from typing import Generic, Sequence, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -11,7 +11,7 @@ class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser, *parsers)
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         for parser in self.parsers:
             status = parser.consume(state, reader)
             if isinstance(status, Continue):
@@ -29,8 +29,8 @@ class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 
 @overload
 def first(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    *parsers: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
+    *parsers: Parser[Input, Output] | Sequence[Input],
 ) -> FirstAlternativeParser[Input, Sequence[Input]]:
     # This signature is not quite right because Python has no higher-kinded
     # types to express that Output must be a subtype of Sequence[Input].
@@ -45,9 +45,9 @@ def first(
 
 
 def first(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    *parsers: Union[Parser[Input, Output], Sequence[Input]],
-) -> FirstAlternativeParser[Input, Union[Output, Sequence[Input]]]:
+    parser: Parser[Input, Output] | Sequence[Input],
+    *parsers: Parser[Input, Output] | Sequence[Input],
+) -> FirstAlternativeParser[Input, Output | Sequence[Input]]:
     """Match the first of several alternative parsers.
 
     An ``AlternativeParser`` attempts to match each supplied parser. If a parser
@@ -70,8 +70,8 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser, *parsers)
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
-        longest_success: Optional[Continue[Input, Output]] = None
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
+        longest_success: Continue[Input, Output] | None = None
         for parser in self.parsers:
             status = parser.consume(state, reader)
             if isinstance(status, Continue):
@@ -95,8 +95,8 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
 # types to express that Output must be a subtype of Sequence[Input].
 @overload
 def longest(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    *parsers: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
+    *parsers: Parser[Input, Output] | Sequence[Input],
 ) -> LongestAlternativeParser[Input, Sequence[Input]]: ...
 
 
@@ -108,9 +108,9 @@ def longest(
 
 
 def longest(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
-    *parsers: Union[Parser[Input, Output], Sequence[Input]],
-) -> LongestAlternativeParser[Input, Union[Output, Sequence[Input]]]:
+    parser: Parser[Input, Output] | Sequence[Input],
+    *parsers: Parser[Input, Output] | Sequence[Input],
+) -> LongestAlternativeParser[Input, Output | Sequence[Input]]:
     """Match the longest of several alternative parsers.
 
     A ``LongestAlternativeParser`` attempts to match all supplied parsers. If

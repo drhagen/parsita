@@ -1,6 +1,6 @@
 __all__ = ["RepeatedOnceParser", "RepeatedParser", "rep", "rep1"]
 
-from typing import Generic, Optional, Sequence, Union, overload
+from typing import Generic, Sequence, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal
@@ -13,7 +13,7 @@ class RepeatedOnceParser(Generic[Input, Output], Parser[Input, Sequence[Output]]
 
     def _consume(
         self, state: State, reader: Reader[Input]
-    ) -> Optional[Continue[Input, Sequence[Output]]]:
+    ) -> Continue[Input, Sequence[Output]] | None:
         initial_status = self.parser.consume(state, reader)
 
         if initial_status is None:
@@ -45,7 +45,7 @@ def rep1(parser: Parser[Input, Output]) -> RepeatedOnceParser[Input, Output]: ..
 
 
 def rep1(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
 ) -> RepeatedOnceParser[Input, object]:
     """Match a parser one or more times repeatedly.
 
@@ -61,7 +61,7 @@ def rep1(
 
 
 class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
-    def __init__(self, parser: Parser[Input, Output], *, min: int = 0, max: Optional[int] = None):
+    def __init__(self, parser: Parser[Input, Output], *, min: int = 0, max: int | None = None):
         super().__init__()
         self.parser = parser
         self.min = min
@@ -69,7 +69,7 @@ class RepeatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
 
     def _consume(
         self, state: State, reader: Reader[Input]
-    ) -> Optional[Continue[Input, Sequence[Output]]]:
+    ) -> Continue[Input, Sequence[Output]] | None:
         output: list[Output] = []
         remainder = reader
 
@@ -101,7 +101,7 @@ def rep(
     parser: Sequence[Input],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedParser[Input, Sequence[Input]]: ...
 
 
@@ -110,15 +110,15 @@ def rep(
     parser: Parser[Input, Output],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedParser[Input, Output]: ...
 
 
 def rep(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
     *,
     min: int = 0,
-    max: Optional[int] = None,
+    max: int | None = None,
 ) -> RepeatedParser[Input, object]:
     """Match a parser zero or more times repeatedly.
 
