@@ -7,7 +7,7 @@ import inspect
 import re
 from dataclasses import dataclass
 from re import Pattern
-from typing import TYPE_CHECKING, Any, Generic, NoReturn, Optional, Union, no_type_check
+from typing import TYPE_CHECKING, Any, Generic, NoReturn, no_type_check
 
 from . import options
 from .parsers import LiteralParser, Parser, RegexParser
@@ -18,7 +18,7 @@ missing: Any = object()
 
 @dataclass(frozen=True)
 class Options:
-    whitespace: Optional[Parser[Any, object]] = None
+    whitespace: Parser[Any, object] | None = None
 
 
 class ParsersDict(dict[str, Any]):
@@ -73,7 +73,7 @@ class ParsersDict(dict[str, Any]):
 
 class ForwardDeclaration(Generic[Input, Output], Parser[Input, Output]):
     def __init__(self) -> None:
-        self._definition: Optional[Parser[Input, Output]] = None
+        self._definition: Parser[Input, Output] | None = None
 
     def __getattribute__(self, member: str) -> Any:
         if member != "_definition" and self._definition is not None:
@@ -86,7 +86,7 @@ class ForwardDeclaration(Generic[Input, Output], Parser[Input, Output]):
 
         def _consume(
             self, state: State, reader: Reader[Input]
-        ) -> Optional[Continue[Input, Output]]: ...
+        ) -> Continue[Input, Output] | None: ...
 
     def define(self, parser: Parser[Input, Output]) -> None:
         self._definition = parser
@@ -103,7 +103,7 @@ def fwd() -> ForwardDeclaration[Input, Output]:
 
 
 class ParserContextMeta(type):
-    default_whitespace: Union[Parser[Any, object], Pattern[str], str, None] = None
+    default_whitespace: Parser[Any, object] | Pattern[str] | str | None = None
 
     @classmethod
     def __prepare__(
@@ -112,7 +112,7 @@ class ParserContextMeta(type):
         bases: tuple[type, ...],
         /,
         *,
-        whitespace: Union[Parser[Any, object], Pattern[str], str, None] = missing,
+        whitespace: Parser[Any, object] | Pattern[str] | str | None = missing,
         **kwargs: Any,
     ) -> ParsersDict:
         super().__prepare__(name, bases, **kwargs)
@@ -153,7 +153,7 @@ class ParserContextMeta(type):
         bases: tuple[type, ...],
         dct: ParsersDict,
         /,
-        whitespace: Union[Parser[Any, Any], Pattern[str], str, None] = missing,
+        whitespace: Parser[Any, Any] | Pattern[str] | str | None = missing,
     ) -> ParserContextMeta:
         return super().__new__(mcs, name, bases, dct)
 

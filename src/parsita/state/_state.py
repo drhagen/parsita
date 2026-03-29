@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["Continue", "Element", "Input", "Output", "State"]
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from ._reader import Reader
 
@@ -17,9 +17,9 @@ Element = TypeVar("Element")
 
 class State:
     def __init__(self) -> None:
-        self.farthest: Optional[Reader[object]] = None
+        self.farthest: Reader[object] | None = None
         self.expected: list[str] = []
-        self.memo: dict[tuple[Parser[Any, Any], int], Optional[Continue[Any, Any]]] = {}
+        self.memo: dict[tuple[Parser[Any, Any], int], Continue[Any, Any] | None] = {}
 
     def register_failure(self, expected: str, reader: Reader[object]) -> None:
         if self.farthest is None or self.farthest.position < reader.position:

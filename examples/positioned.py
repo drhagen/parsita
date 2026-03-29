@@ -8,7 +8,7 @@ consumed by that parser.
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Generic, Optional
+from typing import Generic
 
 from parsita import Parser, ParserContext, Reader, reg
 from parsita.state import Continue, Input, Output, State
@@ -45,7 +45,7 @@ class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
         super().__init__()
         self.parser = parser
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         start = reader.position
         status = self.parser.consume(state, reader)
 

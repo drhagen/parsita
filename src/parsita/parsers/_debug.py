@@ -1,6 +1,6 @@
 __all__ = ["DebugParser", "debug"]
 
-from typing import Any, Callable, Generic, Optional, Sequence, Union, overload
+from typing import Any, Callable, Generic, Sequence, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -11,7 +11,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self,
         parser: Parser[Input, Output],
         verbose: bool = False,
-        callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
+        callback: Callable[[Parser[Input, Output], Reader[Input]], None] | None = None,
     ):
         super().__init__()
         self.parser = parser
@@ -19,7 +19,7 @@ class DebugParser(Generic[Input, Output], Parser[Input, Output]):
         self.callback = callback
         self._parser_string = repr(parser)
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         if self.verbose:
             print(f"""Evaluating token {reader.next_token()} using parser {self._parser_string}""")
 
@@ -42,7 +42,7 @@ def debug(
     parser: Sequence[Input],
     *,
     verbose: bool = False,
-    callback: Optional[Callable[[Parser[Input, Sequence[Input]], Reader[Input]], None]] = None,
+    callback: Callable[[Parser[Input, Sequence[Input]], Reader[Input]], None] | None = None,
 ) -> DebugParser[Input, Sequence[Input]]: ...
 
 
@@ -51,15 +51,15 @@ def debug(
     parser: Parser[Input, Output],
     *,
     verbose: bool = False,
-    callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
+    callback: Callable[[Parser[Input, Output], Reader[Input]], None] | None = None,
 ) -> DebugParser[Input, Output]: ...
 
 
 def debug(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
     *,
     verbose: bool = False,
-    callback: Optional[Callable[[Parser[Input, Output], Reader[Input]], None]] = None,
+    callback: Callable[[Parser[Input, Output], Reader[Input]], None] | None = None,
 ) -> DebugParser[Input, Any]:
     """Execute debugging hooks before a parser.
 

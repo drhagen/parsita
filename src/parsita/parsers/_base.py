@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["Parser", "wrap_literal"]
 
 from abc import abstractmethod
-from typing import Any, Callable, Generic, Optional, Sequence, TypeVar, Union, overload
+from typing import Any, Callable, Generic, Sequence, TypeVar, overload
 
 from .. import options
 from ..state import (
@@ -36,8 +36,8 @@ def wrap_literal(obj: Parser[Input, Output]) -> Parser[Input, Output]: ...
 
 
 def wrap_literal(
-    obj: Union[Parser[Input, Output], Sequence[Input]],
-) -> Union[Parser[Input, Output], Parser[Input, Sequence[Input]]]:
+    obj: Parser[Input, Output] | Sequence[Input],
+) -> Parser[Input, Output] | Parser[Input, Sequence[Input]]:
     from ._literal import LiteralParser
 
     if isinstance(obj, Parser):
@@ -73,12 +73,12 @@ class Parser(Generic[Input, Output]):
             The fundamental limitation is that python does not handle linked
             lists well or have unpacking that would let one unpack abc as
             [temp, c].
-        name (Optional[str]): A name used by ``__str__`` and ``__repr__``.
+        name (str | None): A name used by ``__str__`` and ``__repr__``.
             It is set by the context classes when a parser is assigned to a
             name.
     """
 
-    def consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         """Match this parser at the given location.
 
         This is a concrete wrapper around ``consume``. This method implements
@@ -118,7 +118,7 @@ class Parser(Generic[Input, Output]):
         return result
 
     @abstractmethod
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         """Abstract method for matching this parser at the given location.
 
         This is the central method of every parser combinator.
@@ -133,7 +133,7 @@ class Parser(Generic[Input, Output]):
         """
         raise NotImplementedError()
 
-    def parse(self, source: Union[Sequence[Input], Reader[Input]]) -> Result[Output]:
+    def parse(self, source: Sequence[Input] | Reader[Input]) -> Result[Output]:
         """Completely parse a source.
 
         Args:
@@ -179,7 +179,7 @@ class Parser(Generic[Input, Output]):
             parse_error = ParseError(state.farthest, unique_expected)  # type: ignore
             return Failure(parse_error)
 
-    name: Optional[str] = None
+    name: str | None = None
 
     protected: bool = False
 
@@ -196,16 +196,12 @@ class Parser(Generic[Input, Output]):
             return self.name + " = "
 
     @overload
-    def __or__(self, other: Sequence[Input]) -> Parser[Input, Union[Output, Sequence[Input]]]: ...
+    def __or__(self, other: Sequence[Input]) -> Parser[Input, Output | Sequence[Input]]: ...
 
     @overload
-    def __or__(
-        self, other: Parser[Input, OtherOutput]
-    ) -> Parser[Input, Union[Output, OtherOutput]]: ...
+    def __or__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Output | OtherOutput]: ...
 
-    def __or__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
-    ) -> Parser[Input, object]:
+    def __or__(self, other: Sequence[Input] | Parser[Input, OtherOutput]) -> Parser[Input, object]:
         from ._alternative import LongestAlternativeParser
 
         narrowed_other = wrap_literal(other)
@@ -221,15 +217,15 @@ class Parser(Generic[Input, Output]):
         return LongestAlternativeParser(*parsers)
 
     @overload
-    def __ror__(self, other: Sequence[Input]) -> Parser[Input, Union[Sequence[Input], Output]]: ...
+    def __ror__(self, other: Sequence[Input]) -> Parser[Input, Sequence[Input] | Output]: ...
 
     @overload
     def __ror__(
         self, other: Parser[Input, OtherOutput]
-    ) -> Parser[Input, Union[OtherOutput, Output]]: ...
+    ) -> Parser[Input, OtherOutput | Output]: ...
 
     def __ror__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, object]:
         narrowed_other = wrap_literal(other)
         return narrowed_other.__or__(self)
@@ -241,7 +237,7 @@ class Parser(Generic[Input, Output]):
     def __and__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
 
     def __and__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, Sequence[Any]]:
         from ._sequential import SequentialParser
 
@@ -258,7 +254,7 @@ class Parser(Generic[Input, Output]):
     def __rand__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, Sequence[Any]]: ...
 
     def __rand__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, Sequence[Any]]:
         narrowed_other = wrap_literal(other)
         return narrowed_other.__and__(self)
@@ -270,7 +266,7 @@ class Parser(Generic[Input, Output]):
     def __rshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
 
     def __rshift__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, object]:
         from ._sequential import DiscardLeftParser
 
@@ -278,13 +274,13 @@ class Parser(Generic[Input, Output]):
         return DiscardLeftParser(self, narrowed_other)
 
     def __rrshift__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, Output]:
         narrowed_other = wrap_literal(other)
         return narrowed_other.__rshift__(self)
 
     def __lshift__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, Output]:
         from ._sequential import DiscardRightParser
 
@@ -298,7 +294,7 @@ class Parser(Generic[Input, Output]):
     def __rlshift__(self, other: Parser[Input, OtherOutput]) -> Parser[Input, OtherOutput]: ...
 
     def __rlshift__(
-        self, other: Union[Sequence[Input], Parser[Input, OtherOutput]]
+        self, other: Sequence[Input] | Parser[Input, OtherOutput]
     ) -> Parser[Input, object]:
         narrowed_other = wrap_literal(other)
         return narrowed_other.__lshift__(self)

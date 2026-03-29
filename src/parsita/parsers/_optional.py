@@ -1,6 +1,6 @@
 __all__ = ["OptionalParser", "opt"]
 
-from typing import Generic, Sequence, Union, overload
+from typing import Generic, Sequence, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -36,7 +36,7 @@ def opt(
 
 
 def opt(
-    parser: Union[Parser[Input, Output], Sequence[Input]],
+    parser: Parser[Input, Output] | Sequence[Input],
 ) -> OptionalParser[Input, object]:
     """Optionally match a parser.
 

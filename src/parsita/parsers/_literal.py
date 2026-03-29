@@ -1,6 +1,6 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Any, Generic, Optional, Sequence, TypeVar, Union, overload
+from typing import Any, Generic, Sequence, TypeVar, overload
 
 from .. import options
 from ..state import Continue, Element, Reader, State, StringReader
@@ -11,14 +11,12 @@ Literal = TypeVar("Literal", bound=Sequence[Any], covariant=True)
 
 
 class LiteralParser(Generic[Element, Literal], Parser[Element, Literal]):
-    def __init__(self, pattern: Literal, whitespace: Optional[Parser[Element, object]] = None):
+    def __init__(self, pattern: Literal, whitespace: Parser[Element, object] | None = None):
         super().__init__()
         self.pattern = pattern
         self.whitespace = whitespace
 
-    def _consume(
-        self, state: State, reader: Reader[Element]
-    ) -> Optional[Continue[Element, Literal]]:
+    def _consume(self, state: State, reader: Reader[Element]) -> Continue[Element, Literal] | None:
         if self.whitespace is not None:
             status = self.whitespace.consume(state, reader)
             reader = status.remainder  # type: ignore  # whitespace is infallible
@@ -66,7 +64,7 @@ def lit(literal: FunctionLiteral, *literals: FunctionLiteral) -> Parser[Any, Fun
 
 
 def lit(
-    literal: Union[FunctionLiteral, str, bytes], *literals: Union[FunctionLiteral, str, bytes]
+    literal: FunctionLiteral | str | bytes, *literals: FunctionLiteral | str | bytes
 ) -> Parser[Element, object]:
     """Match a literal sequence.
 

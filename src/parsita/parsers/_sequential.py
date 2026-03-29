@@ -1,6 +1,6 @@
 __all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser", "seq"]
 
-from typing import Any, Generic, Optional, Sequence, Union
+from typing import Any, Generic, Sequence
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
@@ -14,7 +14,7 @@ class SequentialParser(Generic[Input], Parser[Input, Sequence[Any]]):
 
     def _consume(
         self, state: State, reader: Reader[Input]
-    ) -> Optional[Continue[Input, Sequence[Any]]]:
+    ) -> Continue[Input, Sequence[Any]] | None:
         output = []
         remainder = reader
 
@@ -45,7 +45,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         status = self.left.consume(state, reader)
         if isinstance(status, Continue):
             return self.right.consume(state, status.remainder)
@@ -63,7 +63,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
         self.left = left
         self.right = right
 
-    def _consume(self, state: State, reader: Reader[Input]) -> Optional[Continue[Input, Output]]:
+    def _consume(self, state: State, reader: Reader[Input]) -> Continue[Input, Output] | None:
         status1 = self.left.consume(state, reader)
         if isinstance(status1, Continue):
             status2 = self.right.consume(state, status1.remainder)
@@ -80,7 +80,7 @@ class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
 
 
 def seq(
-    *parsers: Union[Parser[Input, Any], Sequence[Input]],
+    *parsers: Parser[Input, Any] | Sequence[Input],
 ) -> SequentialParser[Input]:
     """Match a sequence of parsers, returning a list of all results.
 
