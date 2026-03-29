@@ -1,7 +1,7 @@
 # python
 **/__pycache__
 
-# poetry
+# uv
 /.venv
 /dist
 

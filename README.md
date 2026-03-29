@@ -1,16 +1,13 @@
 # Parsita
 
+![PyPI downloads](https://img.shields.io/pypi/dm/parsita)
 [![Build status](https://github.com/drhagen/parsita/workflows/CI/badge.svg)](https://github.com/drhagen/parsita/actions/workflows/ci.yml)
 [![Code coverage](https://codecov.io/github/drhagen/parsita/coverage.svg?branch=master)](https://codecov.io/github/drhagen/parsita?branch=master)
 [![Latest PyPI version](https://img.shields.io/pypi/v/parsita.svg)](https://pypi.python.org/pypi/parsita)
 [![License](https://img.shields.io/pypi/l/parsita.svg)](https://github.com/drhagen/parsita/blob/master/LICENSE)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/parsita.svg)](https://pypi.python.org/pypi/parsita)
-[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://black.readthedocs.io)
-[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org)
-[![Nox](https://img.shields.io/badge/%F0%9F%A6%8A-Nox-D85E00.svg)](https://nox.thea.codes)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://beta.ruff.rs)
 
-> The executable grammar of parsers combinators made available in the executable pseudocode of Python.
+> The executable grammar of parser combinators made available in the executable pseudocode of Python.
 
 Parsita is a parser combinator library written in Python. Parser combinators provide an easy way to define a grammar using code so that the grammar itself effectively parses the source. They are not the fastest at parsing, but they are the easiest to write.
 
