@@ -20,6 +20,7 @@ from .parsers import (
     rep1 as rep1,
     rep1sep as rep1sep,
     repsep as repsep,
+    seq as seq,
     success as success,
     until as until,
 )

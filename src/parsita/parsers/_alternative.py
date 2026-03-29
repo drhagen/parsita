@@ -50,14 +50,13 @@ def first(
 ) -> FirstAlternativeParser[Input, Union[Output, Sequence[Input]]]:
     """Match the first of several alternative parsers.
 
-    A ``AlternativeParser`` attempts to match each supplied parser. If a parser
+    An ``AlternativeParser`` attempts to match each supplied parser. If a parser
     succeeds, its result is immediately returned and later parsers are not
     attempted. If all parsers fail, a failure is returned.
 
-    Currently, the behavior of `|` matches this function. If the current
-    behavior of always returning the first parser to succeed is desired, this
-    function should be used instead, because a future release of Parsita will
-    change the behavior of `|` to use `longest` instead.
+    There is a similar function ``longest`` that instead returns the result of
+    the parser that makes the farthest successful progress. The ``|`` operator
+    is syntactic sugar for ``longest``.
 
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
@@ -120,9 +119,8 @@ def longest(
     If multiple alternatives succeed with the same progress, the first one is
     returned.
 
-    Currently, the behavior of `|` matches `first`. If you desired returning the
-    longest match instead of the first, use this function instead. A future
-    release of Parsita will change the behavior of `|` to use `longest`.
+    The ``|`` operator is syntactic sugar for this function.
+    ``parser1 | parser2`` is equivalent to ``longest(parser1, parser2)``.
 
     Args:
         *parsers: Non-empty list of ``Parser``s or literals to try
