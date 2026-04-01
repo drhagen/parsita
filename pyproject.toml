@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build == 0.8.*"]
+requires = ["uv_build == 0.11.*"]
 build-backend = "uv_build"
 
 [project]
@@ -36,15 +36,15 @@ Repository = "https://github.com/drhagen/parsita"
 
 [dependency-groups]
 nox = [
-    "nox-uv == 0.6.*",
+    "nox-uv == 0.7.*",
 ]
 test = [
-    "pytest == 8.*",
+    "pytest == 9.*",
     "pytest-timeout == 2.*",
     "coverage == 7.*"
 ]
 lint = [
-    "ruff == 0.14.*"
+    "ruff == 0.15.*"
 ]
 typing = [
     "mypy == 1.*"
