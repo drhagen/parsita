@@ -1,6 +1,6 @@
 __all__ = ["FailureParser", "SuccessParser", "failure", "success"]
 
-from typing import Generic, NoReturn, TypeVar
+from typing import Generic, Never, TypeVar
 
 from ..state import Continue, Output, Reader, State
 from ._base import Parser
@@ -36,7 +36,7 @@ def success(value: FunctionOutput) -> SuccessParser[FunctionOutput]:
     return SuccessParser(value)
 
 
-class FailureParser(Parser[object, NoReturn]):
+class FailureParser(Parser[object, Never]):
     def __init__(self, expected: str):
         super().__init__()
         self.expected = expected
