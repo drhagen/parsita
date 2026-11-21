@@ -40,7 +40,7 @@ class PositionAware(Generic[Output]):
         """
 
 
-class PositionedParser(Generic[Input, Output], Parser[Input, Output]):
+class PositionedParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self, parser: Parser[Input, PositionAware[Output]]):
         super().__init__()
         self.parser = parser

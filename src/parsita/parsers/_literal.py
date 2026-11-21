@@ -1,6 +1,7 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Any, Generic, Sequence, TypeVar, overload
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar, overload
 
 from .. import options
 from ..state import Continue, Element, Reader, State, StringReader
@@ -10,7 +11,7 @@ from ._base import Parser
 Literal = TypeVar("Literal", bound=Sequence[Any], covariant=True)
 
 
-class LiteralParser(Generic[Element, Literal], Parser[Element, Literal]):
+class LiteralParser(Parser[Element, Literal], Generic[Element, Literal]):
     def __init__(self, pattern: Literal, whitespace: Parser[Element, object] | None = None):
         super().__init__()
         self.pattern = pattern

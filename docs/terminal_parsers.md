@@ -15,11 +15,13 @@ This is the simplest parser. It matches the exact string provided and returns th
 ```python
 from parsita import *
 
-class HelloParsers(ParserContext):
-    hello = lit('Hello World!')
 
-assert HelloParsers.hello.parse('Hello World!') == Success('Hello World!')
-assert isinstance(HelloParsers.hello.parse('Goodbye'), Failure)
+class HelloParsers(ParserContext):
+    hello = lit("Hello World!")
+
+
+assert HelloParsers.hello.parse("Hello World!") == Success("Hello World!")
+assert isinstance(HelloParsers.hello.parse("Goodbye"), Failure)
 ```
 
 In most cases, the call to `lit` is handled automatically. If a bare string is provided to the functions and operators of Parsita, it will be promoted to a literal parser whenever possible. Only when an operator is between two Python types, like a string and a string `'a' | 'b'` or a string and function `'100' > int` will this "implicit conversion" not take place and you have to use `lit` (e.g. `lit('a', 'b')` and `lit('100') > int`).
@@ -31,8 +33,10 @@ Like `lit`, this matches a string and returns it, but the matching is done with 
 ```python
 from parsita import *
 
-class IntegerParsers(ParserContext):
-    integer = reg(r'[-+]?[0-9]+')
 
-assert IntegerParsers.integer.parse('-128') == Success('-128')
+class IntegerParsers(ParserContext):
+    integer = reg(r"[-+]?[0-9]+")
+
+
+assert IntegerParsers.integer.parse("-128") == Success("-128")
 ```

@@ -11,13 +11,15 @@ A predicate parser matches `parser` and, if it succeeds, runs a test function `p
 ```python
 from parsita import *
 
-class IntervalParsers(ParserContext, whitespace=r'[ ]*'):
-    number = reg('\d+') > int
-    pair = '[' >> number << ',' & number << ']'
-    interval = pred(pair, lambda x: x[0] <= x[1], 'ordered pair')
 
-assert IntervalParsers.interval.parse('[1, 2]') == Success([1, 2])
-assert IntervalParsers.interval.parse('[2, 1]') != Success([2, 1])
+class IntervalParsers(ParserContext, whitespace=r"[ ]*"):
+    number = reg("\d+") > int
+    pair = "[" >> number << "," & number << "]"
+    interval = pred(pair, lambda x: x[0] <= x[1], "ordered pair")
+
+
+assert IntervalParsers.interval.parse("[1, 2]") == Success([1, 2])
+assert IntervalParsers.interval.parse("[2, 1]") != Success([2, 1])
 ```
 
 ## `until(parser):`: consume until parser matches
@@ -31,8 +33,10 @@ One of the obvious uses of the `until` parser is combining it with the transform
 ```python
 from parsita import *
 
-class TestParser(ParserContext, whitespace=r'\s*'):
+
+class TestParser(ParserContext, whitespace=r"\s*"):
     heredoc = reg("[A-Za-z]+") >= (lambda token: until(token) << token)
+
 
 content = "EOF\nAnything at all\nEOF"
 assert TestParser.heredoc.parse(content) == Success("Anything at all\n")
@@ -45,12 +49,12 @@ A parser that matches any single input element. This is not a particularly usefu
 ```python
 from parsita import *
 
-class DigitParsers(ParserContext):
-    digit = pred(any1, lambda x: x['type'] == 'digit', 'a digit') > \
-        (lambda x: x['payload'])
 
-assert DigitParsers.digit.parse([{'type': 'digit', 'payload': 3}]) == \
-    Success(3)
+class DigitParsers(ParserContext):
+    digit = pred(any1, lambda x: x["type"] == "digit", "a digit") > (lambda x: x["payload"])
+
+
+assert DigitParsers.digit.parse([{"type": "digit", "payload": 3}]) == Success(3)
 ```
 
 ## `eof`: end of file
@@ -60,14 +64,18 @@ A parser than matches the end of the input stream. It is not necessary to includ
 ```python
 from parsita import *
 
+
 class OptionsParsers(ParserContext):
-    option = reg(r'[A-Za-z]+') << '=' & reg(r'[A-Za-z]+') << (';' | eof)
+    option = reg(r"[A-Za-z]+") << "=" & reg(r"[A-Za-z]+") << (";" | eof)
     options = rep(option)
 
-assert OptionsParsers.options.parse('log=warn;detail=minimal;') == \
-    Success([['log', 'warn'], ['detail', 'minimal']])
-assert OptionsParsers.options.parse('log=warn;detail=minimal') == \
-    Success([['log', 'warn'], ['detail', 'minimal']])
+
+assert OptionsParsers.options.parse("log=warn;detail=minimal;") == Success(
+    [["log", "warn"], ["detail", "minimal"]]
+)
+assert OptionsParsers.options.parse("log=warn;detail=minimal") == Success(
+    [["log", "warn"], ["detail", "minimal"]]
+)
 ```
 
 ## `fwd()`: forward declaration
@@ -79,13 +87,15 @@ To use `fwd`, first assign `fwd()` to a variable, then use that variable in othe
 ```python
 from parsita import *
 
-class AddingParsers(ParserContext):
-    number = reg(r'[+-]?\d+') > int
-    expr = fwd()
-    base = '(' >> expr << ')' | number
-    expr.define(rep1sep(base, '+') > sum)
 
-assert AddingParsers.expr.parse('2+(1+2)+3') == Success(8)
+class AddingParsers(ParserContext):
+    number = reg(r"[+-]?\d+") > int
+    expr = fwd()
+    base = "(" >> expr << ")" | number
+    expr.define(rep1sep(base, "+") > sum)
+
+
+assert AddingParsers.expr.parse("2+(1+2)+3") == Success(8)
 ```
 
 ## `success(value)`: always succeed with value
@@ -95,12 +105,14 @@ This parser always succeeds with the given `value` of an arbitrary type while co
 ```python
 from parsita import *
 
+
 class HostnameParsers(ParserContext):
     port = success(80)  # TODO: do not just ignore other ports
-    host = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*'), '.')
+    host = rep1sep(reg("[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*"), ".")
     server = host & port
 
-assert HostnameParsers.server.parse('drhagen.com') == Success([['drhagen', 'com'], 80])
+
+assert HostnameParsers.server.parse("drhagen.com") == Success([["drhagen", "com"], 80])
 ```
 
 ## `failure(expected)`: always fail with message
@@ -110,14 +122,16 @@ This parser always fails with a message that it is expecting the given string `e
 ```python
 from parsita import *
 
+
 class HostnameParsers(ParserContext):
     # TODO: implement allowing different port
-    port = lit('80') | reg('[0-9]+') & failure('no other port than 80')
-    host = rep1sep(reg('[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*'), '.')
-    server = host << ':' & port
+    port = lit("80") | reg("[0-9]+") & failure("no other port than 80")
+    host = rep1sep(reg("[A-Za-z0-9]+([-]+[A-Za-z0-9]+)*"), ".")
+    server = host << ":" & port
 
-assert str(HostnameParsers.server.parse('drhagen.com:443').failure()) == (
-    'Expected no other port than 80 but found end of source'
+
+assert str(HostnameParsers.server.parse("drhagen.com:443").failure()) == (
+    "Expected no other port than 80 but found end of source"
 )
 ```
 
@@ -134,17 +148,20 @@ from decimal import Decimal
 
 from parsita import *
 
+
 def temp(parser, reader):
     # Can put a breakpoint here to inspect why the decimal parser is capturing
     # Spoiler: use `\.` instead of `.` in regexes
     pass
 
+
 class NumberParsers(ParserContext):
-    integer = reg(r'[-+]?[0-9]+') > int
-    decimal = debug(reg(r'[-+]?[0-9]+.[0-9]+'), callback=temp) > Decimal
-    scientific = reg(r'[-+]?[0-9]+e[-+]?[0-9]+') > float
+    integer = reg(r"[-+]?[0-9]+") > int
+    decimal = debug(reg(r"[-+]?[0-9]+.[0-9]+"), callback=temp) > Decimal
+    scientific = reg(r"[-+]?[0-9]+e[-+]?[0-9]+") > float
     number = decimal | scientific | integer
 
+
 # Assertion is broken and needs debugged
-assert isinstance(NumberParsers.number.parse('1e5').unwrap(), float)
+assert isinstance(NumberParsers.number.parse("1e5").unwrap(), float)
 ```

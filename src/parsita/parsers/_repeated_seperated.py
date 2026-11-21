@@ -1,12 +1,13 @@
 __all__ = ["RepeatedOnceSeparatedParser", "RepeatedSeparatedParser", "rep1sep", "repsep"]
 
-from typing import Generic, Sequence, overload
+from collections.abc import Sequence
+from typing import Generic, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal
 
 
-class RepeatedSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
+class RepeatedSeparatedParser(Parser[Input, Sequence[Output]], Generic[Input, Output]):
     def __init__(
         self,
         parser: Parser[Input, Output],
@@ -111,7 +112,7 @@ def repsep(
     return RepeatedSeparatedParser(wrap_literal(parser), wrap_literal(separator), min=min, max=max)
 
 
-class RepeatedOnceSeparatedParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
+class RepeatedOnceSeparatedParser(Parser[Input, Sequence[Output]], Generic[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], separator: Parser[Input, object]):
         super().__init__()
         self.parser = parser

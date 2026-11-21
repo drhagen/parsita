@@ -11,11 +11,14 @@ All the previous parsers will match at most one thing. This is the syntax for ma
 ```python
 from parsita import *
 
-class UrlParsers(ParserContext):
-    url = lit('http', 'ftp') & '://' & reg(r'[^/]+') & reg(r'.*')
 
-assert UrlParsers.url.parse('http://drhagen.com/blog/sane-equality/') == \
-    Success(['http', '://', 'drhagen.com', '/blog/sane-equality/'])
+class UrlParsers(ParserContext):
+    url = lit("http", "ftp") & "://" & reg(r"[^/]+") & reg(r".*")
+
+
+assert UrlParsers.url.parse("http://drhagen.com/blog/sane-equality/") == Success(
+    ["http", "://", "drhagen.com", "/blog/sane-equality/"]
+)
 ```
 
 ## `seq(*parsers)`: sequential parser
@@ -27,13 +30,15 @@ Unlike `&`, `seq` never flattens nested `SequentialParser`s. With `&`, an unprot
 ```python
 from parsita import *
 
-class CidrParsers(ParserContext):
-    octet = reg(r'\d{1,3}') > int
-    ip = seq(octet << '.', octet << '.', octet << '.', octet)
-    prefix = reg(r'\d{1,2}') > int
-    cidr = seq(ip << '/', prefix)
 
-assert CidrParsers.cidr.parse('192.168.1.0/24') == Success([[192, 168, 1, 0], 24])
+class CidrParsers(ParserContext):
+    octet = reg(r"\d{1,3}") > int
+    ip = seq(octet << ".", octet << ".", octet << ".", octet)
+    prefix = reg(r"\d{1,2}") > int
+    cidr = seq(ip << "/", prefix)
+
+
+assert CidrParsers.cidr.parse("192.168.1.0/24") == Success([[192, 168, 1, 0], 24])
 ```
 
 ## `parser1 >> parser2` and `parser1 << parser2`: discard left and right parsers
@@ -43,9 +48,11 @@ The discard left and discard right parser match the exact same text as `parser1 
 ```python
 from parsita import *
 
-class PointParsers(ParserContext, whitespace=r'[ ]*'):
-    integer = reg(r'[-+]?[0-9]+') > int
-    point = '(' >> integer << ',' & integer << ')'
 
-assert PointParsers.point.parse('(4, 3)') == Success([4, 3])
+class PointParsers(ParserContext, whitespace=r"[ ]*"):
+    integer = reg(r"[-+]?[0-9]+") > int
+    point = "(" >> integer << "," & integer << ")"
+
+
+assert PointParsers.point.parse("(4, 3)") == Success([4, 3])
 ```

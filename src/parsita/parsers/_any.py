@@ -6,7 +6,7 @@ from ..state import Continue, Element, Reader, State
 from ._base import Parser
 
 
-class AnyParser(Generic[Element], Parser[Element, Element]):
+class AnyParser(Parser[Element, Element], Generic[Element]):
     """Match any single element.
 
     This parser matches any single element, returning it. This is useful when it

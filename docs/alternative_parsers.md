@@ -11,12 +11,14 @@ This tries to match `parser1` and `parser2`. If one succeeds and the other fails
 ```python
 from parsita import *
 
+
 class NumberParsers(ParserContext):
-    integer = reg(r'[-+]?[0-9]+') > int
-    real = reg(r'[+-]?\d+\.\d+(e[+-]?\d+)?') | 'nan' | 'inf' > float
+    integer = reg(r"[-+]?[0-9]+") > int
+    real = reg(r"[+-]?\d+\.\d+(e[+-]?\d+)?") | "nan" | "inf" > float
     number = real | integer
 
-assert NumberParsers.number.parse('4.0000') == Success(4.0)
+
+assert NumberParsers.number.parse("4.0000") == Success(4.0)
 ```
 
 `a | b | c` is syntactic sugar for `longest(a, b, c)`. There is similar function `first(a, b, c)` that succeeds with the value of the first option to succeed instead of the one that consumed the most input. In most parsers, the first and longest alternative parsers have the same behavior, especially if the order of the alternatives is carefully considered. In version 1 of Parsita, the `a | b` syntax constructed a `first` parser. This was changed in version 2. If the old behavior of stopping on the first success is important, construct the parser with the `first` function to recover the old behavior.
@@ -28,12 +30,14 @@ This tries to match each parser supplied. After it has tried them all, it return
 ```python
 from parsita import *
 
+
 class ExpressionParsers(ParserContext):
-    name = reg(r'[a-zA-Z_]+')
-    function = name & '(' >> expression << ')'
+    name = reg(r"[a-zA-Z_]+")
+    function = name & "(" >> expression << ")"
     expression = longest(name, function)
 
-assert ExpressionParsers.expression.parse('f(x)') == Success(['f', 'x'])
+
+assert ExpressionParsers.expression.parse("f(x)") == Success(["f", "x"])
 ```
 
 As of version 2 of Parsita, `longest` is the implementation behind the `a | b | c` syntax. It replaced `first`, which was the implementation in version 1.
@@ -45,18 +49,17 @@ This tries to match each parser supplied. As soon as one parser succeeds, this r
 ```python
 from parsita import *
 
+
 class ExpressionParsers(ParserContext):
-    keyword = lit('pi', 'nan', 'inf')
-    name = reg(r'[a-zA-Z_]+')
-    function = name & '(' >> expression << ')'
+    keyword = lit("pi", "nan", "inf")
+    name = reg(r"[a-zA-Z_]+")
+    function = name & "(" >> expression << ")"
     expression = first(keyword, function, name)
 
-assert ExpressionParsers.expression.parse('f(x)') == Success(['f', 'x'])
-assert str(ExpressionParsers.expression.parse('pi(x)').failure()) == (
-    "Expected end of source but found '('\n"
-    "Line 1, character 3\n\n"
-    "pi(x)\n"
-    "  ^  "
+
+assert ExpressionParsers.expression.parse("f(x)") == Success(["f", "x"])
+assert str(ExpressionParsers.expression.parse("pi(x)").failure()) == (
+    "Expected end of source but found '('\nLine 1, character 3\n\npi(x)\n  ^  "
 )
 # Note how the above fails because `keyword` is matched by `first` so that
 # `function`, which would have matched the input, was not tried.
@@ -71,10 +74,12 @@ An optional parser tries to match its argument. If the argument succeeds, it ret
 ```python
 from parsita import *
 
-class DeclarationParsers(ParserContext, whitespace=r'[ ]*'):
-    id = reg(r'[A-Za-z_][A-Za-z0-9_]*')
-    declaration = id & opt(':' >> id)
 
-assert DeclarationParsers.declaration.parse('x: int') == Success(['x', ['int']])
-assert DeclarationParsers.declaration.parse('x') == Success(['x', []])
+class DeclarationParsers(ParserContext, whitespace=r"[ ]*"):
+    id = reg(r"[A-Za-z_][A-Za-z0-9_]*")
+    declaration = id & opt(":" >> id)
+
+
+assert DeclarationParsers.declaration.parse("x: int") == Success(["x", ["int"]])
+assert DeclarationParsers.declaration.parse("x") == Success(["x", []])
 ```

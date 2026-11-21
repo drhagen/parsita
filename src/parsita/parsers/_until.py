@@ -1,12 +1,13 @@
 __all__ = ["UntilParser", "until"]
 
-from typing import Any, Generic, Sequence
+from collections.abc import Sequence
+from typing import Any, Generic
 
 from ..state import Continue, Element, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class UntilParser(Generic[Element], Parser[Element, Sequence[Element]]):
+class UntilParser(Parser[Element, Sequence[Element]], Generic[Element]):
     def __init__(self, parser: Parser[Element, Any]):
         super().__init__()
         self.parser = parser

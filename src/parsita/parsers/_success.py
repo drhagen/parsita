@@ -1,6 +1,6 @@
 __all__ = ["FailureParser", "SuccessParser", "failure", "success"]
 
-from typing import Generic, NoReturn, TypeVar
+from typing import Generic, Never, TypeVar
 
 from ..state import Continue, Output, Reader, State
 from ._base import Parser
@@ -9,7 +9,7 @@ FunctionInput = TypeVar("FunctionInput")
 FunctionOutput = TypeVar("FunctionOutput")
 
 
-class SuccessParser(Generic[Output], Parser[object, Output]):
+class SuccessParser(Parser[object, Output], Generic[Output]):
     def __init__(self, value: Output):
         super().__init__()
         self.value = value
@@ -36,14 +36,13 @@ def success(value: FunctionOutput) -> SuccessParser[FunctionOutput]:
     return SuccessParser(value)
 
 
-class FailureParser(Parser[object, NoReturn]):
+class FailureParser(Parser[object, Never]):
     def __init__(self, expected: str):
         super().__init__()
         self.expected = expected
 
     def _consume(self, state: State, reader: Reader[object]) -> None:
         state.register_failure(self.expected, reader)
-        return None
 
     def __repr__(self) -> str:
         return self.name_or_nothing() + f"failure({self.expected!r})"

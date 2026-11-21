@@ -1,12 +1,13 @@
 __all__ = ["FirstAlternativeParser", "LongestAlternativeParser", "first", "longest"]
 
-from typing import Generic, Sequence, overload
+from collections.abc import Sequence
+from typing import Generic, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class FirstAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
+class FirstAlternativeParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser, *parsers)
@@ -65,7 +66,7 @@ def first(
     return FirstAlternativeParser(*cleaned_parsers)
 
 
-class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
+class LongestAlternativeParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self, parser: Parser[Input, Output], *parsers: Parser[Input, Output]):
         super().__init__()
         self.parsers = (parser, *parsers)
@@ -74,12 +75,11 @@ class LongestAlternativeParser(Generic[Input, Output], Parser[Input, Output]):
         longest_success: Continue[Input, Output] | None = None
         for parser in self.parsers:
             status = parser.consume(state, reader)
-            if isinstance(status, Continue):
-                if (
-                    longest_success is None
-                    or status.remainder.position > longest_success.remainder.position
-                ):
-                    longest_success = status
+            if isinstance(status, Continue) and (
+                longest_success is None
+                or status.remainder.position > longest_success.remainder.position
+            ):
+                longest_success = status
 
         return longest_success
 

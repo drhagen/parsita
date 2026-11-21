@@ -71,7 +71,7 @@ class ParsersDict(dict[str, Any]):
         super().__setitem__(key, value)
 
 
-class ForwardDeclaration(Generic[Input, Output], Parser[Input, Output]):
+class ForwardDeclaration(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self) -> None:
         self._definition: Parser[Input, Output] | None = None
 
@@ -138,8 +138,8 @@ class ParserContextMeta(type):
         super().__init__(name, bases, dct)
 
         # Resolve forward declarations, will raise if name not found
-        for name, forward_declaration in dct.forward_declarations.items():
-            obj = dct[name]
+        for parser_name, forward_declaration in dct.forward_declarations.items():
+            obj = dct[parser_name]
             if not isinstance(obj, Parser):
                 obj = LiteralParser(obj, options.whitespace)
             forward_declaration._definition = obj

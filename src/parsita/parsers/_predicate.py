@@ -1,12 +1,13 @@
 __all__ = ["PredicateParser", "pred"]
 
-from typing import Callable, Generic
+from collections.abc import Callable
+from typing import Generic
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class PredicateParser(Generic[Input, Output], Parser[Input, Output]):
+class PredicateParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(
         self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str
     ):

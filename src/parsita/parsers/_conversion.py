@@ -1,6 +1,7 @@
 __all__ = ["ConversionParser", "TransformationParser"]
 
-from typing import Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Generic, TypeVar
 
 from ..state import Continue, Input, Reader, State
 from ._base import Parser
@@ -9,7 +10,7 @@ Output = TypeVar("Output")
 Convert = TypeVar("Convert", covariant=True)
 
 
-class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
+class ConversionParser(Parser[Input, Convert], Generic[Input, Output, Convert]):
     def __init__(self, parser: Parser[Input, Output], converter: Callable[[Output], Convert]):
         super().__init__()
         self.parser = parser
@@ -27,7 +28,7 @@ class ConversionParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
         return self.name_or_nothing() + f"{self.parser!r} > {self.converter.__name__}"
 
 
-class TransformationParser(Generic[Input, Output, Convert], Parser[Input, Convert]):
+class TransformationParser(Parser[Input, Convert], Generic[Input, Output, Convert]):
     def __init__(
         self,
         parser: Parser[Input, Output],

@@ -2,16 +2,12 @@ from __future__ import annotations
 
 __all__ = ["constant", "splat", "unsplat"]
 
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any, ParamSpec, TypeVar, TypeVarTuple
 
-if TYPE_CHECKING:
-    # ParamSpec was introduced in Python 3.10
-    # TypeVarTuple and Unpack were introduced in Python 3.11
-    from typing import ParamSpec, TypeVar, TypeVarTuple, Unpack
-
-    A = TypeVar("A")
-    P = ParamSpec("P")
-    Ts = TypeVarTuple("Ts")
+A = TypeVar("A")
+P = ParamSpec("P")
+Ts = TypeVarTuple("Ts")
 
 
 def constant(x: A) -> Callable[P, A]:
@@ -32,7 +28,7 @@ def constant(x: A) -> Callable[P, A]:
 
 
 # This signature cannot be expressed narrowly because SequenceParser does not return a tuple
-def splat(f: Callable[[Unpack[Ts]], A], /) -> Callable[[Sequence[Any]], A]:
+def splat(f: Callable[[*Ts], A], /) -> Callable[[Sequence[Any]], A]:
     """Convert a function of multiple arguments into a function of a single iterable argument.
 
     Args:
@@ -57,7 +53,7 @@ def splat(f: Callable[[Unpack[Ts]], A], /) -> Callable[[Sequence[Any]], A]:
     return splatted
 
 
-def unsplat(f: Callable[[tuple[Unpack[Ts]]], A]) -> Callable[..., A]:
+def unsplat(f: Callable[[tuple[*Ts]], A]) -> Callable[..., A]:
     """Convert a function of a single iterable argument into a function of multiple arguments.
 
     Args:
@@ -76,7 +72,7 @@ def unsplat(f: Callable[[tuple[Unpack[Ts]]], A]) -> Callable[..., A]:
         $ g(1, 2, 3)  # 6
     """
 
-    def unsplatted(*args: Unpack[Ts]) -> A:
+    def unsplatted(*args: *Ts) -> A:
         return f(args)
 
     return unsplatted

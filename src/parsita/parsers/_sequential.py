@@ -1,13 +1,14 @@
 __all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser", "seq"]
 
-from typing import Any, Generic, Sequence
+from collections.abc import Sequence
+from typing import Any, Generic
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
 # Type of this class is inexpressible
-class SequentialParser(Generic[Input], Parser[Input, Sequence[Any]]):
+class SequentialParser(Parser[Input, Sequence[Any]], Generic[Input]):
     def __init__(self, *parsers: Parser[Input, Any]):
         super().__init__()
         self.parsers = parsers
@@ -39,7 +40,7 @@ class SequentialParser(Generic[Input], Parser[Input, Sequence[Any]]):
             return self.name_or_nothing() + " & ".join(names)
 
 
-class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
+class DiscardLeftParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self, left: Parser[Input, object], right: Parser[Input, Output]):
         super().__init__()
         self.left = left
@@ -57,7 +58,7 @@ class DiscardLeftParser(Generic[Input, Output], Parser[Input, Output]):
         return self.name_or_nothing() + string
 
 
-class DiscardRightParser(Generic[Input, Output], Parser[Input, Output]):
+class DiscardRightParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(self, left: Parser[Input, Output], right: Parser[Input, object]):
         super().__init__()
         self.left = left
