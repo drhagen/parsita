@@ -9,7 +9,7 @@ FunctionInput = TypeVar("FunctionInput")
 FunctionOutput = TypeVar("FunctionOutput")
 
 
-class SuccessParser(Generic[Output], Parser[object, Output]):
+class SuccessParser(Parser[object, Output], Generic[Output]):
     def __init__(self, value: Output):
         super().__init__()
         self.value = value
@@ -43,7 +43,6 @@ class FailureParser(Parser[object, Never]):
 
     def _consume(self, state: State, reader: Reader[object]) -> None:
         state.register_failure(self.expected, reader)
-        return None
 
     def __repr__(self) -> str:
         return self.name_or_nothing() + f"failure({self.expected!r})"

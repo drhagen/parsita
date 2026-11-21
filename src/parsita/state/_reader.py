@@ -110,7 +110,7 @@ class Reader(Generic[Input]):
 
 
 @dataclass(frozen=True)
-class SequenceReader(Generic[Input], Reader[Input]):
+class SequenceReader(Reader[Input], Generic[Input]):
     """A reader for sequences that should not be sliced.
 
     Python makes a copy when a sequence is sliced. This reader avoids making

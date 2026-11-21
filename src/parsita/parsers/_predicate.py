@@ -7,7 +7,7 @@ from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class PredicateParser(Generic[Input, Output], Parser[Input, Output]):
+class PredicateParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(
         self, parser: Parser[Input, Output], predicate: Callable[[Output], bool], description: str
     ):

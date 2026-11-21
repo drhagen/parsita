@@ -11,10 +11,12 @@ Conversion parsers don't change how the text is parsed—they change the value r
 ```python
 from parsita import *
 
-class IntegerParsers(ParserContext):
-    integer = reg(r'[-+]?[0-9]+') > int
 
-assert IntegerParsers.integer.parse('-128') == Success(-128)
+class IntegerParsers(ParserContext):
+    integer = reg(r"[-+]?[0-9]+") > int
+
+
+assert IntegerParsers.integer.parse("-128") == Success(-128)
 ```
 
 ## `parser >= function`: transformation parser
@@ -32,9 +34,11 @@ from dataclasses import dataclass
 
 from parsita import *
 
+
 @dataclass
 class Percent:
     number: int
+
 
 def to_percent(number: int) -> Parser[str, Percent]:
     if not 0 <= number <= 100:
@@ -42,11 +46,13 @@ def to_percent(number: int) -> Parser[str, Percent]:
     else:
         return success(Percent(number))
 
+
 class PercentParsers(ParserContext):
     percent = (reg(r"[0-9]+") > int) >= to_percent
 
-assert PercentParsers.percent.parse('50') == Success(Percent(50))
-assert isinstance(PercentParsers.percent.parse('150'), Failure)
+
+assert PercentParsers.percent.parse("50") == Success(Percent(50))
+assert isinstance(PercentParsers.percent.parse("150"), Failure)
 ```
 
 In the current version of Parsita, the error messages that come from this leave something to be desired. Right now in the core of Parsita, there is no way to separately specify where in the input parsing failed or what the actual token was. The location of the failure is always the farther point that input was consumed and the actual token is always the next token from that point. That means that the error message will always mark the token after what was successfully consumed and passed to `>=` before it was converted into a failure.
@@ -58,16 +64,19 @@ The second use is to parse later text based on previous text. This is incredibly
 ```python
 from parsita import *
 
+
 def select_parser(type: str):
-    if type == 'int':
+    if type == "int":
         return reg(r"[0-9]+") > int
-    elif type == 'decimal':
+    elif type == "decimal":
         return reg(r"[0-9]+\.[0-9]+") > float
 
-class NumberParsers(ParserContext, whitespace=r'[ ]*'):
-    type = lit('int', 'decimal')
+
+class NumberParsers(ParserContext, whitespace=r"[ ]*"):
+    type = lit("int", "decimal")
     number = type >= select_parser
 
-assert NumberParsers.number.parse('int 5') == Success(5)
-assert isinstance(NumberParsers.number.parse('int 2.0'), Failure)
+
+assert NumberParsers.number.parse("int 5") == Success(5)
+assert isinstance(NumberParsers.number.parse("int 2.0"), Failure)
 ```

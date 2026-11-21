@@ -12,7 +12,7 @@ StringType = TypeVar("StringType", str, bytes)
 
 # The Element type is str for str and int for bytes, but there is no way to
 # express that in Python.
-class RegexParser(Generic[StringType], Parser[Any, StringType]):
+class RegexParser(Parser[Any, StringType], Generic[StringType]):
     def __init__(
         self,
         pattern: re.Pattern[StringType],

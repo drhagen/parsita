@@ -7,7 +7,7 @@ from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class DebugParser(Generic[Input, Output], Parser[Input, Output]):
+class DebugParser(Parser[Input, Output], Generic[Input, Output]):
     def __init__(
         self,
         parser: Parser[Input, Output],

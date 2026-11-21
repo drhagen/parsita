@@ -44,7 +44,7 @@ test = [
     "coverage == 7.*"
 ]
 lint = [
-    "ruff == 0.15.*"
+    "ruff == 0.17.*"
 ]
 typing = [
     "mypy == 2.*"
@@ -88,6 +88,7 @@ line-length = 99
 [tool.ruff.lint]
 extend-select = [
     "I", # isort
+    "UP", # pyupgrade
     "N", # pep8-naming
     "RUF", # ruff
     "B", # flake8-bugbear
@@ -100,7 +101,8 @@ extend-select = [
 ]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
 # N805: invalid-first-argument-name-for-method; Parsita tests and examples define functions in class bodies
-extend-ignore = ["F821", "N805"]
+# PLC0105: type-name-incorrect-variance; Input and Output names are better than variance
+extend-ignore = ["F821", "N805", "PLC0105"]
 isort.combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]

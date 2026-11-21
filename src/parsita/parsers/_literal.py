@@ -11,7 +11,7 @@ from ._base import Parser
 Literal = TypeVar("Literal", bound=Sequence[Any], covariant=True)
 
 
-class LiteralParser(Generic[Element, Literal], Parser[Element, Literal]):
+class LiteralParser(Parser[Element, Literal], Generic[Element, Literal]):
     def __init__(self, pattern: Literal, whitespace: Parser[Element, object] | None = None):
         super().__init__()
         self.pattern = pattern

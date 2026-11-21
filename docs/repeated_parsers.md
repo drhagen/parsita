@@ -11,11 +11,13 @@ A repeated parser matches repeated instances of its parser argument. It returns 
 ```python
 from parsita import *
 
-class SummationParsers(ParserContext, whitespace=r'[ ]*'):
-    integer = reg(r'[-+]?[0-9]+') > int
-    summation = integer & rep('+' >> integer) > (lambda x: sum([x[0]] + x[1]))
 
-assert SummationParsers.summation.parse('1 + 1 + 2 + 3 + 5') == Success(12)
+class SummationParsers(ParserContext, whitespace=r"[ ]*"):
+    integer = reg(r"[-+]?[0-9]+") > int
+    summation = integer & rep("+" >> integer) > (lambda x: sum([x[0]] + x[1]))
+
+
+assert SummationParsers.summation.parse("1 + 1 + 2 + 3 + 5") == Success(12)
 ```
 
 ## `repsep(parser, separator, min=0, max=inf)` and `rep1sep(parser, separator)`: repeated separated parsers
@@ -25,9 +27,11 @@ A repeated separated parser matches parser separated by separator, returning a l
 ```python
 from parsita import *
 
-class ListParsers(ParserContext, whitespace=r'[ ]*'):
-    integer = reg(r'[-+]?[0-9]+') > int
-    my_list = '[' >> repsep(integer, ',') << ']'
 
-assert ListParsers.my_list.parse('[1,2,3]') == Success([1, 2, 3])
+class ListParsers(ParserContext, whitespace=r"[ ]*"):
+    integer = reg(r"[-+]?[0-9]+") > int
+    my_list = "[" >> repsep(integer, ",") << "]"
+
+
+assert ListParsers.my_list.parse("[1,2,3]") == Success([1, 2, 3])
 ```

@@ -7,7 +7,7 @@ from ..state import Continue, Element, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class UntilParser(Generic[Element], Parser[Element, Sequence[Element]]):
+class UntilParser(Parser[Element, Sequence[Element]], Generic[Element]):
     def __init__(self, parser: Parser[Element, Any]):
         super().__init__()
         self.parser = parser

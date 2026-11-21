@@ -31,15 +31,17 @@ The following is a very basic parser for extracting the name from a `Hello, {nam
 ```python
 from parsita import *
 
-class HelloWorldParsers(ParserContext, whitespace=r'[ ]*'):
-    hello_world = lit('Hello') >> ',' >> reg(r'[A-Z][a-z]*') << '!'
+
+class HelloWorldParsers(ParserContext, whitespace=r"[ ]*"):
+    hello_world = lit("Hello") >> "," >> reg(r"[A-Z][a-z]*") << "!"
+
 
 # A successful parse produces the parsed value
-name = HelloWorldParsers.hello_world.parse('Hello, David!').unwrap()
-assert name == 'David'
+name = HelloWorldParsers.hello_world.parse("Hello, David!").unwrap()
+assert name == "David"
 
 # A parsing failure produces a useful error message
-name = HelloWorldParsers.hello_world.parse('Hello David!').unwrap()
+name = HelloWorldParsers.hello_world.parse("Hello David!").unwrap()
 # parsita.state.ParseError: Expected ',' but found 'David'
 # Line 1, character 7
 #

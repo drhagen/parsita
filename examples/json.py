@@ -13,7 +13,7 @@ class JsonStringParsers(ParserContext):
     line_feed = lit(r"\n") > constant("\n")
     carriage_return = lit(r"\r") > constant("\r")
     tab = lit(r"\t") > constant("\t")
-    uni = reg(r"\\u[0-9a-fA-F]{4}") > (lambda x: chr(int(x[2:], 16)))
+    uni = reg(r"\\u[0-9a-fA-F]{4}") > (lambda x: chr(int(x[2:], 16)))  # noqa: FURB166 (\u, not 0x)
 
     escaped = (
         quote

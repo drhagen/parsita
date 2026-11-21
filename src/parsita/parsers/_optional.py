@@ -7,7 +7,7 @@ from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal
 
 
-class OptionalParser(Generic[Input, Output], Parser[Input, Sequence[Output]]):
+class OptionalParser(Parser[Input, Sequence[Output]], Generic[Input, Output]):
     def __init__(self, parser: Parser[Input, Output]):
         super().__init__()
         self.parser = parser

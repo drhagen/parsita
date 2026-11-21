@@ -14,12 +14,14 @@ The function `constant(value: A) -> Callable[..., A]` accepts any single value a
 from parsita import *
 from parsita.util import constant
 
+
 class BooleanParsers(ParserContext):
-    true = lit('true') > constant(True)
-    false = lit('false') > constant(False)
+    true = lit("true") > constant(True)
+    false = lit("false") > constant(False)
     boolean = true | false
 
-assert BooleanParsers.boolean.parse('false') == Success(False)
+
+assert BooleanParsers.boolean.parse("false") == Success(False)
 ```
 
 ## `splat(function)`: convert a function of many arguments to take only one list argument
@@ -31,15 +33,19 @@ from collections import namedtuple
 from parsita import *
 from parsita.util import splat
 
-Url = namedtuple('Url', ['host', 'port', 'path'])
+Url = namedtuple("Url", ["host", "port", "path"])
+
 
 class UrlParsers(ParserContext):
-    host = reg(r'[A-Za-z0-9.]+')
-    port = reg(r'[0-9]+') > int
-    path = reg(r'[-._~A-Za-z0-9/]*')
-    url = 'https://' >> host << ':' & port & path > splat(Url)
-assert UrlParsers.url.parse('https://drhagen.com:443/blog/') == \
-    Success(Url('drhagen.com', 443, '/blog/'))
+    host = reg(r"[A-Za-z0-9.]+")
+    port = reg(r"[0-9]+") > int
+    path = reg(r"[-._~A-Za-z0-9/]*")
+    url = "https://" >> host << ":" & port & path > splat(Url)
+
+
+assert UrlParsers.url.parse("https://drhagen.com:443/blog/") == Success(
+    Url("drhagen.com", 443, "/blog/")
+)
 ```
 
 ## `unsplat(function)`: convert a function of one list argument to take many arguments
@@ -49,11 +55,14 @@ The function `unsplat(function: Callable[tuple[tuple[*B]], A]) -> Callable[tuple
 ```python
 from parsita.util import splat, unsplat
 
+
 def sum_args(*x):
     return sum(x)
 
+
 def sum_list(x):
     return sum(x)
+
 
 splatted_sum_args = splat(sum_args)
 unsplatted_sum_list = unsplat(sum_list)
