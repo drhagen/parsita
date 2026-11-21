@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build == 0.11.*"]
+requires = ["uv_build == 0.13.*"]
 build-backend = "uv_build"
 
 [project]
@@ -23,11 +23,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
 dependencies = [
-    "returns>=0.20,<0.27"
+    "returns>=0.20,<0.31"
 ]
 
 [project.urls]
@@ -36,7 +37,7 @@ Repository = "https://github.com/drhagen/parsita"
 
 [dependency-groups]
 nox = [
-    "nox-uv == 0.7.*",
+    "nox-uv == 0.8.*",
 ]
 test = [
     "pytest == 9.*",
@@ -47,7 +48,7 @@ lint = [
     "ruff == 0.15.*"
 ]
 typing = [
-    "mypy == 1.*"
+    "mypy == 2.*"
 ]
 docs = [
     "mkdocs-material == 9.*"
