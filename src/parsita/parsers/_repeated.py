@@ -1,6 +1,7 @@
 __all__ = ["RepeatedOnceParser", "RepeatedParser", "rep", "rep1"]
 
-from typing import Generic, Sequence, overload
+from collections.abc import Sequence
+from typing import Generic, overload
 
 from ..state import Continue, Input, Output, Reader, RecursionError, State
 from ._base import Parser, wrap_literal

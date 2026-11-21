@@ -2,7 +2,8 @@ from __future__ import annotations
 
 __all__ = ["constant", "splat", "unsplat"]
 
-from typing import Any, Callable, ParamSpec, Sequence, TypeVar, TypeVarTuple
+from collections.abc import Callable, Sequence
+from typing import Any, ParamSpec, TypeVar, TypeVarTuple
 
 A = TypeVar("A")
 P = ParamSpec("P")

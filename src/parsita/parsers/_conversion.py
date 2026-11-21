@@ -1,6 +1,7 @@
 __all__ = ["ConversionParser", "TransformationParser"]
 
-from typing import Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Generic, TypeVar
 
 from ..state import Continue, Input, Reader, State
 from ._base import Parser

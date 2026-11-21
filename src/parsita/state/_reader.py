@@ -3,9 +3,10 @@ from __future__ import annotations
 __all__ = ["Reader", "SequenceReader", "StringReader"]
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from io import StringIO
-from typing import TYPE_CHECKING, Generic, Sequence, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 Input = TypeVar("Input", covariant=True)
 

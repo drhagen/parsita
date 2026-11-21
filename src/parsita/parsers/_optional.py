@@ -1,6 +1,7 @@
 __all__ = ["OptionalParser", "opt"]
 
-from typing import Generic, Sequence, overload
+from collections.abc import Sequence
+from typing import Generic, overload
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal

@@ -3,7 +3,8 @@ from __future__ import annotations
 __all__ = ["Parser", "wrap_literal"]
 
 from abc import abstractmethod
-from typing import Any, Callable, Generic, Sequence, TypeVar, overload
+from collections.abc import Callable, Sequence
+from typing import Any, Generic, TypeVar, overload
 
 from .. import options
 from ..state import (

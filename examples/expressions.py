@@ -1,4 +1,5 @@
-from typing import Literal, Sequence
+from collections.abc import Sequence
+from typing import Literal
 
 from parsita import ParserContext, lit, opt, reg, rep
 

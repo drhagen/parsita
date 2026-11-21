@@ -1,6 +1,7 @@
 __all__ = ["PredicateParser", "pred"]
 
-from typing import Callable, Generic
+from collections.abc import Callable
+from typing import Generic
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal

@@ -1,6 +1,7 @@
 __all__ = ["DiscardLeftParser", "DiscardRightParser", "SequentialParser", "seq"]
 
-from typing import Any, Generic, Sequence
+from collections.abc import Sequence
+from typing import Any, Generic
 
 from ..state import Continue, Input, Output, Reader, State
 from ._base import Parser, wrap_literal

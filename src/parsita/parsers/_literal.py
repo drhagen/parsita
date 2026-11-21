@@ -1,6 +1,7 @@
 __all__ = ["LiteralParser", "lit"]
 
-from typing import Any, Generic, Sequence, TypeVar, overload
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar, overload
 
 from .. import options
 from ..state import Continue, Element, Reader, State, StringReader
